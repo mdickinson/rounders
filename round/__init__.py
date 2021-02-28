@@ -12,6 +12,9 @@ def round_ties_to_away(x: float) -> int:
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
 
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
     if x < 0:
         return -round_ties_to_away(-x)
 
@@ -28,6 +31,9 @@ def round_ties_to_zero(x: float) -> int:
     """
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
 
     if x < 0:
         return -round_ties_to_zero(-x)
@@ -47,6 +53,9 @@ def round_ties_to_even(x: float) -> int:
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
 
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
     if x < 0:
         return -round_ties_to_even(-x)
 
@@ -64,6 +73,9 @@ def round_ties_to_odd(x: float) -> int:
     """
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
 
     if x < 0:
         return -round_ties_to_odd(-x)
@@ -83,6 +95,9 @@ def round_ties_to_plus(x: float) -> int:
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
 
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
     if x < 0:
         return -round_ties_to_minus(-x)
 
@@ -101,6 +116,9 @@ def round_ties_to_minus(x: float) -> int:
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
 
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
     if x < 0:
         return -round_ties_to_plus(-x)
 
@@ -117,6 +135,9 @@ def round_to_away(x: float) -> int:
     """
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
 
     if x < 0:
         return -round_to_away(-x)
@@ -135,6 +156,9 @@ def round_to_zero(x: float) -> int:
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
 
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
     if x < 0:
         return -round_to_zero(-x)
 
@@ -150,6 +174,9 @@ def round_to_plus(x: float) -> int:
     """
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
 
     if x < 0:
         return -round_to_minus(-x)
@@ -168,6 +195,9 @@ def round_to_minus(x: float) -> int:
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
 
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
     if x < 0:
         return -round_to_plus(-x)
 
@@ -183,6 +213,9 @@ def round_to_even(x: float) -> int:
     """
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
 
     if x < 0:
         return -round_to_even(-x)
@@ -200,6 +233,9 @@ def round_to_odd(x: float) -> int:
     """
     if not isinstance(x, float):
         raise NotImplementedError("Only implemented for floats")
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
 
     if x < 0:
         return -round_to_odd(-x)

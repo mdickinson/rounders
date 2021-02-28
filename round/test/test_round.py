@@ -3,6 +3,7 @@ Tests for functions in the 'round' module.
 """
 
 import fractions
+import math
 import unittest
 
 from round import (
@@ -412,5 +413,13 @@ class TestRound(unittest.TestCase):
                 )
                 self.assertLessEqual(abs(diff), 1)
 
-    # XXX To test:
-    # Behaviour for infinities and nans
+    def test_infinities(self):
+        for round_function in ALL_ROUNDING_FUNCTIONS:
+            for infinity in [math.inf, -math.inf]:
+                with self.assertRaises(ValueError):
+                    round_function(infinity)
+
+    def test_nan(self):
+        for round_function in ALL_ROUNDING_FUNCTIONS:
+            with self.assertRaises(ValueError):
+                round_function(math.nan)
