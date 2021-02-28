@@ -39,6 +39,27 @@ ALL_TEST_VALUES = [
     for signed_value in [-value, value]
 ]
 
+#: Various subsets of the rounding functions
+MIDPOINT_ROUNDING_FUNCTIONS = [
+    round_ties_to_even,
+    round_ties_to_odd,
+    round_ties_to_away,
+    round_ties_to_zero,
+    round_ties_to_plus,
+    round_ties_to_minus,
+]
+
+DIRECTED_ROUNDING_FUNCTIONS = [
+    round_to_even,
+    round_to_odd,
+    round_to_away,
+    round_to_zero,
+    round_to_plus,
+    round_to_minus,
+]
+
+ALL_ROUNDING_FUNCTIONS = MIDPOINT_ROUNDING_FUNCTIONS + DIRECTED_ROUNDING_FUNCTIONS
+
 
 #: One half, as a fraction constant.
 ONE_HALF = fractions.Fraction("1/2")
@@ -72,15 +93,6 @@ class TestRound(unittest.TestCase):
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
 
-    def test_round_ties_to_away_is_round_to_nearest(self):
-        round = round_ties_to_away
-
-        for value in ALL_TEST_VALUES:
-            with self.subTest(value=value):
-                rounded_value = round(value)
-                diff = fractions.Fraction(rounded_value) - fractions.Fraction(value)
-                self.assertLessEqual(diff, ONE_HALF)
-
     def test_round_ties_to_zero_quarters(self):
         test_cases = [
             (-2.0, -2),
@@ -107,15 +119,6 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_zero(value)
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
-
-    def test_round_ties_to_zero_is_round_to_nearest(self):
-        round = round_ties_to_zero
-
-        for value in ALL_TEST_VALUES:
-            with self.subTest(value=value):
-                rounded_value = round(value)
-                diff = fractions.Fraction(rounded_value) - fractions.Fraction(value)
-                self.assertLessEqual(diff, ONE_HALF)
 
     def test_round_ties_to_even_quarters(self):
         test_cases = [
@@ -144,15 +147,6 @@ class TestRound(unittest.TestCase):
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
 
-    def test_round_ties_to_even_is_round_to_nearest(self):
-        round = round_ties_to_even
-
-        for value in ALL_TEST_VALUES:
-            with self.subTest(value=value):
-                rounded_value = round(value)
-                diff = fractions.Fraction(rounded_value) - fractions.Fraction(value)
-                self.assertLessEqual(diff, ONE_HALF)
-
     def test_round_ties_to_odd_quarters(self):
         test_cases = [
             (-2.0, -2),
@@ -179,15 +173,6 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_odd(value)
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
-
-    def test_round_ties_to_odd_is_round_to_nearest(self):
-        round = round_ties_to_odd
-
-        for value in ALL_TEST_VALUES:
-            with self.subTest(value=value):
-                rounded_value = round(value)
-                diff = fractions.Fraction(rounded_value) - fractions.Fraction(value)
-                self.assertLessEqual(diff, ONE_HALF)
 
     def test_round_ties_to_plus_quarters(self):
         test_cases = [
@@ -216,15 +201,6 @@ class TestRound(unittest.TestCase):
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
 
-    def test_round_ties_to_plus_is_round_to_nearest(self):
-        round = round_ties_to_plus
-
-        for value in ALL_TEST_VALUES:
-            with self.subTest(value=value):
-                rounded_value = round(value)
-                diff = fractions.Fraction(rounded_value) - fractions.Fraction(value)
-                self.assertLessEqual(diff, ONE_HALF)
-
     def test_round_ties_to_minus_quarters(self):
         test_cases = [
             (-2.0, -2),
@@ -251,15 +227,6 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_minus(value)
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
-
-    def test_round_ties_to_minus_is_round_to_nearest(self):
-        round = round_ties_to_minus
-
-        for value in ALL_TEST_VALUES:
-            with self.subTest(value=value):
-                rounded_value = round(value)
-                diff = fractions.Fraction(rounded_value) - fractions.Fraction(value)
-                self.assertLessEqual(diff, ONE_HALF)
 
     def test_round_to_away_quarters(self):
         test_cases = [
@@ -422,6 +389,28 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_odd(value)
                 self.assertIsInstance(actual_result, int)
                 self.assertEqual(actual_result, expected_result)
+
+    def test_all_midpoint_rounding_modes_round_to_nearest(self):
+        # Difference between rounded value and original value should always
+        # at most 0.5 in absolute value.
+        for round_function in MIDPOINT_ROUNDING_FUNCTIONS:
+            for original_value in ALL_TEST_VALUES:
+                rounded_value = round_function(original_value)
+                diff = fractions.Fraction(rounded_value) - fractions.Fraction(
+                    original_value
+                )
+                self.assertLessEqual(abs(diff), ONE_HALF)
+
+    def test_all_rounding_modes_round_to_neighbour(self):
+        # Difference between rounded value and original value should always
+        # be strictly less than 1.0 in absolute value.
+        for round_function in ALL_ROUNDING_FUNCTIONS:
+            for original_value in ALL_TEST_VALUES:
+                rounded_value = round_function(original_value)
+                diff = fractions.Fraction(rounded_value) - fractions.Fraction(
+                    original_value
+                )
+                self.assertLessEqual(abs(diff), 1)
 
     # XXX To test:
     # Behaviour for infinities and nans
