@@ -24,7 +24,8 @@ from round import (
 )
 
 
-#: A selection of IEEE 754 binary64 floating-point values used in a wide variety of tests.
+#: A selection of IEEE 754 binary64 floating-point values used in a wide
+#: variety of tests.
 ALL_POSITIVE_TEST_VALUES = [
     *[0.25 * n for n in range(100)],  # quarter integers from 0.0 to 24.75
     4503599627370495.5,  # largest representable non-integral half integer
@@ -32,6 +33,7 @@ ALL_POSITIVE_TEST_VALUES = [
     float.fromhex("0x0.fffffffffffffp-1022"),  # largest +ve subnormal
     float.fromhex("0x1.fffffffffffffp-2"),  # largest value < 0.5
     float.fromhex("0x1.0000000000001p-1"),  # largest value > 0.5
+    float.fromhex("0x1.fffffffffffffp+1023"),  # largest finite value
 ]
 
 ALL_TEST_VALUES = [
