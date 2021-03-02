@@ -2,6 +2,7 @@
 Top-level rounding functions.
 """
 
+import fractions
 import math
 
 
@@ -22,9 +23,9 @@ _TO_EVEN = [[0, 3], [0, 3]]
 _TO_ODD = [[3, 0], [3, 0]]
 
 
-def _float_to_quarters(x: float):
+def _float_to_quarters(x: float, ndigits: int = 0):
     """
-    Information needed for rounding a float to the nearest integer.
+    Information needed for rounding a float.
 
     Returns
     -------
@@ -35,114 +36,130 @@ def _float_to_quarters(x: float):
         the round-to-odd rounding mode.
     """
     if not isinstance(x, float):
-        raise NotImplementedError("Only implemented for floats")
+        raise NotImplementedError(f"x must be a float; got {type(x)}")
 
-    # XXX We'll actually want to capture the sign of the zero in cases where a
-    # float is being returned. But right now that's not affecting anything
-    # using this code, so we can't write a behavioural test for it.
-    negative, x = x < 0, abs(x)
-    quarters, rest = divmod(x, 0.25)
-    return (
-        negative,
-        (4 * int(x) if math.isinf(quarters) else int(quarters)) | bool(rest),
-    )
-
-
-def _gen_round(x: float, signature) -> int:
-    """
-    Round the input x to the nearest integer, according to the given signature.
-    """
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
-    negative, quarters = _float_to_quarters(x)
-    sum = (quarters + signature[negative][quarters & 4 > 0]) // 4
-    return -sum if negative else sum
+    negative, x = math.copysign(1.0, x) < 0.0, fractions.Fraction(abs(x))
+    if ndigits >= 0:
+        quarters, rest = divmod(4 * 10 ** ndigits * x, 1)
+    else:
+        quarters, rest = divmod(4 * x, 10 ** -ndigits)
+    return negative, int(quarters) | bool(rest)
 
 
-def round_ties_to_away(x: float) -> int:
+def _convert_to_int(result):
+    sign, significand, exponent = result
+    assert exponent == 0
+    return -significand if sign else significand
+
+
+def _convert_to_float(result):
+    sign, significand, exponent = result
+    if exponent >= 0:
+        abs_value = float(significand * 10 ** exponent)
+    else:
+        abs_value = significand / 10 ** -exponent
+    return -abs_value if sign else abs_value
+
+
+def _gen_round(x: float, ndigits=None, *, signature) -> int:
+    """
+    Round the input x to the nearest integer, according to the given signature.
+    """
+    exponent = 0 if ndigits is None else -ndigits
+
+    sign, quarters = _float_to_quarters(x, -exponent)
+    significand = (quarters + signature[sign][quarters & 4 > 0]) // 4
+    result = sign, significand, exponent
+
+    return _convert_to_int(result) if ndigits is None else _convert_to_float(result)
+
+
+def round_ties_to_away(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer, rounding ties away from zero.
     """
-    return _gen_round(x, _TIES_TO_AWAY)
+    return _gen_round(x, ndigits, signature=_TIES_TO_AWAY)
 
 
-def round_ties_to_zero(x: float) -> int:
+def round_ties_to_zero(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer, rounding ties towards zero.
     """
-    return _gen_round(x, _TIES_TO_ZERO)
+    return _gen_round(x, ndigits, signature=_TIES_TO_ZERO)
 
 
-def round_ties_to_even(x: float) -> int:
+def round_ties_to_even(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer, rounding ties to the nearest
     even integer.
     """
-    return _gen_round(x, _TIES_TO_EVEN)
+    return _gen_round(x, ndigits, signature=_TIES_TO_EVEN)
 
 
-def round_ties_to_odd(x: float) -> int:
+def round_ties_to_odd(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer, rounding ties to the nearest
     odd integer.
     """
-    return _gen_round(x, _TIES_TO_ODD)
+    return _gen_round(x, ndigits, signature=_TIES_TO_ODD)
 
 
-def round_ties_to_plus(x: float) -> int:
+def round_ties_to_plus(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer, rounding ties towards positive
     infinity.
     """
-    return _gen_round(x, _TIES_TO_PLUS)
+    return _gen_round(x, ndigits, signature=_TIES_TO_PLUS)
 
 
-def round_ties_to_minus(x: float) -> int:
+def round_ties_to_minus(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer, rounding ties towards negative
     infinity.
     """
-    return _gen_round(x, _TIES_TO_MINUS)
+    return _gen_round(x, ndigits, signature=_TIES_TO_MINUS)
 
 
-def round_to_away(x: float) -> int:
+def round_to_away(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer away from zero.
     """
-    return _gen_round(x, _TO_AWAY)
+    return _gen_round(x, ndigits, signature=_TO_AWAY)
 
 
-def round_to_zero(x: float) -> int:
+def round_to_zero(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer towards zero.
     """
-    return _gen_round(x, _TO_ZERO)
+    return _gen_round(x, ndigits, signature=_TO_ZERO)
 
 
-def round_to_plus(x: float) -> int:
+def round_to_plus(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    return _gen_round(x, _TO_PLUS)
+    return _gen_round(x, ndigits, signature=_TO_PLUS)
 
 
-def round_to_minus(x: float) -> int:
+def round_to_minus(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer towards negative infinity.
     """
-    return _gen_round(x, _TO_MINUS)
+    return _gen_round(x, ndigits, signature=_TO_MINUS)
 
 
-def round_to_even(x: float) -> int:
+def round_to_even(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    return _gen_round(x, _TO_EVEN)
+    return _gen_round(x, ndigits, signature=_TO_EVEN)
 
 
-def round_to_odd(x: float) -> int:
+def round_to_odd(x: float, ndigits=None) -> int:
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    return _gen_round(x, _TO_ODD)
+    return _gen_round(x, ndigits, signature=_TO_ODD)

@@ -68,6 +68,13 @@ ALL_ROUNDING_FUNCTIONS = MIDPOINT_ROUNDING_FUNCTIONS + DIRECTED_ROUNDING_FUNCTIO
 ONE_HALF = fractions.Fraction("1/2")
 
 
+def sign_bit(x):
+    """
+    Sign bit of a float: True if negative, False if positive.
+    """
+    return math.copysign(1.0, x) < 0
+
+
 class TestRound(unittest.TestCase):
     def test_round_ties_to_away_quarters(self):
         test_cases = [
@@ -425,3 +432,55 @@ class TestRound(unittest.TestCase):
         for round_function in ALL_ROUNDING_FUNCTIONS:
             with self.assertRaises(ValueError):
                 round_function(math.nan)
+
+    def test_round_to_decimal_places(self):
+        self.assertFloatsIdentical(round_ties_to_away(66.15, -2), 100.0)
+        self.assertFloatsIdentical(round_ties_to_away(66.15, -1), 70.0)
+        self.assertFloatsIdentical(round_ties_to_away(2.37, -2), 0.0)
+        self.assertFloatsIdentical(round_ties_to_away(2.37, -1), 0.0)
+        self.assertFloatsIdentical(round_ties_to_away(-2.37, -1), -0.0)
+        self.assertFloatsIdentical(round_ties_to_away(2.37, 0), 2.0)
+        self.assertFloatsIdentical(round_ties_to_away(2.37, 1), 2.4)
+        self.assertFloatsIdentical(round_ties_to_away(2.37, 2), 2.37)
+        self.assertFloatsIdentical(round_ties_to_away(2.553, 2), 2.55)
+
+        self.assertFloatsIdentical(round_ties_to_away(0.0, 1), 0.0)
+        self.assertFloatsIdentical(round_ties_to_away(-0.0, 1), -0.0)
+
+    def test_exact_halfway_cases(self):
+        self.assertFloatsIdentical(round_ties_to_zero(2.5, 0), 2.0)
+        self.assertFloatsIdentical(round_ties_to_away(2.5, 0), 3.0)
+        self.assertFloatsIdentical(round_ties_to_plus(2.5, 0), 3.0)
+        self.assertFloatsIdentical(round_ties_to_minus(2.5, 0), 2.0)
+        self.assertFloatsIdentical(round_ties_to_even(2.5, 0), 2.0)
+        self.assertFloatsIdentical(round_ties_to_odd(2.5, 0), 3.0)
+
+        self.assertFloatsIdentical(round_ties_to_zero(3.5, 0), 3.0)
+        self.assertFloatsIdentical(round_ties_to_away(3.5, 0), 4.0)
+        self.assertFloatsIdentical(round_ties_to_plus(3.5, 0), 4.0)
+        self.assertFloatsIdentical(round_ties_to_minus(3.5, 0), 3.0)
+        self.assertFloatsIdentical(round_ties_to_even(3.5, 0), 4.0)
+        self.assertFloatsIdentical(round_ties_to_odd(3.5, 0), 3.0)
+
+        self.assertFloatsIdentical(round_ties_to_zero(-2.5, 0), -2.0)
+        self.assertFloatsIdentical(round_ties_to_away(-2.5, 0), -3.0)
+        self.assertFloatsIdentical(round_ties_to_plus(-2.5, 0), -2.0)
+        self.assertFloatsIdentical(round_ties_to_minus(-2.5, 0), -3.0)
+        self.assertFloatsIdentical(round_ties_to_even(-2.5, 0), -2.0)
+        self.assertFloatsIdentical(round_ties_to_odd(-2.5, 0), -3.0)
+
+        self.assertFloatsIdentical(round_ties_to_zero(-3.5, 0), -3.0)
+        self.assertFloatsIdentical(round_ties_to_away(-3.5, 0), -4.0)
+        self.assertFloatsIdentical(round_ties_to_plus(-3.5, 0), -3.0)
+        self.assertFloatsIdentical(round_ties_to_minus(-3.5, 0), -4.0)
+        self.assertFloatsIdentical(round_ties_to_even(-3.5, 0), -4.0)
+        self.assertFloatsIdentical(round_ties_to_odd(-3.5, 0), -3.0)
+
+    def assertFloatsIdentical(self, first, second):
+        self.assertIsInstance(first, float)
+        self.assertIsInstance(second, float)
+
+        # XXX Deal with special-cases: nans, infinities, signed zeros
+        self.assertEqual(first, second)
+        if first == 0.0:
+            self.assertEqual(sign_bit(first), sign_bit(second))
