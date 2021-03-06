@@ -476,11 +476,36 @@ class TestRound(unittest.TestCase):
         self.assertFloatsIdentical(round_ties_to_even(-3.5, 0), -4.0)
         self.assertFloatsIdentical(round_ties_to_odd(-3.5, 0), -3.0)
 
+    def test_special_floats(self):
+        for rounding_function in ALL_ROUNDING_FUNCTIONS:
+            with self.subTest(rounding_function=rounding_function):
+                self.assertFloatsIdentical(rounding_function(math.nan, 0), math.nan)
+                self.assertFloatsIdentical(rounding_function(math.inf, 0), math.inf)
+                self.assertFloatsIdentical(rounding_function(-math.inf, 0), -math.inf)
+
+    def test_round_finite_to_overflow(self):
+        for rounding_function in MIDPOINT_ROUNDING_FUNCTIONS:
+            with self.subTest(rounding_function=rounding_function):
+                with self.assertRaises(OverflowError):
+                    rounding_function(1.7e308, -308)
+                with self.assertRaises(OverflowError):
+                    rounding_function(-1.7e308, -308)
+
+    def test_round_integers_places_none(self):
+        test_values = [*range(-10, 10), *range(10 ** 100 - 10, 10 ** 100 + 10)]
+        for rounding_function in MIDPOINT_ROUNDING_FUNCTIONS:
+            for value in test_values:
+                rounded_value = rounding_function(value)
+                self.assertIsInstance(rounded_value, int)
+                self.assertEqual(rounded_value, value)
+
     def assertFloatsIdentical(self, first, second):
         self.assertIsInstance(first, float)
         self.assertIsInstance(second, float)
 
-        # XXX Deal with special-cases: nans, infinities, signed zeros
+        if math.isnan(first) and math.isnan(second):
+            return
+
         self.assertEqual(first, second)
         if first == 0.0:
             self.assertEqual(sign_bit(first), sign_bit(second))
