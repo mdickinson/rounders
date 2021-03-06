@@ -100,8 +100,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_ties_to_away(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_ties_to_zero_quarters(self):
         test_cases = [
@@ -496,8 +495,29 @@ class TestRound(unittest.TestCase):
         for rounding_function in MIDPOINT_ROUNDING_FUNCTIONS:
             for value in test_values:
                 rounded_value = rounding_function(value)
-                self.assertIsInstance(rounded_value, int)
-                self.assertEqual(rounded_value, value)
+                self.assertIntsIdentical(rounded_value, value)
+
+    def test_round_integers_places_not_none(self):
+        self.assertIntsIdentical(round_ties_to_even(123456, 1000), 123456)
+        self.assertIntsIdentical(round_ties_to_even(123456, 2), 123456)
+        self.assertIntsIdentical(round_ties_to_even(123456, 1), 123456)
+        self.assertIntsIdentical(round_ties_to_even(123456, 0), 123456)
+        self.assertIntsIdentical(round_ties_to_even(123456, -1), 123460)
+        self.assertIntsIdentical(round_ties_to_even(123456, -2), 123500)
+        self.assertIntsIdentical(round_ties_to_even(123456, -3), 123000)
+        self.assertIntsIdentical(round_ties_to_even(123456, -5), 100000)
+        self.assertIntsIdentical(round_ties_to_even(123456, -6), 0)
+        self.assertIntsIdentical(round_ties_to_even(123456, -7), 0)
+        self.assertIntsIdentical(round_ties_to_even(123456, -1000), 0)
+
+    # XXX What about rounding bools? What should the _type_ of
+    # round(True, 0) be?
+
+    def assertIntsIdentical(self, first, second):
+        self.assertIsInstance(first, int)
+        self.assertIsInstance(second, int)
+
+        self.assertEqual(first, second)
 
     def assertFloatsIdentical(self, first, second):
         self.assertIsInstance(first, float)

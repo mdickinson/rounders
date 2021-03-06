@@ -65,8 +65,16 @@ def _float_to_quarters(x: float, ndigits: int = 0):
 
 
 def _convert_to_int(result):
+    """
+    Express (-1)**sign * significand * 10**exponent as an integer.
+    """
     sign, significand, exponent = result
-    assert exponent == 0
+    if exponent >= 0:
+        significand *= 10 ** exponent
+    else:
+        significand, remainder = divmod(significand, 10 ** -exponent)
+        if remainder:
+            raise ValueError("Not representable as an integer")
     return -significand if sign else significand
 
 
