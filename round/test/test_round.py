@@ -126,8 +126,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_ties_to_zero(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_ties_to_even_quarters(self):
         test_cases = [
@@ -153,8 +152,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_ties_to_even(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_ties_to_odd_quarters(self):
         test_cases = [
@@ -180,8 +178,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_ties_to_odd(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_ties_to_plus_quarters(self):
         test_cases = [
@@ -207,8 +204,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_ties_to_plus(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_ties_to_minus_quarters(self):
         test_cases = [
@@ -234,8 +230,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_ties_to_minus(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_to_away_quarters(self):
         test_cases = [
@@ -261,8 +256,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_to_away(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_to_zero_quarters(self):
         test_cases = [
@@ -288,8 +282,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_to_zero(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_to_plus_quarters(self):
         test_cases = [
@@ -315,8 +308,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_to_plus(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_to_minus_quarters(self):
         test_cases = [
@@ -342,8 +334,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_to_minus(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_to_even_quarters(self):
         test_cases = [
@@ -369,8 +360,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_to_even(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_round_to_odd_quarters(self):
         test_cases = [
@@ -396,8 +386,7 @@ class TestRound(unittest.TestCase):
         for value, expected_result in test_cases:
             with self.subTest(value=value):
                 actual_result = round_to_odd(value)
-                self.assertIsInstance(actual_result, int)
-                self.assertEqual(actual_result, expected_result)
+                self.assertIntsIdentical(actual_result, expected_result)
 
     def test_all_midpoint_rounding_modes_round_to_nearest(self):
         # Difference between rounded value and original value should always
@@ -510,12 +499,53 @@ class TestRound(unittest.TestCase):
         self.assertIntsIdentical(round_ties_to_even(123456, -7), 0)
         self.assertIntsIdentical(round_ties_to_even(123456, -1000), 0)
 
-    # XXX What about rounding bools? What should the _type_ of
-    # round(True, 0) be?
+    def test_round_fractions_places_none(self):
+        # Tests pairs for round-ties-to-even
+        F = fractions.Fraction
+        self.assertIntsIdentical(round_ties_to_even(F(-3, 2)), -2)
+        self.assertIntsIdentical(round_ties_to_even(F(-1, 2)), 0)
+        self.assertIntsIdentical(round_ties_to_even(F(1, 2)), 0)
+        self.assertIntsIdentical(round_ties_to_even(F(3, 2)), 2)
+
+        self.assertIntsIdentical(round_ties_to_away(F(1, 2)), 1)
+
+    def test_round_fractions_places_not_none(self):
+        F = fractions.Fraction
+        test_value = fractions.Fraction(10000, 7)
+        self.assertFractionsIdentical(round_ties_to_even(test_value, -1000), F(0))
+        self.assertFractionsIdentical(round_ties_to_even(test_value, -2), F(1400))
+        self.assertFractionsIdentical(round_ties_to_even(test_value, -1), F(1430))
+        self.assertFractionsIdentical(round_ties_to_even(test_value, 0), F(1429))
+        self.assertFractionsIdentical(round_ties_to_even(test_value, 1), F("1428.6"))
+        self.assertFractionsIdentical(round_ties_to_even(test_value, 2), F("1428.57"))
+
+        self.assertFractionsIdentical(round_ties_to_even(test_value, -1000), F(0))
+        self.assertFractionsIdentical(round_to_zero(test_value, -2), F(1400))
+        self.assertFractionsIdentical(round_to_zero(test_value, -1), F(1420))
+        self.assertFractionsIdentical(round_to_zero(test_value, 0), F(1428))
+        self.assertFractionsIdentical(round_to_zero(test_value, 1), F("1428.5"))
+        self.assertFractionsIdentical(round_to_zero(test_value, 2), F("1428.57"))
+        self.assertFractionsIdentical(round_to_zero(test_value, 3), F("1428.571"))
+
+        self.assertFractionsIdentical(
+            round_to_zero(test_value, 50),
+            F("1428.57142857142857142857142857142857142857142857142857"),
+        )
+
+    # XXX What about rounding bools? What should the _type_ of round(True) and
+    # round(True, 0) be? If we're following Python's implementation, it
+    # should be int. But how is that determination made? We should use
+    # singledispatch, to make it easily extensible.
 
     def assertIntsIdentical(self, first, second):
         self.assertIsInstance(first, int)
         self.assertIsInstance(second, int)
+
+        self.assertEqual(first, second)
+
+    def assertFractionsIdentical(self, first, second):
+        self.assertIsInstance(first, fractions.Fraction)
+        self.assertIsInstance(second, fractions.Fraction)
 
         self.assertEqual(first, second)
 

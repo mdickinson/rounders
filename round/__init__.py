@@ -38,6 +38,18 @@ def _int_to_quarters(x: int, ndigits: int = 0):
     return negative, int(quarters) | bool(rest)
 
 
+def _fraction_to_quarters(x: fractions.Fraction, ndigits: int = 0):
+    if not isinstance(x, fractions.Fraction):
+        raise NotImplementedError(f"x must be a Fraction; got {type(x)}")
+
+    negative, x = x < 0, abs(x)
+    if ndigits >= 0:
+        quarters, rest = divmod(4 * 10 ** ndigits * x, 1)
+    else:
+        quarters, rest = divmod(4 * x, 10 ** -ndigits)
+    return negative, int(quarters) | bool(rest)
+
+
 def _float_to_quarters(x: float, ndigits: int = 0):
     """
     Information needed for rounding a float.
@@ -87,6 +99,22 @@ def _convert_to_float(result):
     return -abs_value if sign else abs_value
 
 
+def _convert_to_fraction(result):
+    sign, significand, exponent = result
+
+    if exponent >= 0:
+        numerator = significand * 10 ** exponent
+        denominator = 1
+    else:
+        numerator = significand
+        denominator = 10 ** -exponent
+    return (
+        -fractions.Fraction(numerator, denominator)
+        if sign
+        else fractions.Fraction(numerator, denominator)
+    )
+
+
 def _gen_round(x, ndigits=None, *, signature):
     """
     Round the input x to the nearest integer, according to the given signature.
@@ -95,6 +123,8 @@ def _gen_round(x, ndigits=None, *, signature):
         return_type = int
     elif isinstance(x, float):
         return_type = float if ndigits is not None else int
+    elif isinstance(x, fractions.Fraction):
+        return_type = fractions.Fraction if ndigits is not None else int
 
     if isinstance(x, float) and not math.isfinite(x):
         if return_type == float:
@@ -108,13 +138,22 @@ def _gen_round(x, ndigits=None, *, signature):
         sign, quarters = _float_to_quarters(x, -exponent)
     elif isinstance(x, int):
         sign, quarters = _int_to_quarters(x, -exponent)
+    elif isinstance(x, fractions.Fraction):
+        sign, quarters = _fraction_to_quarters(x, -exponent)
+    else:
+        raise TypeError(f"Unsupported type: {type(x)}")
+
     significand = (quarters + signature[sign][quarters & 4 > 0]) // 4
     result = sign, significand, exponent
 
     if return_type == int:
         return _convert_to_int(result)
-    else:
+    elif return_type == float:
         return _convert_to_float(result)
+    elif return_type == fractions.Fraction:
+        return _convert_to_fraction(result)
+    else:
+        raise TypeError(f"Unsupported return type: {return_type}")
 
 
 def round_ties_to_away(x, ndigits=None):
