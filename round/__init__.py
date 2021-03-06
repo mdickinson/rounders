@@ -3,6 +3,7 @@ Top-level rounding functions.
 """
 
 import fractions
+import functools
 import math
 
 
@@ -23,64 +24,16 @@ _TO_EVEN = [[0, 3], [0, 3]]
 _TO_ODD = [[3, 0], [3, 0]]
 
 
-def _int_to_quarters(x: int, ndigits: int = 0):
+@functools.singledispatch
+def to_type_of(x, sign, significand, exponent):
     """
-    Information needed for rounding an int.
+    Convert rounding result to type matching that of x.
     """
-    if not isinstance(x, int):
-        raise NotImplementedError(f"x must be an int; got {type(x)}")
-
-    negative, x = x < 0, fractions.Fraction(abs(x))
-    if ndigits >= 0:
-        quarters, rest = divmod(4 * 10 ** ndigits * x, 1)
-    else:
-        quarters, rest = divmod(4 * x, 10 ** -ndigits)
-    return negative, int(quarters) | bool(rest)
+    raise NotImplementedError("Not implemented for general objects")
 
 
-def _fraction_to_quarters(x: fractions.Fraction, ndigits: int = 0):
-    if not isinstance(x, fractions.Fraction):
-        raise NotImplementedError(f"x must be a Fraction; got {type(x)}")
-
-    negative, x = x < 0, abs(x)
-    if ndigits >= 0:
-        quarters, rest = divmod(4 * 10 ** ndigits * x, 1)
-    else:
-        quarters, rest = divmod(4 * x, 10 ** -ndigits)
-    return negative, int(quarters) | bool(rest)
-
-
-def _float_to_quarters(x: float, ndigits: int = 0):
-    """
-    Information needed for rounding a float.
-
-    Returns
-    -------
-    negative : bool
-        True if negative, False if positive
-    to_odd : nonnegative int
-        Absolute value of 4 * x / 10**ndigits, rounded to the nearest integer under
-        the round-to-odd rounding mode.
-    """
-    if not isinstance(x, float):
-        raise NotImplementedError(f"x must be a float; got {type(x)}")
-
-    if not math.isfinite(x):
-        raise ValueError("Input must be finite")
-
-    negative, x = math.copysign(1.0, x) < 0.0, fractions.Fraction(abs(x))
-    if ndigits >= 0:
-        quarters, rest = divmod(4 * 10 ** ndigits * x, 1)
-    else:
-        quarters, rest = divmod(4 * x, 10 ** -ndigits)
-    return negative, int(quarters) | bool(rest)
-
-
-def _convert_to_int(result):
-    """
-    Express (-1)**sign * significand * 10**exponent as an integer.
-    """
-    sign, significand, exponent = result
+@to_type_of.register(int)
+def _(x, sign, significand, exponent):
     if exponent >= 0:
         significand *= 10 ** exponent
     else:
@@ -90,8 +43,8 @@ def _convert_to_int(result):
     return -significand if sign else significand
 
 
-def _convert_to_float(result):
-    sign, significand, exponent = result
+@to_type_of.register(float)
+def _(x, sign, significand, exponent):
     if exponent >= 0:
         abs_value = float(significand * 10 ** exponent)
     else:
@@ -99,9 +52,8 @@ def _convert_to_float(result):
     return -abs_value if sign else abs_value
 
 
-def _convert_to_fraction(result):
-    sign, significand, exponent = result
-
+@to_type_of.register(fractions.Fraction)
+def _(x, sign, significand, exponent):
     if exponent >= 0:
         numerator = significand * 10 ** exponent
         denominator = 1
@@ -115,45 +67,87 @@ def _convert_to_fraction(result):
     )
 
 
-def _gen_round(x, ndigits=None, *, signature):
+@functools.singledispatch
+def is_finite(x):
+    """
+    Determine whether a given object is finite.
+    """
+    raise NotImplementedError("Not implemented for general objects")
+
+
+@is_finite.register(int)
+def _(x):
+    return True
+
+
+@is_finite.register(fractions.Fraction)
+def _(x):
+    return True
+
+
+@is_finite.register(float)
+def _(x):
+    return math.isfinite(x)
+
+
+@functools.singledispatch
+def to_quarters(x, exponent=0):
+    """
+    Pre-rounding step for value x, rounding to integer multiple of
+    10**exponent, plus two extra bits rounded to odd.
+    """
+    negative, x = x < 0, fractions.Fraction(abs(x))
+    if exponent <= 0:
+        quarters, rest = divmod(4 * 10 ** -exponent * x, 1)
+    else:
+        quarters, rest = divmod(4 * x, 10 ** exponent)
+    return negative, int(quarters) | bool(rest)
+
+
+@to_quarters.register(float)
+def _(x: fractions.Fraction, exponent: int = 0):
+    # Need to allow for non-finite inputs, and sign of zero.
+
+    if not math.isfinite(x):
+        raise ValueError("Input must be finite")
+
+    negative, x = math.copysign(1.0, x) < 0.0, fractions.Fraction(abs(x))
+    if exponent <= 0:
+        quarters, rest = divmod(4 * 10 ** -exponent * x, 1)
+    else:
+        quarters, rest = divmod(4 * x, 10 ** exponent)
+    return negative, int(quarters) | bool(rest)
+
+
+def _gen_round_to_int(x, *, signature):
     """
     Round the input x to the nearest integer, according to the given signature.
     """
-    if isinstance(x, int):
-        return_type = int
-    elif isinstance(x, float):
-        return_type = float if ndigits is not None else int
-    elif isinstance(x, fractions.Fraction):
-        return_type = fractions.Fraction if ndigits is not None else int
+    if not is_finite(x):
+        raise ValueError("x must be finiite")
 
-    if isinstance(x, float) and not math.isfinite(x):
-        if return_type == float:
-            return x
-        else:
-            raise ValueError("x must be finite")
+    sign, quarters = to_quarters(x, 0)
+    significand = (quarters + signature[sign][quarters & 4 > 0]) // 4
+    return -significand if sign else significand
+
+
+def _gen_round(x, ndigits=None, *, signature):
+    """
+    Round the input x to the nearest integer, according to the given signature.
+
+    XXX Also rounds to multiples of powers of 10.
+    """
+    if ndigits is None:
+        return _gen_round_to_int(x, signature=signature)
+
+    # Special handling for infinite results.
+    if not is_finite(x):
+        return x
 
     exponent = 0 if ndigits is None else -ndigits
-
-    if isinstance(x, float):
-        sign, quarters = _float_to_quarters(x, -exponent)
-    elif isinstance(x, int):
-        sign, quarters = _int_to_quarters(x, -exponent)
-    elif isinstance(x, fractions.Fraction):
-        sign, quarters = _fraction_to_quarters(x, -exponent)
-    else:
-        raise TypeError(f"Unsupported type: {type(x)}")
-
+    sign, quarters = to_quarters(x, exponent)
     significand = (quarters + signature[sign][quarters & 4 > 0]) // 4
-    result = sign, significand, exponent
-
-    if return_type == int:
-        return _convert_to_int(result)
-    elif return_type == float:
-        return _convert_to_float(result)
-    elif return_type == fractions.Fraction:
-        return _convert_to_fraction(result)
-    else:
-        raise TypeError(f"Unsupported return type: {return_type}")
+    return to_type_of(x, sign, significand, exponent)
 
 
 def round_ties_to_away(x, ndigits=None):

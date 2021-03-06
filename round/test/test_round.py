@@ -499,6 +499,11 @@ class TestRound(unittest.TestCase):
         self.assertIntsIdentical(round_ties_to_even(123456, -7), 0)
         self.assertIntsIdentical(round_ties_to_even(123456, -1000), 0)
 
+    def test_round_huge_integers(self):
+        # Check that we're not depending on converting integers to floats
+        self.assertIntsIdentical(round_ties_to_away(2 ** 1025, 0), 2 ** 1025)
+        self.assertIntsIdentical(round_to_odd(-(2 ** 1025)), -(2 ** 1025))
+
     def test_round_fractions_places_none(self):
         # Tests pairs for round-ties-to-even
         F = fractions.Fraction
@@ -532,25 +537,27 @@ class TestRound(unittest.TestCase):
             F("1428.57142857142857142857142857142857142857142857142857"),
         )
 
-    # XXX What about rounding bools? What should the _type_ of round(True) and
-    # round(True, 0) be? If we're following Python's implementation, it
-    # should be int. But how is that determination made? We should use
-    # singledispatch, to make it easily extensible.
+    def test_round_bool(self):
+        self.assertIntsIdentical(round_ties_to_even(True), 1)
+        self.assertIntsIdentical(round_ties_to_even(False), 0)
+
+        self.assertIntsIdentical(round_ties_to_even(True, 10), 1)
+        self.assertIntsIdentical(round_ties_to_even(False, -10), 0)
 
     def assertIntsIdentical(self, first, second):
-        self.assertIsInstance(first, int)
+        self.assertEqual(type(first), int)
         self.assertIsInstance(second, int)
 
         self.assertEqual(first, second)
 
     def assertFractionsIdentical(self, first, second):
-        self.assertIsInstance(first, fractions.Fraction)
+        self.assertEqual(type(first), fractions.Fraction)
         self.assertIsInstance(second, fractions.Fraction)
 
         self.assertEqual(first, second)
 
     def assertFloatsIdentical(self, first, second):
-        self.assertIsInstance(first, float)
+        self.assertEqual(type(first), float)
         self.assertIsInstance(second, float)
 
         if math.isnan(first) and math.isnan(second):
