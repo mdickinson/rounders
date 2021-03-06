@@ -1,0 +1,42 @@
+Use cases
+---------
+
+1. Provide easy-to-use and efficient round-ties-to-away behaviour in Python 3.
+2. Provide a wider selection of rounding modes for floats.
+3. Versions of math.floor and math.ceil that allow a number of digits to
+   be specified. (Subcase of 2.)
+4. Improved formatting options for floats (e.g., allowing manipulation of
+   an intermediate representation that provides the digits, exponent and sign,
+   to answer all the Stack Overflow questions about with/without trailing zeros,
+   with/without decimal point
+5. Allow formatting that doesn't implicitly use round-ties-to-even
+6. Decimal formatting for fractions.Fraction instances.
+7. Round to a given number of significant digits rather than to a given
+   number of places after the point.
+8. Hybrid rounding to a number of significant digits, but with a minimum
+   decimal exponent.
+9. Provide easy-to-string-together pieces that together provide more extensive
+   and flexible formatting solutions.
+10. Stretch goal: add "do-what-I-mean" rounding - rounding where the
+    discontinuities lie at the closest binary approximations to the actual
+    mathematical discontinuities. (So e.g., rounding the float value 2.8 *down*
+    to the nearest tenth doesn't produce `2.7`, on the basis that the actual
+    value being rounded is
+    2.79999999999999982236431605997495353221893310546875)
+11. Make extensible for custom types that want to register (e.g., BigFloat)
+
+
+Components
+----------
+
+Components of the solution space.
+
+- Rounding modes: 12 available (6 directed, 6 to-nearest)
+
+- Converters from numeric values of various different types to "sign and
+  quarters" or "plus-two-bits" representation, using round-to-odd.
+
+- Rounders round that sign-and-quarters representation to a
+  (sign, significand, exponent) triple, for a given rounding mode.
+
+- Converters from the (sign, significand, exponent) back to the target type.
