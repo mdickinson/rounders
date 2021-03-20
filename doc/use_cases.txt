@@ -24,6 +24,11 @@ Use cases
     value being rounded is
     2.79999999999999982236431605997495353221893310546875)
 11. Make extensible for custom types that want to register (e.g., BigFloat)
+12. Rounding to number of significant digits instead of to given decimal place.
+    (This is currently awkward to do both for floats and for Decimal.)
+13. Mixed-mode formatting that has both a minimum exponent *and* a number
+    of significant digits. (E.g., formatting a float to 17 significant digits,
+    but not going beyond E-324)
 
 
 Components
