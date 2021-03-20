@@ -21,6 +21,8 @@ from round import (
     round_to_minus,
     round_to_even,
     round_to_odd,
+    # round to significant figures
+    round_to_figures,
 )
 
 
@@ -41,6 +43,40 @@ ALL_TEST_VALUES = [
     for value in ALL_POSITIVE_TEST_VALUES
     for signed_value in [-value, value]
 ]
+
+
+#: Pairs (e, x) where x is a float and e is the decade of that float;
+#: that is, 10**e <= abs(x) < 10**(e+1)
+TEN = fractions.Fraction(10)
+
+DECADE_STARTS = []
+for e in range(-324, 309):
+    try:
+        x = float(TEN ** e)
+    except OverflowError:
+        x = math.inf
+    if x < TEN ** e:
+        x = math.nextafter(x, math.inf)
+
+    assert TEN ** e <= x < TEN ** (e + 1)
+    assert not (TEN ** e <= math.nextafter(x, 0.0) < TEN ** (e + 1))
+    DECADE_STARTS.append((e, x))
+
+DECADE_ENDS = []
+for e in range(-324, 309):
+    try:
+        x = float(TEN ** (e + 1))
+    except OverflowError:
+        x = math.inf
+    if x >= TEN ** (e + 1):
+        x = math.nextafter(x, 0.0)
+
+    assert TEN ** e <= x < TEN ** (e + 1)
+    assert not (TEN ** e <= math.nextafter(x, math.inf) < TEN ** (e + 1))
+    DECADE_ENDS.append((e, x))
+
+DECADE_TEST_VALUES = DECADE_STARTS + DECADE_ENDS
+
 
 #: Various subsets of the rounding functions
 MIDPOINT_ROUNDING_FUNCTIONS = [
@@ -543,6 +579,73 @@ class TestRound(unittest.TestCase):
 
         self.assertIntsIdentical(round_ties_to_even(True, 10), 1)
         self.assertIntsIdentical(round_ties_to_even(False, -10), 0)
+
+    def test_round_to_figures(self):
+        # Rounding a nonzero number to a given number of significant figures.
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=1), 1.0)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=2), 1.2)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=3), 1.23)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=4), 1.235)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=5), 1.2346)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=6), 1.23456)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=7), 1.23456)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=8), 1.23456)
+        self.assertFloatsIdentical(round_to_figures(1.23456, figures=2000), 1.23456)
+
+        self.assertFloatsIdentical(round_to_figures(-1.23456, figures=3), -1.23)
+        self.assertFloatsIdentical(round_to_figures(123456.0, figures=3), 123000.0)
+
+    def test_round_to_figures_non_positive_figures(self):
+        with self.assertRaises(ValueError):
+            round_to_figures(1.23456, 0)
+        with self.assertRaises(ValueError):
+            round_to_figures(1.23456, -1)
+
+    def test_round_to_figures_overflow_case(self):
+        with self.assertRaises(OverflowError):
+            round_to_figures(1.797e308, 1)
+        with self.assertRaises(OverflowError):
+            round_to_figures(-1.797e308, 1)
+        with self.assertRaises(OverflowError):
+            round_to_figures(1.797e308, 2)
+        with self.assertRaises(OverflowError):
+            round_to_figures(1.797e308, 3)
+
+    def test_round_to_figures_corner_cases(self):
+        # Cases where accurate computation of ilog10(input) matters.
+        # Are there actually any floating-point cases where this matters?
+        # Possibly not, for rounding.
+
+        # We're computing e = floor(log10(abs(input))). The dangers are:
+        # - if "abs(input)" is just above a power of 10, e may end up one too small
+        # - if "abs(input)" is just below a power of 10, e may end up one too large
+
+        # Let's just try all the corner cases and see what happens. We'll compute
+        # the smallest and the largest representable float in each decade.
+
+        # Check extremes of each float decade.
+        for e, x in DECADE_TEST_VALUES:
+            # 10**e <= x < 10**(e + 1),
+            # so if we want to round to 'figures' figures,
+            # want to round to a multiple of 10**(e + 1 - figures)
+            for figures in range(1, 20):
+                with self.subTest(e=e, x=x, figures=figures):
+                    try:
+                        actual_result = round_to_figures(x, figures)
+                    except OverflowError:
+                        actual_result = math.copysign(math.inf, x)
+
+                    try:
+                        expected_result = round_ties_to_even(x, figures - e - 1)
+                    except OverflowError:
+                        expected_result = math.copysign(math.inf, x)
+
+                    self.assertFloatsIdentical(actual_result, expected_result)
+
+    # XXX Also want to cover cases where the rounding step changes the decade.
+
+    # XXX Test other number types. What should integers do? The rounded value
+    # is again always an integer, so this is fairly clear.
 
     def assertIntsIdentical(self, first, second):
         self.assertEqual(type(first), int)
