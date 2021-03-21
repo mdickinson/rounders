@@ -2,6 +2,7 @@
 Tests for functions in the 'round' module.
 """
 
+import decimal
 import fractions
 import math
 import unittest
@@ -23,6 +24,13 @@ from round import (
     round_to_odd,
     # round to significant figures
     round_to_figures,
+    # rounding modes
+    TIES_TO_EVEN,
+    TIES_TO_ODD,
+    TIES_TO_AWAY,
+    TIES_TO_ZERO,
+    TIES_TO_PLUS,
+    TIES_TO_MINUS,
 )
 
 
@@ -644,24 +652,104 @@ class TestRound(unittest.TestCase):
 
     # XXX Also want to cover cases where the rounding step changes the decade.
 
-    # XXX Test other number types. What should integers do? The rounded value
-    # is again always an integer, so this is fairly clear.
+    # XXX Test other number types.
+
+    # XXX Test infinities and nans
+
+    # XXX Decide what to do with zeros: what's the exponent of the
+    # result?
+
+    def test_round_to_figures_ints(self):
+        self.assertIntsIdentical(round_to_figures(12345, 1), 10000)
+        self.assertIntsIdentical(round_to_figures(12345, 2), 12000)
+        self.assertIntsIdentical(round_to_figures(12345, 3), 12300)
+        self.assertIntsIdentical(round_to_figures(12345, 4), 12340)
+        self.assertIntsIdentical(round_to_figures(12345, 5), 12345)
+        self.assertIntsIdentical(round_to_figures(12345, 6), 12345)
+        self.assertIntsIdentical(round_to_figures(12345, 7), 12345)
+        self.assertIntsIdentical(round_to_figures(12345, 2000), 12345)
+
+        self.assertIntsIdentical(round_to_figures(True, 2), 1)
+
+    def test_round_to_figures_decimals(self):
+        # Tuples (value-as-string, figures, mode, expected_result-as-string)
+        test_cases = [
+            ("1.25", 2, TIES_TO_EVEN, "1.2"),
+            ("1.25", 3, TIES_TO_EVEN, "1.25"),
+            ("1.25", 4, TIES_TO_EVEN, "1.250"),
+            ("9.9999", 4, TIES_TO_EVEN, "10.00"),
+            # Should be able to handle huge decimal instances without problems.
+            # This double checks that we're not using to-fraction fallbacks.
+            ("1e9999999999", 4, TIES_TO_EVEN, "1.000e9999999999"),
+            # Also check values with more digits than the context precision,
+            # to double check that we're not losing digits (e.g., by doing abs).
+            # We shouldn't be making any use of the local context.
+            # Might also want to add some tests with the context deliberately
+            # set to something odd (rounding mode, precision, emin, emax) to
+            # make sure that the context isn't being used.
+            ("1" * 100, 100, TIES_TO_EVEN, "1" * 100),
+        ]
+
+        for case in test_cases:
+            with self.subTest(case=case):
+                value, figures, mode, expected_result = case
+                value = decimal.Decimal(value)
+                expected_result = decimal.Decimal(expected_result)
+                self.assertDecimalsIdentical(
+                    round_to_figures(value, figures, mode=mode),
+                    expected_result,
+                )
+
+    def test_round_to_figures_other_rounding_modes(self):
+        # Tuples (value, figures, mode, expected_result)
+        test_cases = [
+            (1.25, 2, TIES_TO_EVEN, 1.2),
+            (1.75, 2, TIES_TO_EVEN, 1.8),
+            (-1.25, 2, TIES_TO_EVEN, -1.2),
+            (-1.75, 2, TIES_TO_EVEN, -1.8),
+            (1.25, 2, TIES_TO_ODD, 1.3),
+            (1.75, 2, TIES_TO_ODD, 1.7),
+            (-1.25, 2, TIES_TO_ODD, -1.3),
+            (-1.75, 2, TIES_TO_ODD, -1.7),
+            (1.25, 2, TIES_TO_AWAY, 1.3),
+            (1.75, 2, TIES_TO_AWAY, 1.8),
+            (-1.25, 2, TIES_TO_AWAY, -1.3),
+            (-1.75, 2, TIES_TO_AWAY, -1.8),
+            (1.25, 2, TIES_TO_ZERO, 1.2),
+            (1.75, 2, TIES_TO_ZERO, 1.7),
+            (-1.25, 2, TIES_TO_ZERO, -1.2),
+            (-1.75, 2, TIES_TO_ZERO, -1.7),
+            (1.25, 2, TIES_TO_PLUS, 1.3),
+            (1.75, 2, TIES_TO_PLUS, 1.8),
+            (-1.25, 2, TIES_TO_PLUS, -1.2),
+            (-1.75, 2, TIES_TO_PLUS, -1.7),
+            (1.25, 2, TIES_TO_MINUS, 1.2),
+            (1.75, 2, TIES_TO_MINUS, 1.7),
+            (-1.25, 2, TIES_TO_MINUS, -1.3),
+            (-1.75, 2, TIES_TO_MINUS, -1.8),
+        ]
+
+        for case in test_cases:
+            with self.subTest(case=case):
+                value, figures, mode, expected_result = case
+                self.assertEqual(
+                    round_to_figures(value, figures, mode=mode),
+                    expected_result,
+                )
 
     def assertIntsIdentical(self, first, second):
         self.assertEqual(type(first), int)
-        self.assertIsInstance(second, int)
-
+        self.assertEqual(type(second), int)
         self.assertEqual(first, second)
 
     def assertFractionsIdentical(self, first, second):
         self.assertEqual(type(first), fractions.Fraction)
-        self.assertIsInstance(second, fractions.Fraction)
-
+        self.assertEqual(type(second), fractions.Fraction)
         self.assertEqual(first, second)
 
     def assertFloatsIdentical(self, first, second):
         self.assertEqual(type(first), float)
-        self.assertIsInstance(second, float)
+        self.assertEqual(type(second), float)
 
         if math.isnan(first) and math.isnan(second):
             return
@@ -669,3 +757,9 @@ class TestRound(unittest.TestCase):
         self.assertEqual(first, second)
         if first == 0.0:
             self.assertEqual(sign_bit(first), sign_bit(second))
+
+    def assertDecimalsIdentical(self, first, second):
+        self.assertEqual(type(first), decimal.Decimal)
+        self.assertEqual(type(second), decimal.Decimal)
+
+        self.assertEqual(str(first), str(second))

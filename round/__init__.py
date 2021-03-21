@@ -2,6 +2,7 @@
 Top-level rounding functions.
 """
 
+import decimal
 import fractions
 import functools
 import math
@@ -9,20 +10,20 @@ import struct
 
 
 #: Signatures for to-nearest rounding modes
-_TIES_TO_ZERO = [[1, 1], [1, 1]]
-_TIES_TO_AWAY = [[2, 2], [2, 2]]
-_TIES_TO_PLUS = [[2, 2], [1, 1]]
-_TIES_TO_MINUS = [[1, 1], [2, 2]]
-_TIES_TO_EVEN = [[1, 2], [1, 2]]
-_TIES_TO_ODD = [[2, 1], [2, 1]]
+TIES_TO_ZERO = [[1, 1], [1, 1]]
+TIES_TO_AWAY = [[2, 2], [2, 2]]
+TIES_TO_PLUS = [[2, 2], [1, 1]]
+TIES_TO_MINUS = [[1, 1], [2, 2]]
+TIES_TO_EVEN = [[1, 2], [1, 2]]
+TIES_TO_ODD = [[2, 1], [2, 1]]
 
 #: Signatures for directed rounding modes
-_TO_ZERO = [[0, 0], [0, 0]]
-_TO_AWAY = [[3, 3], [3, 3]]
-_TO_MINUS = [[0, 0], [3, 3]]
-_TO_PLUS = [[3, 3], [0, 0]]
-_TO_EVEN = [[0, 3], [0, 3]]
-_TO_ODD = [[3, 0], [3, 0]]
+TO_ZERO = [[0, 0], [0, 0]]
+TO_AWAY = [[3, 3], [3, 3]]
+TO_MINUS = [[0, 0], [3, 3]]
+TO_PLUS = [[3, 3], [0, 0]]
+TO_EVEN = [[0, 3], [0, 3]]
+TO_ODD = [[3, 0], [3, 0]]
 
 #: Useful fractions
 _TWO = fractions.Fraction(2)
@@ -30,7 +31,7 @@ _TEN = fractions.Fraction(10)
 
 
 @functools.singledispatch
-def decade(x):
+def decade(x) -> int:
     """
     Determine the decade that a nonzero number is contained in.
 
@@ -49,6 +50,16 @@ def decade(x):
     # Now 10**(e-f-1) < n/d < 10**(e-f+1), so the decade is either
     # e-f or e-f-1, depending on whether fx >= 10**(e-f) or not.
     return e - f if fx >= _TEN ** (e - f) else e - f - 1
+
+
+@decade.register(decimal.Decimal)
+def _(x) -> int:
+    if not x:
+        raise ValueError("decade input must be nonzero")
+    if not x.is_finite():
+        raise ValueError("decade input must be finite")
+
+    return int(x.logb())
 
 
 # Table mapping each integer i to the bit pattern of the smallest IEEE 754
@@ -782,6 +793,11 @@ def _(x, sign, significand, exponent):
     )
 
 
+@to_type_of.register(decimal.Decimal)
+def _(x, sign, significand, exponent):
+    return decimal.Decimal(f"{'-' if sign else '+'}{significand}E{exponent}")
+
+
 @functools.singledispatch
 def is_finite(x):
     """
@@ -795,14 +811,19 @@ def _(x):
     return True
 
 
+@is_finite.register(float)
+def _(x):
+    return math.isfinite(x)
+
+
 @is_finite.register(fractions.Fraction)
 def _(x):
     return True
 
 
-@is_finite.register(float)
+@is_finite.register(decimal.Decimal)
 def _(x):
-    return math.isfinite(x)
+    return x.is_finite()
 
 
 @functools.singledispatch
@@ -834,8 +855,6 @@ def to_quarters(x, exponent=0):
 
 @to_quarters.register(float)
 def _(x: fractions.Fraction, exponent: int = 0):
-    # Need to allow for non-finite inputs, and sign of zero.
-
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
@@ -845,6 +864,25 @@ def _(x: fractions.Fraction, exponent: int = 0):
     else:
         quarters, rest = divmod(4 * x, 10 ** exponent)
     return negative, int(quarters) | bool(rest)
+
+
+@to_quarters.register(decimal.Decimal)
+def _(x: decimal.Decimal, exponent: int = 0):
+    # XXX Tests for non-finite inputs
+    # XXX Tests for preservation of sign of zero.
+
+    if not x.is_finite():
+        # XXX Is this branch even exercised?
+        raise ValueError("Input must be finite")
+
+    sign, digit_tuple, x_exponent = x.as_tuple()
+    significand = int("".join(map(str, digit_tuple)))
+
+    if x_exponent >= exponent:
+        quarters, rest = 4 * significand * 10 ** (x_exponent - exponent), 0
+    else:
+        quarters, rest = divmod(4 * significand, 10 ** (exponent - x_exponent))
+    return sign == 1, int(quarters) | bool(rest)
 
 
 def _reduce(sign, inflated_significand, *, rounding_mode):
@@ -886,14 +924,14 @@ def round_ties_to_away(x, ndigits=None):
     """
     Round the input x to the nearest integer, rounding ties away from zero.
     """
-    return _gen_round(x, ndigits, signature=_TIES_TO_AWAY)
+    return _gen_round(x, ndigits, signature=TIES_TO_AWAY)
 
 
 def round_ties_to_zero(x, ndigits=None):
     """
     Round the input x to the nearest integer, rounding ties towards zero.
     """
-    return _gen_round(x, ndigits, signature=_TIES_TO_ZERO)
+    return _gen_round(x, ndigits, signature=TIES_TO_ZERO)
 
 
 def round_ties_to_even(x, ndigits=None):
@@ -901,7 +939,7 @@ def round_ties_to_even(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties to the nearest
     even integer.
     """
-    return _gen_round(x, ndigits, signature=_TIES_TO_EVEN)
+    return _gen_round(x, ndigits, signature=TIES_TO_EVEN)
 
 
 def round_ties_to_odd(x, ndigits=None):
@@ -909,7 +947,7 @@ def round_ties_to_odd(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties to the nearest
     odd integer.
     """
-    return _gen_round(x, ndigits, signature=_TIES_TO_ODD)
+    return _gen_round(x, ndigits, signature=TIES_TO_ODD)
 
 
 def round_ties_to_plus(x, ndigits=None):
@@ -917,7 +955,7 @@ def round_ties_to_plus(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties towards positive
     infinity.
     """
-    return _gen_round(x, ndigits, signature=_TIES_TO_PLUS)
+    return _gen_round(x, ndigits, signature=TIES_TO_PLUS)
 
 
 def round_ties_to_minus(x, ndigits=None):
@@ -925,52 +963,52 @@ def round_ties_to_minus(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties towards negative
     infinity.
     """
-    return _gen_round(x, ndigits, signature=_TIES_TO_MINUS)
+    return _gen_round(x, ndigits, signature=TIES_TO_MINUS)
 
 
 def round_to_away(x, ndigits=None):
     """
     Round the input x to the nearest integer away from zero.
     """
-    return _gen_round(x, ndigits, signature=_TO_AWAY)
+    return _gen_round(x, ndigits, signature=TO_AWAY)
 
 
 def round_to_zero(x, ndigits=None):
     """
     Round the input x to the nearest integer towards zero.
     """
-    return _gen_round(x, ndigits, signature=_TO_ZERO)
+    return _gen_round(x, ndigits, signature=TO_ZERO)
 
 
 def round_to_plus(x, ndigits=None):
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    return _gen_round(x, ndigits, signature=_TO_PLUS)
+    return _gen_round(x, ndigits, signature=TO_PLUS)
 
 
 def round_to_minus(x, ndigits=None):
     """
     Round the input x to the nearest integer towards negative infinity.
     """
-    return _gen_round(x, ndigits, signature=_TO_MINUS)
+    return _gen_round(x, ndigits, signature=TO_MINUS)
 
 
 def round_to_even(x, ndigits=None):
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    return _gen_round(x, ndigits, signature=_TO_EVEN)
+    return _gen_round(x, ndigits, signature=TO_EVEN)
 
 
 def round_to_odd(x, ndigits=None):
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    return _gen_round(x, ndigits, signature=_TO_ODD)
+    return _gen_round(x, ndigits, signature=TO_ODD)
 
 
-def round_to_figures(x, figures):
+def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
     """
     Round x to a given number of significant figures.
 
@@ -985,6 +1023,16 @@ def round_to_figures(x, figures):
     if x == 0:
         raise NotImplementedError("rounding zero not yet implemented")
 
-    # Figure out exponent to round to
+    # Figure out exponent to round to.
     exponent = decade(x) + 1 - figures
-    return _gen_round(x, -exponent, signature=_TIES_TO_EVEN)
+    sign, quarters = to_quarters(x, exponent)
+    significand = _reduce(sign, quarters, rounding_mode=mode)
+
+    # Adjust if the result has one more significant figure than
+    # expected due to rounding up.
+    if significand == 10 ** figures:
+        significand //= 10
+        exponent += 1
+    assert 10 ** (figures - 1) <= significand < 10 ** figures
+
+    return to_type_of(x, sign, significand, exponent)
