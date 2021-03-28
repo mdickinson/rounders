@@ -22,15 +22,24 @@ from round import (
     round_to_minus,
     round_to_even,
     round_to_odd,
+    # round to decimal places
+    round_to_places,
     # round to significant figures
     round_to_figures,
-    # rounding modes
+    # rounding modes - to-nearest
     TIES_TO_EVEN,
     TIES_TO_ODD,
     TIES_TO_AWAY,
     TIES_TO_ZERO,
     TIES_TO_PLUS,
     TIES_TO_MINUS,
+    # rounding modes - directed
+    TO_EVEN,
+    TO_ODD,
+    TO_ZERO,
+    TO_AWAY,
+    TO_PLUS,
+    TO_MINUS,
 )
 
 
@@ -688,6 +697,7 @@ class TestRound(unittest.TestCase):
             # set to something odd (rounding mode, precision, emin, emax) to
             # make sure that the context isn't being used.
             ("1" * 100, 100, TIES_TO_EVEN, "1" * 100),
+            ("0", 5, TIES_TO_EVEN, "0.0000E+0"),
         ]
 
         for case in test_cases:
@@ -727,13 +737,101 @@ class TestRound(unittest.TestCase):
             (1.75, 2, TIES_TO_MINUS, 1.7),
             (-1.25, 2, TIES_TO_MINUS, -1.3),
             (-1.75, 2, TIES_TO_MINUS, -1.8),
+            (math.nan, 2, TIES_TO_EVEN, math.nan),
+            (math.inf, 2, TIES_TO_EVEN, math.inf),
+            (-math.inf, 2, TIES_TO_EVEN, -math.inf),
         ]
 
         for case in test_cases:
             with self.subTest(case=case):
                 value, figures, mode, expected_result = case
-                self.assertEqual(
+                self.assertFloatsIdentical(
                     round_to_figures(value, figures, mode=mode),
+                    expected_result,
+                )
+
+    def test_round_to_places_float(self):
+        # Tuples (value, places, mode, expected_result)
+        test_cases = [
+            (1.02, 1, TO_EVEN, 1.0),
+            (1.05, 1, TO_EVEN, 1.0),
+            (1.08, 1, TO_EVEN, 1.0),
+            (1.12, 1, TO_EVEN, 1.2),
+            (1.15, 1, TO_EVEN, 1.2),
+            (1.18, 1, TO_EVEN, 1.2),
+            (-1.02, 1, TO_EVEN, -1.0),
+            (-1.05, 1, TO_EVEN, -1.0),
+            (-1.08, 1, TO_EVEN, -1.0),
+            (-1.12, 1, TO_EVEN, -1.2),
+            (-1.15, 1, TO_EVEN, -1.2),
+            (-1.18, 1, TO_EVEN, -1.2),
+            (1.02, 1, TO_ODD, 1.1),
+            (1.05, 1, TO_ODD, 1.1),
+            (1.08, 1, TO_ODD, 1.1),
+            (1.12, 1, TO_ODD, 1.1),
+            (1.15, 1, TO_ODD, 1.1),
+            (1.18, 1, TO_ODD, 1.1),
+            (-1.02, 1, TO_ODD, -1.1),
+            (-1.05, 1, TO_ODD, -1.1),
+            (-1.08, 1, TO_ODD, -1.1),
+            (-1.12, 1, TO_ODD, -1.1),
+            (-1.15, 1, TO_ODD, -1.1),
+            (-1.18, 1, TO_ODD, -1.1),
+            (1.02, 1, TO_ZERO, 1.0),
+            (1.05, 1, TO_ZERO, 1.0),
+            (1.08, 1, TO_ZERO, 1.0),
+            (1.12, 1, TO_ZERO, 1.1),
+            (1.15, 1, TO_ZERO, 1.1),
+            (1.18, 1, TO_ZERO, 1.1),
+            (-1.02, 1, TO_ZERO, -1.0),
+            (-1.05, 1, TO_ZERO, -1.0),
+            (-1.08, 1, TO_ZERO, -1.0),
+            (-1.12, 1, TO_ZERO, -1.1),
+            (-1.15, 1, TO_ZERO, -1.1),
+            (-1.18, 1, TO_ZERO, -1.1),
+            (1.02, 1, TO_AWAY, 1.1),
+            (1.05, 1, TO_AWAY, 1.1),
+            (1.08, 1, TO_AWAY, 1.1),
+            (1.12, 1, TO_AWAY, 1.2),
+            (1.15, 1, TO_AWAY, 1.2),
+            (1.18, 1, TO_AWAY, 1.2),
+            (-1.02, 1, TO_AWAY, -1.1),
+            (-1.05, 1, TO_AWAY, -1.1),
+            (-1.08, 1, TO_AWAY, -1.1),
+            (-1.12, 1, TO_AWAY, -1.2),
+            (-1.15, 1, TO_AWAY, -1.2),
+            (-1.18, 1, TO_AWAY, -1.2),
+            (1.02, 1, TO_PLUS, 1.1),
+            (1.05, 1, TO_PLUS, 1.1),
+            (1.08, 1, TO_PLUS, 1.1),
+            (1.12, 1, TO_PLUS, 1.2),
+            (1.15, 1, TO_PLUS, 1.2),
+            (1.18, 1, TO_PLUS, 1.2),
+            (-1.02, 1, TO_PLUS, -1.0),
+            (-1.05, 1, TO_PLUS, -1.0),
+            (-1.08, 1, TO_PLUS, -1.0),
+            (-1.12, 1, TO_PLUS, -1.1),
+            (-1.15, 1, TO_PLUS, -1.1),
+            (-1.18, 1, TO_PLUS, -1.1),
+            (1.02, 1, TO_MINUS, 1.0),
+            (1.05, 1, TO_MINUS, 1.0),
+            (1.08, 1, TO_MINUS, 1.0),
+            (1.12, 1, TO_MINUS, 1.1),
+            (1.15, 1, TO_MINUS, 1.1),
+            (1.18, 1, TO_MINUS, 1.1),
+            (-1.02, 1, TO_MINUS, -1.1),
+            (-1.05, 1, TO_MINUS, -1.1),
+            (-1.08, 1, TO_MINUS, -1.1),
+            (-1.12, 1, TO_MINUS, -1.2),
+            (-1.15, 1, TO_MINUS, -1.2),
+            (-1.18, 1, TO_MINUS, -1.2),
+        ]
+
+        for case in test_cases:
+            with self.subTest(case=case):
+                value, places, mode, expected_result = case
+                self.assertFloatsIdentical(
+                    round_to_places(value, places, mode=mode),
                     expected_result,
                 )
 
@@ -750,16 +848,9 @@ class TestRound(unittest.TestCase):
     def assertFloatsIdentical(self, first, second):
         self.assertEqual(type(first), float)
         self.assertEqual(type(second), float)
-
-        if math.isnan(first) and math.isnan(second):
-            return
-
-        self.assertEqual(first, second)
-        if first == 0.0:
-            self.assertEqual(sign_bit(first), sign_bit(second))
+        self.assertEqual(str(first), str(second))
 
     def assertDecimalsIdentical(self, first, second):
         self.assertEqual(type(first), decimal.Decimal)
         self.assertEqual(type(second), decimal.Decimal)
-
         self.assertEqual(str(first), str(second))
