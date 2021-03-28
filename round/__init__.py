@@ -6,8 +6,8 @@ import round.decimal_overloads  # noqa: F401
 import round.float_overloads  # noqa: F401
 import round.fraction_overloads  # noqa: F401
 import round.int_overloads  # noqa: F401
+from round.core import SignedInt, round_quarters
 from round.generics import decade, is_finite, is_zero, to_quarters, to_type_of
-from round.intermediates import SignedQuarters
 from round.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
@@ -22,13 +22,6 @@ from round.modes import (
     TO_PLUS,
     TO_ZERO,
 )
-
-
-def round_quarters(quarters: SignedQuarters, *, rounding_mode):
-
-    odd = quarters.whole & 1
-    round_up = quarters.quarters + rounding_mode[quarters.sign][odd] >= 4
-    return quarters.sign, quarters.whole + round_up
 
 
 def round_to_int(x, *, mode=TIES_TO_EVEN):
@@ -51,6 +44,7 @@ def round_to_int(x, *, mode=TIES_TO_EVEN):
     ValueError
         If the value to be rounded is not finite.
     """
+    # Raise on infinities and NaNs
     if not is_finite(x):
         raise ValueError("x must be finite")
 
@@ -71,15 +65,13 @@ def round_to_places(x, places, *, mode=TIES_TO_EVEN):
         Any of the twelve available rounding modes. Defaults to the
         ties-to-even rounding mode.
     """
-    # Special handling for infinities and nans.
+    # Infinities and nans are returned unchanged.
     if not is_finite(x):
         return x
 
-    # Figure out exponent to round to.
-    exponent = -places
-    quarters = to_quarters(x, exponent)
-    sign, significand = round_quarters(quarters, rounding_mode=mode)
-    return to_type_of(x, (sign, significand), exponent)
+    quarters = to_quarters(x, exponent=-places)
+    rounded = round_quarters(quarters, rounding_mode=mode)
+    return to_type_of(x, rounded, exponent=-places)
 
 
 def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
@@ -112,17 +104,15 @@ def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
 
     exponent = 1 - figures + (0 if is_zero(x) else decade(x))
     quarters = to_quarters(x, exponent)
-    sign, significand = rounded = round_quarters(quarters, rounding_mode=mode)
+    rounded = round_quarters(quarters, rounding_mode=mode)
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
-    if len(str(significand)) == figures + 1:
-        assert significand % 10 == 0
-        significand //= 10
+    if len(str(rounded.magnitude)) == figures + 1:
+        rounded = SignedInt(rounded.sign, rounded.magnitude // 10)
         exponent += 1
-        rounded = sign, significand
     return to_type_of(x, rounded, exponent)
 
 

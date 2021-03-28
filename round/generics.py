@@ -5,7 +5,7 @@ Generic extensible computation functions that use singledispatch.
 import fractions
 import functools
 
-from round.intermediates import SignedQuarters
+from round.core import SignedQuarterInt
 
 
 @functools.singledispatch
@@ -114,4 +114,4 @@ def to_quarters(x, exponent):
         quarters, rest = divmod(10 ** -exponent * x, 1)
     else:
         quarters, rest = divmod(x, 10 ** exponent)
-    return SignedQuarters(negative, *divmod(int(quarters) | bool(rest), 4))
+    return SignedQuarterInt(negative, *divmod(int(quarters) | bool(rest), 4))

@@ -2,9 +2,8 @@ import fractions
 import math
 import struct
 
+from round.core import SignedQuarterInt
 from round.generics import decade, is_finite, to_quarters, to_type_of
-from round.intermediates import SignedQuarters
-
 
 #: Useful constants
 _TEN = fractions.Fraction(10)
@@ -724,4 +723,4 @@ def _(x: fractions.Fraction, exponent: int = 0):
         quarters, rest = divmod(4 * 10 ** -exponent * x, 1)
     else:
         quarters, rest = divmod(4 * x, 10 ** exponent)
-    return SignedQuarters(negative, *divmod(int(quarters) | bool(rest), 4))
+    return SignedQuarterInt(negative, *divmod(int(quarters) | bool(rest), 4))
