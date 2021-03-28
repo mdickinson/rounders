@@ -8,40 +8,33 @@ import math
 import unittest
 
 from round import (
-    # Midpoint rounding methods
-    round_ties_to_away,
-    round_ties_to_zero,
-    round_ties_to_plus,
-    round_ties_to_minus,
-    round_ties_to_even,
-    round_ties_to_odd,
-    # Directed rounding methods
-    round_to_away,
-    round_to_zero,
-    round_to_plus,
-    round_to_minus,
-    round_to_even,
-    round_to_odd,
-    # round to decimal places
-    round_to_places,
-    # round to significant figures
-    round_to_figures,
-    # rounding modes - to-nearest
-    TIES_TO_EVEN,
-    TIES_TO_ODD,
     TIES_TO_AWAY,
-    TIES_TO_ZERO,
-    TIES_TO_PLUS,
+    TIES_TO_EVEN,
     TIES_TO_MINUS,
-    # rounding modes - directed
-    TO_EVEN,
-    TO_ODD,
-    TO_ZERO,
+    TIES_TO_ODD,
+    TIES_TO_PLUS,
+    TIES_TO_ZERO,
     TO_AWAY,
-    TO_PLUS,
+    TO_EVEN,
     TO_MINUS,
+    TO_ODD,
+    TO_PLUS,
+    TO_ZERO,
+    round_ties_to_away,
+    round_ties_to_even,
+    round_ties_to_minus,
+    round_ties_to_odd,
+    round_ties_to_plus,
+    round_ties_to_zero,
+    round_to_away,
+    round_to_even,
+    round_to_figures,
+    round_to_minus,
+    round_to_odd,
+    round_to_places,
+    round_to_plus,
+    round_to_zero,
 )
-
 
 #: A selection of IEEE 754 binary64 floating-point values used in a wide
 #: variety of tests.
