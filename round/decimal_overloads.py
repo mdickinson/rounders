@@ -1,10 +1,12 @@
 import decimal
 
 from round.generics import decade, is_finite, to_quarters, to_type_of
+from round.intermediates import SignedQuarters
 
 
 @to_type_of.register(decimal.Decimal)
-def _(x, sign, significand, exponent):
+def _(x, sign_and_significand, exponent):
+    sign, significand = sign_and_significand
     return decimal.Decimal(f"{'-' if sign else '+'}{significand}E{exponent}")
 
 
@@ -29,7 +31,7 @@ def _(x: decimal.Decimal, exponent: int = 0):
         quarters, rest = 4 * significand * 10 ** (x_exponent - exponent), 0
     else:
         quarters, rest = divmod(4 * significand, 10 ** (exponent - x_exponent))
-    return sign == 1, int(quarters) | bool(rest)
+    return SignedQuarters(sign == 1, *divmod(int(quarters) | bool(rest), 4))
 
 
 @decade.register(decimal.Decimal)

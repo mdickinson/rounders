@@ -2,13 +2,12 @@
 Top-level rounding functions.
 """
 
-import fractions
-
 import round.decimal_overloads  # noqa: F401
 import round.float_overloads  # noqa: F401
 import round.fraction_overloads  # noqa: F401
 import round.int_overloads  # noqa: F401
-from round.generics import decade, is_finite, to_quarters, to_type_of
+from round.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from round.intermediates import SignedQuarters
 from round.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
@@ -25,9 +24,62 @@ from round.modes import (
 )
 
 
-def _reduce(sign, inflated_significand, *, rounding_mode):
-    odd = inflated_significand & 4 > 0
-    return (inflated_significand + rounding_mode[sign][odd]) // 4
+def round_quarters(quarters: SignedQuarters, *, rounding_mode):
+
+    odd = quarters.whole & 1
+    round_up = quarters.quarters + rounding_mode[quarters.sign][odd] >= 4
+    return quarters.sign, quarters.whole + round_up
+
+
+def round_to_int(x, *, mode=TIES_TO_EVEN):
+    """
+    Round a value to the nearest integer, using the given rounding mode.
+
+    Parameters
+    ----------
+    x : numeric
+    mode : optional, keyword-only
+        Any of the twelve available rounding modes. Defaults to the
+        ties-to-even rounding mode.
+
+    Returns
+    -------
+    rounded : int
+
+    Raises
+    ------
+    ValueError
+        If the value to be rounded is not finite.
+    """
+    if not is_finite(x):
+        raise ValueError("x must be finite")
+
+    quarters = to_quarters(x, exponent=0)
+    rounded = round_quarters(quarters, rounding_mode=mode)
+    return to_type_of(0, rounded, exponent=0)
+
+
+def round_to_places(x, places, *, mode=TIES_TO_EVEN):
+    """
+    Round a value to a given number of places after the point.
+
+    Parameters
+    ----------
+    x : numeric
+    places : integer
+    mode, optional
+        Any of the twelve available rounding modes. Defaults to the
+        ties-to-even rounding mode.
+    """
+    # Special handling for infinities and nans.
+    if not is_finite(x):
+        return x
+
+    # Figure out exponent to round to.
+    exponent = -places
+    quarters = to_quarters(x, exponent)
+    sign, significand = round_quarters(quarters, rounding_mode=mode)
+    return to_type_of(x, (sign, significand), exponent)
 
 
 def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
@@ -58,75 +110,20 @@ def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
     #  1.23e+02
     #  0.00e+00
 
-    # XXX Can we assume that we can compare x with zero directly?
-    # Do we need another singledispatch function?
-    if x == 0:
-        exponent = 1 - figures
-    else:
-        exponent = decade(x) + 1 - figures
+    exponent = 1 - figures + (0 if is_zero(x) else decade(x))
+    quarters = to_quarters(x, exponent)
+    sign, significand = rounded = round_quarters(quarters, rounding_mode=mode)
 
-    sign, quarters = to_quarters(x, exponent)
-    significand = _reduce(sign, quarters, rounding_mode=mode)
-
-    # Adjust if the result has one more significant figure than
-    # expected due to rounding up.
-    if significand == 10 ** figures:
+    # Adjust if the result has one more significant figure than expected.
+    # This can happen when a value at the uppermost end of a decade gets
+    # rounded up to the next power of 10: for example, in rounding
+    # 99.973 to 100.0.
+    if len(str(significand)) == figures + 1:
+        assert significand % 10 == 0
         significand //= 10
         exponent += 1
-    assert significand == 0 or 10 ** (figures - 1) <= significand < 10 ** figures
-
-    return to_type_of(x, sign, significand, exponent)
-
-
-def round_to_places(x, places, *, mode=TIES_TO_EVEN):
-    """
-    Round a value to a given number of places after the point.
-
-    Parameters
-    ----------
-    x : numeric
-    places : integer
-    mode, optional
-        Any of the twelve available rounding modes. Defaults to the
-        ties-to-even rounding mode.
-    """
-    # Special handling for infinite results.
-    if not is_finite(x):
-        return x
-
-    # Figure out exponent to round to.
-    exponent = -places
-    sign, quarters = to_quarters(x, exponent)
-    significand = _reduce(sign, quarters, rounding_mode=mode)
-    return to_type_of(x, sign, significand, exponent)
-
-
-def round_to_int(x, *, mode=TIES_TO_EVEN):
-    """
-    Round a value to the nearest integer, using the given rounding mode.
-
-    Parameters
-    ----------
-    x : numeric
-    mode : optional, keyword-only
-        Any of the twelve available rounding modes. Defaults to the
-        ties-to-even rounding mode.
-
-    Returns
-    -------
-    rounded : int
-
-    Raises
-    ------
-    ValueError
-        If the value to be rounded is not finite.
-    """
-    if not is_finite(x):
-        raise ValueError("x must be finiite")
-
-    sign, quarters = to_quarters(x, 0)
-    significand = _reduce(sign, quarters, rounding_mode=mode)
-    return to_type_of(0, sign, significand, 0)
+        rounded = sign, significand
+    return to_type_of(x, rounded, exponent)
 
 
 # Per-rounding-mode functions, with behaviour matching that of the built-in

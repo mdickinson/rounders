@@ -110,17 +110,6 @@ DIRECTED_ROUNDING_FUNCTIONS = [
 ALL_ROUNDING_FUNCTIONS = MIDPOINT_ROUNDING_FUNCTIONS + DIRECTED_ROUNDING_FUNCTIONS
 
 
-#: One half, as a fraction constant.
-ONE_HALF = fractions.Fraction("1/2")
-
-
-def sign_bit(x):
-    """
-    Sign bit of a float: True if negative, False if positive.
-    """
-    return math.copysign(1.0, x) < 0
-
-
 class TestRound(unittest.TestCase):
     def test_round_ties_to_away_quarters(self):
         test_cases = [
@@ -443,7 +432,7 @@ class TestRound(unittest.TestCase):
                 diff = fractions.Fraction(rounded_value) - fractions.Fraction(
                     original_value
                 )
-                self.assertLessEqual(abs(diff), ONE_HALF)
+                self.assertLessEqual(abs(diff), fractions.Fraction(1, 2))
 
     def test_all_rounding_modes_round_to_neighbour(self):
         # Difference between rounded value and original value should always
@@ -652,15 +641,6 @@ class TestRound(unittest.TestCase):
 
                     self.assertFloatsIdentical(actual_result, expected_result)
 
-    # XXX Also want to cover cases where the rounding step changes the decade.
-
-    # XXX Test other number types.
-
-    # XXX Test infinities and nans
-
-    # XXX Decide what to do with zeros: what's the exponent of the
-    # result?
-
     def test_round_to_figures_ints(self):
         self.assertIntsIdentical(round_to_figures(12345, 1), 10000)
         self.assertIntsIdentical(round_to_figures(12345, 2), 12000)
@@ -672,6 +652,39 @@ class TestRound(unittest.TestCase):
         self.assertIntsIdentical(round_to_figures(12345, 2000), 12345)
 
         self.assertIntsIdentical(round_to_figures(True, 2), 1)
+
+    def test_round_to_figures_special_values(self):
+        self.assertFloatsIdentical(round_to_figures(math.nan, 3), math.nan)
+        self.assertFloatsIdentical(round_to_figures(math.inf, 3), math.inf)
+        self.assertFloatsIdentical(round_to_figures(-math.inf, 3), -math.inf)
+
+    def test_round_to_figures_fractions(self):
+        test_cases = [
+            ("1.25", 2, TIES_TO_EVEN, "1.2"),
+            ("1.25", 3, TIES_TO_EVEN, "1.25"),
+            ("1.25", 4, TIES_TO_EVEN, "1.250"),
+            ("9.9999", 4, TIES_TO_EVEN, "10.00"),
+            ("2/3", 2, TIES_TO_EVEN, "0.67"),
+            ("4/3", 2, TIES_TO_EVEN, "1.3"),
+            ("23/3", 2, TIES_TO_EVEN, "7.7"),
+            ("47/3", 2, TIES_TO_EVEN, "16"),
+            ("2/37", 2, TIES_TO_EVEN, "0.054"),
+            ("4/37", 2, TIES_TO_EVEN, "0.11"),
+        ]
+
+        for case in test_cases:
+            with self.subTest(case=case):
+                value, figures, mode, expected_result = case
+                value = fractions.Fraction(value)
+                expected_result = fractions.Fraction(expected_result)
+                self.assertFractionsIdentical(
+                    round_to_figures(value, figures, mode=mode),
+                    expected_result,
+                )
+                self.assertFractionsIdentical(
+                    round_to_figures(-value, figures, mode=mode),
+                    -expected_result,
+                )
 
     def test_round_to_figures_decimals(self):
         # Tuples (value-as-string, figures, mode, expected_result-as-string)

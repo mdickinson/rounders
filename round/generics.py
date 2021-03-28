@@ -5,8 +5,7 @@ Generic extensible computation functions that use singledispatch.
 import fractions
 import functools
 
-#: Useful constants
-_TEN = fractions.Fraction(10)
+from round.intermediates import SignedQuarters
 
 
 @functools.singledispatch
@@ -14,25 +13,44 @@ def decade(x) -> int:
     """
     Determine the decade that a nonzero number is contained in.
 
-    Given nonzero x, return the unique integer e satisfying
+    Given nonzero finite x, returns the unique integer e satisfying
     10**e <= abs(x) < 10**(e + 1).
+
+    Parameters
+    ----------
+    x : numeric
+
+    Returns
+    -------
+    decade : int
+
+    Raises
+    ------
+    ValueError
+        If input is zero.
     """
-    # General algorithm assumes the existence of an exact conversion to Fraction.
-    fx = fractions.Fraction(abs(x))
+    # Generic algorithm assumes the existence of an exact conversion to Fraction.
+    fx = fractions.Fraction(x)
     if not fx:
         raise ValueError("decade input must be nonzero")
 
-    n, d = fx.numerator, fx.denominator
+    # The difference in digit counts of n and d gives us either the true decade
+    # (as in 561/23, for example), or overestimates the decade by exactly 1 (as
+    # in 231/56).
+    n, d = abs(fx.numerator), fx.denominator
+    trial_decade = len(str(n)) - len(str(d))
 
-    e = len(str(n))  # 10**(e-1) <= n < 10**e
-    f = len(str(d))  # 10**(f-1) <= d < 10**f
-    # Now 10**(e-f-1) < n/d < 10**(e-f+1), so the decade is either
-    # e-f or e-f-1, depending on whether fx >= 10**(e-f) or not.
-    return e - f if fx >= _TEN ** (e - f) else e - f - 1
+    # Is trial_decade an overestimate?
+    if trial_decade >= 0:
+        too_high = n < 10 ** trial_decade * d
+    else:
+        too_high = n * 10 ** -trial_decade < d
+
+    return trial_decade - too_high
 
 
 @functools.singledispatch
-def to_type_of(x, sign, significand, exponent):
+def to_type_of(x, sign_and_significand, exponent):
     """
     Convert rounding result to type matching that of x.
     """
@@ -42,20 +60,45 @@ def to_type_of(x, sign, significand, exponent):
 @functools.singledispatch
 def is_finite(x):
     """
-    Determine whether a given object is finite.
+    Determine whether a given number is finite.
     """
     raise NotImplementedError(f"No overload available for type {type(x)}")
 
 
 @functools.singledispatch
-def to_quarters(x, exponent=0):
+def is_zero(x):
     """
-    Pre-rounding step for value x, rounding to integer multiple of
-    10**exponent, plus two extra bits rounded to odd.
+    Determine whether a given number is zero.
 
-    This base implementation works for any value that can be converted
+    Parameters
+    ----------
+    x : numeric
+
+    Returns
+    -------
+    is_zero : bool
+        True if x is zero, else False
+    """
+    # Generic implementation simply compares with the zero integer.
+    return x == 0
+
+
+@functools.singledispatch
+def to_quarters(x, exponent):
+    """
+    Pre-rounding step for value x.
+
+    Rounds the number x / 10**exponent to the nearest quarter, using the
+    round-to-odd rounding mode. Returns the number of quarters.
+
+    The generic implementation works for any value that can be converted
     losslessly to a fraction, and for which signs of zero and special
     values are not a consideration.
+
+    Parameters
+    ----------
+    x : numeric
+    exponent : int
 
     Returns
     -------
@@ -71,4 +114,4 @@ def to_quarters(x, exponent=0):
         quarters, rest = divmod(10 ** -exponent * x, 1)
     else:
         quarters, rest = divmod(x, 10 ** exponent)
-    return negative, int(quarters) | bool(rest)
+    return SignedQuarters(negative, *divmod(int(quarters) | bool(rest), 4))

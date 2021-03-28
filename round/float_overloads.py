@@ -3,6 +3,8 @@ import math
 import struct
 
 from round.generics import decade, is_finite, to_quarters, to_type_of
+from round.intermediates import SignedQuarters
+
 
 #: Useful constants
 _TEN = fractions.Fraction(10)
@@ -698,7 +700,8 @@ def _(x):
 
 
 @to_type_of.register(float)
-def _(x, sign, significand, exponent):
+def _(x, sign_and_significand, exponent):
+    sign, significand = sign_and_significand
     if exponent >= 0:
         abs_value = float(significand * 10 ** exponent)
     else:
@@ -721,4 +724,4 @@ def _(x: fractions.Fraction, exponent: int = 0):
         quarters, rest = divmod(4 * 10 ** -exponent * x, 1)
     else:
         quarters, rest = divmod(4 * x, 10 ** exponent)
-    return negative, int(quarters) | bool(rest)
+    return SignedQuarters(negative, *divmod(int(quarters) | bool(rest), 4))
