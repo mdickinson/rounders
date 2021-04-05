@@ -1,0 +1,10 @@
+To-do list
+----------
+
+- Implement round_05away
+- Add package structure
+- Change name of the package to 'rounder'
+
+
+Done
+----
