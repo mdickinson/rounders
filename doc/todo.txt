@@ -1,12 +1,13 @@
 To-do list
 ----------
 
-- Implement round_05away
 - Add package structure
 - Docstrings everywhere
 - Add isort config
+- Add __all__ to __init__.py
 
 Done
 ----
 
 - Change name of the package to 'rounder'
+- Implement round_05away

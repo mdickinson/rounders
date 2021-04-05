@@ -34,6 +34,7 @@ from rounder import (
     round_to_places,
     round_to_plus,
     round_to_zero,
+    round_to_zero_05_away,
 )
 
 #: A selection of IEEE 754 binary64 floating-point values used in a wide
@@ -840,6 +841,36 @@ class TestRound(unittest.TestCase):
                     round_to_places(value, places, mode=mode),
                     expected_result,
                 )
+
+    def test_round_to_zero_05_away(self):
+        test_cases = [
+            (0.0, 0),
+            (0.2, 1),
+            (0.8, 1),
+            (1.0, 1),
+            (1.2, 1),
+            (1.8, 1),
+            (3.0, 3),
+            (3.2, 3),
+            (3.8, 3),
+            (4.0, 4),
+            (4.2, 4),
+            (4.8, 4),
+            (5.0, 5),
+            (5.2, 6),
+            (5.8, 6),
+            (6.0, 6),
+            (6.2, 6),
+            (6.8, 6),
+            (9.0, 9),
+            (9.2, 9),
+            (9.8, 9),
+        ]
+
+        for case in test_cases:
+            value, expected_result = case
+            with self.subTest(case=case):
+                self.assertEqual(round_to_zero_05_away(value), expected_result)
 
     def assertIntsIdentical(self, first, second):
         self.assertEqual(type(first), int)

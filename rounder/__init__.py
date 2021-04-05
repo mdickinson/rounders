@@ -6,7 +6,7 @@ import rounder.decimal_overloads  # noqa: F401
 import rounder.float_overloads  # noqa: F401
 import rounder.fraction_overloads  # noqa: F401
 import rounder.int_overloads  # noqa: F401
-from rounder.core import SignedInt, round_quarters
+from rounder.core import SignedInt
 from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 from rounder.modes import (
     TIES_TO_AWAY,
@@ -21,6 +21,8 @@ from rounder.modes import (
     TO_ODD,
     TO_PLUS,
     TO_ZERO,
+    TO_ZERO_05_AWAY,
+    round_quarters,
 )
 
 
@@ -243,3 +245,23 @@ def round_to_odd(x, ndigits=None):
         return round_to_int(x, mode=TO_ODD)
     else:
         return round_to_places(x, ndigits, mode=TO_ODD)
+
+
+def round_to_zero_05_away(x, ndigits=None):
+    """
+    Round for re-rounding.
+
+    Like round_to_zero, except that if the result of the rounding would end
+    in a 0 or a 5, and the rounded result is not equal to the original, then
+    the result is rounded away from zero instead, giving something with last
+    digit 1 or 6.
+
+    This rounding mode provides a way to avoid double rounding: rounding to
+    precision p + 1 using this mode, followed by rounding to precision p using
+    any other mode, has the same result as rounding directly to precision p.
+
+    """
+    if ndigits is None:
+        return round_to_int(x, mode=TO_ZERO_05_AWAY)
+    else:
+        return round_to_places(x, ndigits, mode=TO_ZERO_05_AWAY)
