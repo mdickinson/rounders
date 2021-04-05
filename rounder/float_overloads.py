@@ -2,8 +2,8 @@ import fractions
 import math
 import struct
 
-from round.core import SignedQuarterInt
-from round.generics import decade, is_finite, to_quarters, to_type_of
+from rounder.core import SignedQuarterInt
+from rounder.generics import decade, is_finite, to_quarters, to_type_of
 
 #: Useful constants
 _TEN = fractions.Fraction(10)

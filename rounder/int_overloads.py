@@ -1,4 +1,4 @@
-from round.generics import is_finite, to_type_of
+from rounder.generics import is_finite, to_type_of
 
 
 @to_type_of.register(int)

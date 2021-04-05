@@ -1,7 +1,7 @@
 import decimal
 
-from round.core import SignedQuarterInt
-from round.generics import decade, is_finite, to_quarters, to_type_of
+from rounder.core import SignedQuarterInt
+from rounder.generics import decade, is_finite, to_quarters, to_type_of
 
 
 @to_type_of.register(decimal.Decimal)

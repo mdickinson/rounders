@@ -5,7 +5,7 @@ Generic extensible computation functions that use singledispatch.
 import fractions
 import functools
 
-from round.core import SignedQuarterInt
+from rounder.core import SignedQuarterInt
 
 
 @functools.singledispatch

@@ -2,13 +2,13 @@
 Top-level rounding functions.
 """
 
-import round.decimal_overloads  # noqa: F401
-import round.float_overloads  # noqa: F401
-import round.fraction_overloads  # noqa: F401
-import round.int_overloads  # noqa: F401
-from round.core import SignedInt, round_quarters
-from round.generics import decade, is_finite, is_zero, to_quarters, to_type_of
-from round.modes import (
+import rounder.decimal_overloads  # noqa: F401
+import rounder.float_overloads  # noqa: F401
+import rounder.fraction_overloads  # noqa: F401
+import rounder.int_overloads  # noqa: F401
+from rounder.core import SignedInt, round_quarters
+from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
     TIES_TO_MINUS,

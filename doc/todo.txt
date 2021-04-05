@@ -3,8 +3,10 @@ To-do list
 
 - Implement round_05away
 - Add package structure
-- Change name of the package to 'rounder'
-
+- Docstrings everywhere
+- Add isort config
 
 Done
 ----
+
+- Change name of the package to 'rounder'
