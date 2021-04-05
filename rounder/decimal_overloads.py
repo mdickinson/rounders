@@ -5,9 +5,10 @@ from rounder.generics import decade, is_finite, to_quarters, to_type_of
 
 
 @to_type_of.register(decimal.Decimal)
-def _(x, sign_and_significand, exponent):
-    sign, significand = sign_and_significand
-    return decimal.Decimal(f"{'-' if sign else '+'}{significand}E{exponent}")
+def _(x, rounded):
+    return decimal.Decimal(
+        f"{'-' if rounded.sign else '+'}{rounded.significand}E{rounded.exponent}"
+    )
 
 
 @is_finite.register(decimal.Decimal)

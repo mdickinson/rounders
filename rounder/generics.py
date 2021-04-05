@@ -50,7 +50,7 @@ def decade(x) -> int:
 
 
 @functools.singledispatch
-def to_type_of(x, sign_and_significand, exponent):
+def to_type_of(x, rounded):
     """
     Convert rounding result to type matching that of x.
     """

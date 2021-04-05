@@ -699,13 +699,12 @@ def _(x):
 
 
 @to_type_of.register(float)
-def _(x, sign_and_significand, exponent):
-    sign, significand = sign_and_significand
-    if exponent >= 0:
-        abs_value = float(significand * 10 ** exponent)
+def _(x, rounded):
+    if rounded.exponent >= 0:
+        abs_value = float(rounded.significand * 10 ** rounded.exponent)
     else:
-        abs_value = significand / 10 ** -exponent
-    return -abs_value if sign else abs_value
+        abs_value = rounded.significand / 10 ** -rounded.exponent
+    return -abs_value if rounded.sign else abs_value
 
 
 @is_finite.register(float)

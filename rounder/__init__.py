@@ -6,7 +6,7 @@ import rounder.decimal_overloads  # noqa: F401
 import rounder.float_overloads  # noqa: F401
 import rounder.fraction_overloads  # noqa: F401
 import rounder.int_overloads  # noqa: F401
-from rounder.core import SignedInt
+from rounder.core import Rounded
 from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 from rounder.modes import (
     TIES_TO_AWAY,
@@ -49,9 +49,10 @@ def round_to_int(x, *, mode=TIES_TO_EVEN):
     if not is_finite(x):
         raise ValueError("x must be finite")
 
-    quarters = to_quarters(x, exponent=0)
-    rounded = SignedInt(quarters.sign, quarters.whole + mode(quarters))
-    return to_type_of(0, rounded, exponent=0)
+    exponent = 0
+    quarters = to_quarters(x, exponent)
+    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
+    return to_type_of(0, rounded)
 
 
 def round_to_places(x, places, *, mode=TIES_TO_EVEN):
@@ -70,9 +71,10 @@ def round_to_places(x, places, *, mode=TIES_TO_EVEN):
     if not is_finite(x):
         return x
 
-    quarters = to_quarters(x, exponent=-places)
-    rounded = SignedInt(quarters.sign, quarters.whole + mode(quarters))
-    return to_type_of(x, rounded, exponent=-places)
+    exponent = -places
+    quarters = to_quarters(x, exponent)
+    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
+    return to_type_of(x, rounded)
 
 
 def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
@@ -105,16 +107,15 @@ def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
 
     exponent = 1 - figures + (0 if is_zero(x) else decade(x))
     quarters = to_quarters(x, exponent)
-    rounded = SignedInt(quarters.sign, quarters.whole + mode(quarters))
+    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
-    if len(str(rounded.magnitude)) == figures + 1:
-        rounded = SignedInt(rounded.sign, rounded.magnitude // 10)
-        exponent += 1
-    return to_type_of(x, rounded, exponent)
+    if len(str(rounded.significand)) == figures + 1:
+        rounded = Rounded(rounded.sign, rounded.significand // 10, rounded.exponent + 1)
+    return to_type_of(x, rounded)
 
 
 # Per-rounding-mode functions, with behaviour matching that of the built-in
@@ -257,7 +258,8 @@ def round_to_zero_05_away(x, ndigits=None):
 
     This rounding mode provides a way to avoid double rounding: rounding to
     precision p + 1 using this mode, followed by rounding to precision p using
-    any other mode, has the same result as rounding directly to precision p.
+    any other mode, has the same result as rounding directly to precision p using
+    that other mode.
 
     """
     if ndigits is None:

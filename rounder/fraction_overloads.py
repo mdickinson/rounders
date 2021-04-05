@@ -4,17 +4,16 @@ from rounder.generics import is_finite, to_type_of
 
 
 @to_type_of.register(fractions.Fraction)
-def _(x, sign_and_significand, exponent):
-    sign, significand = sign_and_significand
-    if exponent >= 0:
-        numerator = significand * 10 ** exponent
+def _(x, rounded):
+    if rounded.exponent >= 0:
+        numerator = rounded.significand * 10 ** rounded.exponent
         denominator = 1
     else:
-        numerator = significand
-        denominator = 10 ** -exponent
+        numerator = rounded.significand
+        denominator = 10 ** -rounded.exponent
     return (
         -fractions.Fraction(numerator, denominator)
-        if sign
+        if rounded.sign
         else fractions.Fraction(numerator, denominator)
     )
 

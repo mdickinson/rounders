@@ -12,6 +12,11 @@ from collections import namedtuple
 # representing the fractional part.
 SignedQuarterInt = namedtuple("SignedQuarterInt", ["sign", "whole", "quarters"])
 
-#: Representation of an integer with sign. Represents the same set of values
-#: as a plain int, except that positive and negative zero are distinguished.
-SignedInt = namedtuple("SignedInt", ["sign", "magnitude"])
+#: Representation of a finite rounded value, with sign, significand and exponent.
+
+# `sign` is a boolean: True for negative, False for positive
+# `significand` is a nonnegative int, giving the coefficient of the rounded result
+# `exponent` is an integer
+# The value represented is significand * 10**exponent if sign is False, and
+# -(significand * 10**exponent) is sign is True.
+Rounded = namedtuple("Rounded", ["sign", "significand", "exponent"])
