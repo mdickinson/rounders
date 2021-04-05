@@ -22,7 +22,6 @@ from rounder.modes import (
     TO_PLUS,
     TO_ZERO,
     TO_ZERO_05_AWAY,
-    round_quarters,
 )
 
 
@@ -51,7 +50,7 @@ def round_to_int(x, *, mode=TIES_TO_EVEN):
         raise ValueError("x must be finite")
 
     quarters = to_quarters(x, exponent=0)
-    rounded = round_quarters(quarters, rounding_mode=mode)
+    rounded = SignedInt(quarters.sign, quarters.whole + mode(quarters))
     return to_type_of(0, rounded, exponent=0)
 
 
@@ -72,7 +71,7 @@ def round_to_places(x, places, *, mode=TIES_TO_EVEN):
         return x
 
     quarters = to_quarters(x, exponent=-places)
-    rounded = round_quarters(quarters, rounding_mode=mode)
+    rounded = SignedInt(quarters.sign, quarters.whole + mode(quarters))
     return to_type_of(x, rounded, exponent=-places)
 
 
@@ -106,7 +105,7 @@ def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
 
     exponent = 1 - figures + (0 if is_zero(x) else decade(x))
     quarters = to_quarters(x, exponent)
-    rounded = round_quarters(quarters, rounding_mode=mode)
+    rounded = SignedInt(quarters.sign, quarters.whole + mode(quarters))
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets
