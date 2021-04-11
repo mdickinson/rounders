@@ -2,6 +2,8 @@
 Top-level rounding functions.
 """
 
+import re
+
 import rounder.decimal_overloads  # noqa: F401
 import rounder.float_overloads  # noqa: F401
 import rounder.fraction_overloads  # noqa: F401
@@ -55,26 +57,28 @@ def round_to_int(x, *, mode=TIES_TO_EVEN):
     return to_type_of(0, rounded)
 
 
-def round_to_places(x, places, *, mode=TIES_TO_EVEN):
+def round_to_places(value, places, *, mode=TIES_TO_EVEN):
     """
     Round a value to a given number of places after the point.
 
     Parameters
     ----------
-    x : numeric
+    value : number
+        value to be rounded
     places : integer
+        Number of places to round to, relative to the decimal point.
     mode, optional
         Any of the twelve available rounding modes. Defaults to the
         ties-to-even rounding mode.
     """
     # Infinities and nans are returned unchanged.
-    if not is_finite(x):
-        return x
+    if not is_finite(value):
+        return value
 
     exponent = -places
-    quarters = to_quarters(x, exponent)
+    quarters = to_quarters(value, exponent)
     rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
-    return to_type_of(x, rounded)
+    return to_type_of(value, rounded)
 
 
 def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
@@ -123,24 +127,39 @@ def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
 # as the input, or round to the nearest integer, returning an int.
 
 
+def round(x, ndigits, *, mode=TIES_TO_EVEN):
+    """
+    Round a value using a given rounding mode.
+
+    Replacement for the built-in round function with configurable rounding mode.
+
+    Parameters
+    ----------
+    x : number
+        Value to be rounded
+    ndigits : int
+        Number of digits past the point to round to. Can be negative.
+    mode : RoundingMode, optional
+        Rounding mode. Defaults to TIES_TO_EVEN.
+    """
+    if ndigits is None:
+        return round_to_int(x, mode=mode)
+    else:
+        return round_to_places(x, ndigits, mode=mode)
+
+
 def round_ties_to_away(x, ndigits=None):
     """
     Round the input x to the nearest integer, rounding ties away from zero.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TIES_TO_AWAY)
-    else:
-        return round_to_places(x, ndigits, mode=TIES_TO_AWAY)
+    return round(x, ndigits, mode=TIES_TO_AWAY)
 
 
 def round_ties_to_zero(x, ndigits=None):
     """
     Round the input x to the nearest integer, rounding ties towards zero.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TIES_TO_ZERO)
-    else:
-        return round_to_places(x, ndigits, mode=TIES_TO_ZERO)
+    return round(x, ndigits, mode=TIES_TO_ZERO)
 
 
 def round_ties_to_even(x, ndigits=None):
@@ -148,10 +167,7 @@ def round_ties_to_even(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties to the nearest
     even integer.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TIES_TO_EVEN)
-    else:
-        return round_to_places(x, ndigits, mode=TIES_TO_EVEN)
+    return round(x, ndigits, mode=TIES_TO_EVEN)
 
 
 def round_ties_to_odd(x, ndigits=None):
@@ -159,10 +175,7 @@ def round_ties_to_odd(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties to the nearest
     odd integer.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TIES_TO_ODD)
-    else:
-        return round_to_places(x, ndigits, mode=TIES_TO_ODD)
+    return round(x, ndigits, mode=TIES_TO_ODD)
 
 
 def round_ties_to_plus(x, ndigits=None):
@@ -170,10 +183,7 @@ def round_ties_to_plus(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties towards positive
     infinity.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TIES_TO_PLUS)
-    else:
-        return round_to_places(x, ndigits, mode=TIES_TO_PLUS)
+    return round(x, ndigits, mode=TIES_TO_PLUS)
 
 
 def round_ties_to_minus(x, ndigits=None):
@@ -181,70 +191,49 @@ def round_ties_to_minus(x, ndigits=None):
     Round the input x to the nearest integer, rounding ties towards negative
     infinity.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TIES_TO_MINUS)
-    else:
-        return round_to_places(x, ndigits, mode=TIES_TO_MINUS)
+    return round(x, ndigits, mode=TIES_TO_MINUS)
 
 
 def round_to_away(x, ndigits=None):
     """
     Round the input x to the nearest integer away from zero.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_AWAY)
-    else:
-        return round_to_places(x, ndigits, mode=TO_AWAY)
+    return round(x, ndigits, mode=TO_AWAY)
 
 
 def round_to_zero(x, ndigits=None):
     """
     Round the input x to the nearest integer towards zero.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_ZERO)
-    else:
-        return round_to_places(x, ndigits, mode=TO_ZERO)
+    return round(x, ndigits, mode=TO_ZERO)
 
 
 def round_to_plus(x, ndigits=None):
     """
     Round the input x to the nearest integer towards positive infinity.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_PLUS)
-    else:
-        return round_to_places(x, ndigits, mode=TO_PLUS)
+    return round(x, ndigits, mode=TO_PLUS)
 
 
 def round_to_minus(x, ndigits=None):
     """
     Round the input x to the nearest integer towards negative infinity.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_MINUS)
-    else:
-        return round_to_places(x, ndigits, mode=TO_MINUS)
+    return round(x, ndigits, mode=TO_MINUS)
 
 
 def round_to_even(x, ndigits=None):
     """
     Round the input x to the nearest even integer.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_EVEN)
-    else:
-        return round_to_places(x, ndigits, mode=TO_EVEN)
+    return round(x, ndigits, mode=TO_EVEN)
 
 
 def round_to_odd(x, ndigits=None):
     """
     Round the input x to the nearest odd integer.
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_ODD)
-    else:
-        return round_to_places(x, ndigits, mode=TO_ODD)
+    return round(x, ndigits, mode=TO_ODD)
 
 
 def round_to_zero_05_away(x, ndigits=None):
@@ -262,7 +251,64 @@ def round_to_zero_05_away(x, ndigits=None):
     that other mode.
 
     """
-    if ndigits is None:
-        return round_to_int(x, mode=TO_ZERO_05_AWAY)
-    else:
-        return round_to_places(x, ndigits, mode=TO_ZERO_05_AWAY)
+    return round(x, ndigits, mode=TO_ZERO_05_AWAY)
+
+
+#: General formatter for numeric values.
+
+
+_PATTERN = re.compile(
+    """
+    \A\.
+    (?P<places>\d*)
+    (?P<mode>[aemopzAEMOPRZ])?
+    f\Z
+    """,
+    re.VERBOSE,
+)
+
+_MODE_FORMAT_CODES = {
+    "m": TIES_TO_MINUS,
+    "p": TIES_TO_PLUS,
+    "a": TIES_TO_AWAY,
+    "e": TIES_TO_EVEN,
+    "o": TIES_TO_ODD,
+    "z": TIES_TO_ZERO,
+    "M": TO_MINUS,
+    "P": TO_PLUS,
+    "A": TO_AWAY,
+    "E": TO_EVEN,
+    "O": TO_ODD,
+    "Z": TO_ZERO,
+    "R": TO_ZERO_05_AWAY,
+}
+
+
+def format(value, pattern):
+    """
+    Parameters
+    ----------
+    value : number
+        Value to be formatted.
+    pattern : str
+        Pattern describing how to format.
+
+    Returns
+    -------
+    Formatted string
+
+    """
+    import decimal
+
+    match = _PATTERN.match(pattern)
+    if match is None:
+        raise ValueError(f"Invalid pattern: {pattern!r}")
+
+    places = int(match.group("places"))
+    mode_code = match.group("mode")
+    mode = TIES_TO_EVEN if mode_code is None else _MODE_FORMAT_CODES[mode_code]
+
+    exponent = -places
+    quarters = to_quarters(value, exponent)
+    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
+    return str(to_type_of(decimal.Decimal(0), rounded))
