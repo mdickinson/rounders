@@ -63,14 +63,14 @@ TEN = fractions.Fraction(10)
 DECADE_STARTS = []
 for e in range(-324, 309):
     try:
-        x = float(TEN ** e)
+        x = float(TEN**e)
     except OverflowError:
         x = math.inf
-    if x < TEN ** e:
+    if x < TEN**e:
         x = math.nextafter(x, math.inf)
 
-    assert TEN ** e <= x < TEN ** (e + 1)
-    assert not (TEN ** e <= math.nextafter(x, 0.0) < TEN ** (e + 1))
+    assert TEN**e <= x < TEN ** (e + 1)
+    assert not (TEN**e <= math.nextafter(x, 0.0) < TEN ** (e + 1))
     DECADE_STARTS.append((e, x))
 
 DECADE_ENDS = []
@@ -82,8 +82,8 @@ for e in range(-324, 309):
     if x >= TEN ** (e + 1):
         x = math.nextafter(x, 0.0)
 
-    assert TEN ** e <= x < TEN ** (e + 1)
-    assert not (TEN ** e <= math.nextafter(x, math.inf) < TEN ** (e + 1))
+    assert TEN**e <= x < TEN ** (e + 1)
+    assert not (TEN**e <= math.nextafter(x, math.inf) < TEN ** (e + 1))
     DECADE_ENDS.append((e, x))
 
 DECADE_TEST_VALUES = DECADE_STARTS + DECADE_ENDS
@@ -516,7 +516,7 @@ class TestRound(unittest.TestCase):
                     rounding_function(-1.7e308, -308)
 
     def test_round_integers_places_none(self):
-        test_values = [*range(-10, 10), *range(10 ** 100 - 10, 10 ** 100 + 10)]
+        test_values = [*range(-10, 10), *range(10**100 - 10, 10**100 + 10)]
         for rounding_function in MIDPOINT_ROUNDING_FUNCTIONS:
             for value in test_values:
                 rounded_value = rounding_function(value)
@@ -537,8 +537,8 @@ class TestRound(unittest.TestCase):
 
     def test_round_huge_integers(self):
         # Check that we're not depending on converting integers to floats
-        self.assertIntsIdentical(round_ties_to_away(2 ** 1025, 0), 2 ** 1025)
-        self.assertIntsIdentical(round_to_odd(-(2 ** 1025)), -(2 ** 1025))
+        self.assertIntsIdentical(round_ties_to_away(2**1025, 0), 2**1025)
+        self.assertIntsIdentical(round_to_odd(-(2**1025)), -(2**1025))
 
     def test_round_fractions_places_none(self):
         # Tests pairs for round-ties-to-even

@@ -42,9 +42,9 @@ def decade(x) -> int:
 
     # Is trial_decade an overestimate?
     if trial_decade >= 0:
-        too_high = n < 10 ** trial_decade * d
+        too_high = n < 10**trial_decade * d
     else:
-        too_high = n * 10 ** -trial_decade < d
+        too_high = n * 10**-trial_decade < d
 
     return trial_decade - too_high
 
@@ -111,7 +111,7 @@ def to_quarters(x, exponent):
     """
     negative, x = x < 0, 4 * abs(fractions.Fraction(x))
     if exponent <= 0:
-        quarters, rest = divmod(10 ** -exponent * x, 1)
+        quarters, rest = divmod(10**-exponent * x, 1)
     else:
-        quarters, rest = divmod(x, 10 ** exponent)
+        quarters, rest = divmod(x, 10**exponent)
     return SignedQuarterInt(negative, *divmod(int(quarters) | bool(rest), 4))

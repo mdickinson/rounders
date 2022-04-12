@@ -666,7 +666,7 @@ def _(x):
         raise ValueError(f"Input must be finite and nonzero; got {x}")
     elif binade == -1023:
         binade = (n & _FRACTION_MASK).bit_length() - 1075
-    assert _TWO ** binade <= abs(x) < _TWO ** (binade + 1)
+    assert _TWO**binade <= abs(x) < _TWO ** (binade + 1)
 
     # Compute the decade from the binade.
     #
@@ -694,16 +694,16 @@ def _(x):
     if m & 0x3FFFF > 262144 - 78913:
         decade += _FTEN_INTS[decade + 324] <= n
 
-    assert _TEN ** decade <= abs(x) < _TEN ** (decade + 1)
+    assert _TEN**decade <= abs(x) < _TEN ** (decade + 1)
     return decade
 
 
 @to_type_of.register(float)
 def _(x, rounded):
     if rounded.exponent >= 0:
-        abs_value = float(rounded.significand * 10 ** rounded.exponent)
+        abs_value = float(rounded.significand * 10**rounded.exponent)
     else:
-        abs_value = rounded.significand / 10 ** -rounded.exponent
+        abs_value = rounded.significand / 10**-rounded.exponent
     return -abs_value if rounded.sign else abs_value
 
 
@@ -719,7 +719,7 @@ def _(x: fractions.Fraction, exponent: int = 0):
 
     negative, x = math.copysign(1.0, x) < 0.0, fractions.Fraction(abs(x))
     if exponent <= 0:
-        quarters, rest = divmod(4 * 10 ** -exponent * x, 1)
+        quarters, rest = divmod(4 * 10**-exponent * x, 1)
     else:
-        quarters, rest = divmod(4 * x, 10 ** exponent)
+        quarters, rest = divmod(4 * x, 10**exponent)
     return SignedQuarterInt(negative, *divmod(int(quarters) | bool(rest), 4))
