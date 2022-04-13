@@ -2,8 +2,6 @@ To-do list
 ----------
 
 - General maintenance
-  - Add package structure: setup.py, etc.
-  - Remove setup.py
   - Add actions workflows
 - Docstrings everywhere
 - Add __all__ to __init__.py
@@ -11,11 +9,14 @@ To-do list
 - Add names to the standard rounding modes so that their representations are
   pleasanter. (Currently looks like 'standard_rounding_mode.<locals>.round_decide.)
 - Formatting:
-  - Alignment
+  - Make precision optional
+  - Alignment and field width
   - Support for 'e', 'g', '%', 'n'
   - Support for thousands separators
   - Find a way to resolve ambiguity between the two uses of z (for round-ties-to-zero
-    and for negative sign suppression).
+    and for negative sign suppression). We also need to resolve
+    ambiguity between 'e' for "even" and 'e' for the type.
+    Suggest prefix of "r" for specifying rounding mode.
 
 Done
 ----
@@ -25,3 +26,6 @@ Done
 - Add isort config
 - Formatting:
   - Sign management
+- General maintenance
+  - Add package structure: setup.py, etc.
+  - Remove setup.py in favour of setup.cfg
