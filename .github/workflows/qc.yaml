@@ -26,6 +26,7 @@ jobs:
       run: |
         python -m isort --check --diff .
         python -m black --check --diff .
+        python -m mypy .
         python -m flake8
     - name: Run test suite
       run: python -m pytest
