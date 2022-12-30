@@ -22,5 +22,10 @@ jobs:
         cache-dependency-path: '.github/workflows/qc-requirements.txt'
     - run: python -m pip install -r .github/workflows/qc-requirements.txt
     - run: python -m pip install .
+    - name: Run style checks
+      run: |
+        python -m isort --check --diff .
+        python -m black --check --diff .
+        python -m flake8
     - name: Run test suite
       run: python -m pytest
