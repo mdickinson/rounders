@@ -4,9 +4,10 @@ Formatting functionality.
 
 import dataclasses
 import re
+import typing
 
 from rounder.core import Rounded
-from rounder.generics import to_quarters
+from rounder.generics import decade, is_zero, to_quarters
 from rounder.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
@@ -32,7 +33,7 @@ _PATTERN = re.compile(
 \.
 (?P<precision>-?\d+)
 (?P<mode>[aemopzAEMOPRZ])?
-f
+(?P<type>[ef])
 \Z""",
     re.VERBOSE,
 )
@@ -57,11 +58,23 @@ _MODE_FORMAT_CODES = {
 #: Class describing a format specification.
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class FormatSpecification:
+
+    #: The rounding type to use: "e" versus "f". We'll replace
+    #: this with something more generic later.
+    round_type: str = "f"
+
     #: The rounding mode to use.
     rounding_mode: RoundingMode = TIES_TO_EVEN
 
-    #: Number of decimal places after the point. This can be negative.
-    places: int
+    #: Number of decimal places after the point. May be
+    #: zero or negative.
+    places: typing.Optional[int] = None
+
+    #: Number of significant figures. If given, must be positive.
+    figures: typing.Optional[int] = None
+
+    #: Whether to always output in scientific format.
+    scientific: bool = False
 
     #: If True, a decimal point is always included in the formatted
     #: result even when there are no digits following it.
@@ -73,8 +86,14 @@ class FormatSpecification:
     min_digits_before_point: int = 1
     min_digits_after_point: int = 0
 
+    #: Character used for zero padding
+    zero: str = "0"
+
     #: Decimal separator.
     decimal_separator: str = "."
+
+    #: String used to introduce the exponent.
+    e: str = "e"
 
     #: Sign to use for negative nonzero values.
     negative_sign: str = "-"
@@ -96,17 +115,32 @@ class FormatSpecification:
         # Get digits as a decimal string.
         digits = str(rounded.significand) if rounded.significand else ""
 
+        # Adjust for scientific notation
+        use_exponent = self.scientific
+        if use_exponent:
+            if not rounded.significand:
+                # Q: What should the displayed exponent be in this case?
+                raise NotImplementedError("later")
+
+            # Nonzero value: place the decimal point after the
+            # first digit.
+            e_exponent = rounded.exponent + len(digits) - 1
+            end_exponent = rounded.exponent - e_exponent
+        else:
+            end_exponent = rounded.exponent
+
         # Figure out number-line positions.
-        end_exponent = rounded.exponent
         start_exponent = end_exponent + len(digits)
 
         # Pad with zeros to ensure required minimum number of digits before and
         # after the point.
         if start_exponent < self.min_digits_before_point:
-            digits = "0" * (self.min_digits_before_point - start_exponent) + digits
+            digits = (
+                self.zero * (self.min_digits_before_point - start_exponent) + digits
+            )
             start_exponent = self.min_digits_before_point
         if end_exponent >= -self.min_digits_after_point:
-            digits = digits + "0" * (end_exponent + self.min_digits_after_point)
+            digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
             end_exponent = -self.min_digits_after_point
 
         # Determine the sign.
@@ -123,7 +157,12 @@ class FormatSpecification:
             point = self.decimal_separator
         else:
             point = ""
-        return sign + before_point + point + after_point
+        if use_exponent:
+            exponent = self.e + str(e_exponent)
+        else:
+            exponent = ""
+
+        return sign + before_point + point + after_point + exponent
 
     @classmethod
     def from_string(self, pattern):
@@ -131,30 +170,35 @@ class FormatSpecification:
         if match is None:
             raise ValueError(f"Invalid pattern: {pattern!r}")
 
-        precision = int(match.group("precision"))
-        mode_code = match.group("mode")
-        mode = TIES_TO_EVEN if mode_code is None else _MODE_FORMAT_CODES[mode_code]
-        sign = match.group("sign")
-
         kwargs = {}
 
-        if sign == "+" or sign == " ":
+        if (round_type := match["type"]) == "f":
+            kwargs.update(places=int(match["precision"]))
+        elif round_type == "e":
+            kwargs.update(figures=int(match["precision"]) + 1)
+            kwargs.update(scientific=True)
+        else:
+            raise ValueError("Unhandled round type")
+
+        if (mode_code := match["mode"]) is not None:
+            kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
+
+        if (sign := match["sign"]) == "+" or sign == " ":
             kwargs.update(
-                dict(
-                    positive_sign=sign,
-                    positive_zero_sign=sign,
-                )
+                positive_sign=sign,
+                positive_zero_sign=sign,
             )
-        if match.group("no_neg_0"):
+        if match["no_neg_0"]:
             if sign == "+" or sign == " ":
-                kwargs.update(dict(negative_zero_sign=sign))
+                kwargs.update(negative_zero_sign=sign)
             else:
-                kwargs.update(dict(negative_zero_sign=""))
+                kwargs.update(negative_zero_sign="")
+
+        if match["alt"] is not None:
+            kwargs.update(always_include_point=True)
 
         return FormatSpecification(
-            rounding_mode=mode,
-            places=precision,
-            always_include_point=match.group("alt") is not None,
+            round_type=round_type,
             **kwargs,
         )
 
@@ -176,13 +220,32 @@ def format(value, pattern):
     format_specification = FormatSpecification.from_string(pattern)
 
     # Step 1: convert to rounded value.
-    exponent = -format_specification.places
+    bounds = []
+    if is_zero(value):
+        exponent = format_specification.exponent_for_zero
+
+    else:
+        if format_specification.places is not None:
+            bounds.append(-format_specification.places)
+
+        if format_specification.figures is not None:
+            bounds.append(decade(value) + 1 - format_specification.figures)
+
+        exponent = max(bounds)
+
     quarters = to_quarters(value, exponent)
     rounded = Rounded(
         quarters.sign,
         quarters.whole + format_specification.rounding_mode(quarters),
         exponent,
     )
+    if format_specification.figures is not None:
 
-    # Step 2: convert to string. Only supporting f-presentation format right now.
+        # Adjust if necessary.
+        if len(str(rounded.significand)) == format_specification.figures + 1:
+            rounded = Rounded(
+                rounded.sign, rounded.significand // 10, rounded.exponent + 1
+            )
+
+    # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)
