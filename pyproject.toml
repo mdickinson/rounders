@@ -1,9 +1,30 @@
-[build-system]
-requires = [
-    "setuptools>=42",
-    "wheel",
+[project]
+name = 'rounder'
+version = '0.1.0'
+description = 'round-function equivalents with different rounding-modes'
+readme = 'README.md'
+requires-python = '>=3.7'
+authors = [{name = 'Mark Dickinson', email = 'dickinsm@gmail.com'}]
+keywords = ['round', 'rounding']
+classifiers = [
+    'License :: OSI Approved :: Apache Software License',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 3',
+    'Topic :: Scientific/Engineering :: Mathematics',
 ]
-build-backend = "setuptools.build_meta"
+
+[project.urls]
+source = 'https://github.com/mdickinson/rounder'
+
+[build-system]
+requires = ['setuptools>=42', 'wheel']
+build-backend = 'setuptools.build_meta'
+
+[tool.black]
+target-version = ['py37']
+
+[tool.isort]
+profile = 'black'
 
 [tool.mypy]
 exclude = [
