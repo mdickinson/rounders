@@ -183,7 +183,8 @@ class FormatSpecification:
 
         kwargs = {}
 
-        if (round_type := match["type"]) == "f":
+        round_type = match["type"]
+        if round_type == "f":
             places = int(match["precision"])
             kwargs.update(
                 places=places,
@@ -195,10 +196,12 @@ class FormatSpecification:
         else:
             raise ValueError("Unhandled round type")
 
-        if (mode_code := match["mode"]) is not None:
+        mode_code = match["mode"]
+        if mode_code is not None:
             kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
 
-        if (sign := match["sign"]) == "+" or sign == " ":
+        sign = match["sign"]
+        if sign == "+" or sign == " ":
             kwargs.update(
                 positive_sign=sign,
                 positive_zero_sign=sign,
