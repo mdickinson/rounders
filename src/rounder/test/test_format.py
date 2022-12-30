@@ -5,6 +5,7 @@ Tests for extended formatting functionality.
 import decimal
 import fractions
 import unittest
+from typing import List, Tuple
 
 from rounder import format
 from rounder.core import Rounded
@@ -12,12 +13,12 @@ from rounder.format import FormatSpecification
 
 
 class TestFormat(unittest.TestCase):
-    def test_format_fraction(self):
+    def test_format_fraction(self) -> None:
         self.assertEqual(format(fractions.Fraction(3, 7), ".3f"), "0.429")
         self.assertEqual(format(fractions.Fraction(3, 7), ".4f"), "0.4286")
         self.assertEqual(format(fractions.Fraction(3, 7), ".5f"), "0.42857")
 
-    def test_format_general_f(self):
+    def test_format_general_f(self) -> None:
         # Cases that are also expected to work for the
         # built-in format.
         cases = [
@@ -79,7 +80,7 @@ class TestFormat(unittest.TestCase):
         ]
         self.check_cases(cases)
 
-    def test_format_general_e(self):
+    def test_format_general_e(self) -> None:
         # Cases that are also expected to work for the
         # built-in format, for the "e" presentation type.
         cases = [
@@ -97,7 +98,7 @@ class TestFormat(unittest.TestCase):
         ]
         self.check_cases(cases)
 
-    def test_negative_precision(self):
+    def test_negative_precision(self) -> None:
         cases = [
             ("31415.926", ".-2f", "31400"),
             ("314159.26", "#.-2f", "314200."),
@@ -105,7 +106,7 @@ class TestFormat(unittest.TestCase):
         ]
         self.check_cases(cases)
 
-    def test_format_rounding_mode(self):
+    def test_format_rounding_mode(self) -> None:
         cases = [
             ("-0.4277", ".3Mf", "-0.428"),
             ("-0.4277", ".3Pf", "-0.427"),
@@ -200,17 +201,17 @@ class TestFormat(unittest.TestCase):
         ]
         self.check_cases(cases)
 
-    def check_cases(self, cases):
+    def check_cases(self, cases: List[Tuple[str, str, str]]) -> None:
         for case in cases:
-            value, pattern, expected_result = case
+            value_str, pattern, expected_result = case
             with self.subTest(case=case):
-                value = decimal.Decimal(value)
+                value = decimal.Decimal(value_str)
                 actual_result = format(value, pattern)
                 self.assertEqual(actual_result, expected_result)
 
 
 class TestFormatFromSpecification(unittest.TestCase):
-    def test_min_digits_before_point(self):
+    def test_min_digits_before_point(self) -> None:
         format_specification = FormatSpecification(
             min_digits_before_point=0,
             min_digits_after_point=1,
@@ -218,10 +219,14 @@ class TestFormatFromSpecification(unittest.TestCase):
             figures=None,
         )
         self.assertEqual(
-            format_specification.format(Rounded(False, "23", -2)),
+            format_specification.format(
+                Rounded(sign=False, significand=23, exponent=-2)
+            ),
             ".23",
         )
         self.assertEqual(
-            format_specification.format(Rounded(False, "67", -3)),
+            format_specification.format(
+                Rounded(sign=False, significand=67, exponent=-3)
+            ),
             ".067",
         )

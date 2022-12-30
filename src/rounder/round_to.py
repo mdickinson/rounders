@@ -2,12 +2,14 @@
 Top-level rounding functions.
 """
 
+from typing import Any, Optional
+
 from rounder.core import Rounded
 from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
-from rounder.modes import TIES_TO_EVEN
+from rounder.modes import TIES_TO_EVEN, RoundingMode
 
 
-def round_to_int(x, *, mode=TIES_TO_EVEN):
+def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     """
     Round a value to the nearest integer, using the given rounding mode.
 
@@ -31,13 +33,14 @@ def round_to_int(x, *, mode=TIES_TO_EVEN):
     if not is_finite(x):
         raise ValueError("x must be finite")
 
-    exponent = 0
-    quarters = to_quarters(x, exponent)
-    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
-    return to_type_of(0, rounded)
+    quarters = to_quarters(x, 0)
+    significand = quarters.whole + mode(quarters)
+    return -significand if quarters.sign else significand
 
 
-def round_to_places(value, places, *, mode=TIES_TO_EVEN):
+def round_to_places(
+    value: Any, places: int, *, mode: RoundingMode = TIES_TO_EVEN
+) -> Any:
     """
     Round a value to a given number of places after the point.
 
@@ -57,11 +60,15 @@ def round_to_places(value, places, *, mode=TIES_TO_EVEN):
 
     exponent = -places
     quarters = to_quarters(value, exponent)
-    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
+    rounded = Rounded(
+        sign=quarters.sign,
+        significand=quarters.whole + mode(quarters),
+        exponent=exponent,
+    )
     return to_type_of(value, rounded)
 
 
-def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
+def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
     """
     Round a value to a given number of significant figures.
 
@@ -91,18 +98,28 @@ def round_to_figures(x, figures, *, mode=TIES_TO_EVEN):
 
     exponent = 1 - figures + (0 if is_zero(x) else decade(x))
     quarters = to_quarters(x, exponent)
-    rounded = Rounded(quarters.sign, quarters.whole + mode(quarters), exponent)
+    rounded = Rounded(
+        sign=quarters.sign,
+        significand=quarters.whole + mode(quarters),
+        exponent=exponent,
+    )
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
     if len(str(rounded.significand)) == figures + 1:
-        rounded = Rounded(rounded.sign, rounded.significand // 10, rounded.exponent + 1)
+        rounded = Rounded(
+            sign=rounded.sign,
+            significand=rounded.significand // 10,
+            exponent=rounded.exponent + 1,
+        )
     return to_type_of(x, rounded)
 
 
-def round(x, ndigits, *, mode=TIES_TO_EVEN):
+def round(
+    x: Any, ndigits: Optional[int] = None, *, mode: RoundingMode = TIES_TO_EVEN
+) -> Any:
     """
     Round a value using a given rounding mode.
 
