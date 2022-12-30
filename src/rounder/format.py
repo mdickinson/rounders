@@ -4,8 +4,7 @@ Formatting functionality.
 
 import dataclasses
 import re
-import sys
-import typing
+from typing import Any, Dict, Optional
 
 from rounder.core import Rounded
 from rounder.generics import decade, is_zero, to_quarters
@@ -55,17 +54,12 @@ _MODE_FORMAT_CODES = {
     "R": TO_ZERO_05_AWAY,
 }
 
-# Provide compatibility for Python versions older than 3.10, which don't support
-# kw_only.
-if sys.version_info < (3, 10):
-    frozen_dataclass = dataclasses.dataclass(frozen=True)
-else:
-    frozen_dataclass = dataclasses.dataclass(frozen=True, kw_only=True)
 
-
-#: Class describing a format specification.
-@frozen_dataclass
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class FormatSpecification:
+    """
+    Description of a format specification.
+    """
 
     #: The rounding type to use: "e" versus "f". We'll replace
     #: this with something more generic later.
@@ -76,10 +70,10 @@ class FormatSpecification:
 
     #: Number of decimal places after the point. May be
     #: zero or negative.
-    places: typing.Optional[int] = None
+    places: Optional[int] = None
 
     #: Number of significant figures. If given, must be positive.
-    figures: typing.Optional[int] = None
+    figures: Optional[int] = None
 
     #: Whether to always output in scientific format.
     scientific: bool = False
@@ -118,10 +112,9 @@ class FormatSpecification:
     #: Exponent to use for zero.
     exponent_for_zero: int = 0
 
-    def format(self, rounded: Rounded):
+    def format(self, rounded: Rounded) -> str:
 
         # Step 2: convert to string. Only supporting f-presentation format right now.
-        sign = rounded.sign
 
         # Get digits as a decimal string.
         digits = str(rounded.significand) if rounded.significand else ""
@@ -157,9 +150,9 @@ class FormatSpecification:
         # Determine the sign.
         iszero = rounded.significand == 0
         if rounded.sign:
-            sign = self.negative_zero_sign if iszero else self.negative_sign
+            sign_str = self.negative_zero_sign if iszero else self.negative_sign
         else:
-            sign = self.positive_zero_sign if iszero else self.positive_sign
+            sign_str = self.positive_zero_sign if iszero else self.positive_sign
 
         # Assemble the result.
         before_point = digits[:start_exponent]
@@ -173,15 +166,15 @@ class FormatSpecification:
         else:
             exponent = ""
 
-        return sign + before_point + point + after_point + exponent
+        return sign_str + before_point + point + after_point + exponent
 
     @classmethod
-    def from_string(self, pattern):
+    def from_string(cls, pattern: str) -> "FormatSpecification":
         match = _PATTERN.match(pattern)
         if match is None:
             raise ValueError(f"Invalid pattern: {pattern!r}")
 
-        kwargs = {}
+        kwargs: Dict[str, Any] = {}
 
         round_type = match["type"]
         if round_type == "f":
@@ -215,13 +208,13 @@ class FormatSpecification:
         if match["alt"] is not None:
             kwargs.update(always_include_point=True)
 
-        return FormatSpecification(
+        return cls(
             round_type=round_type,
             **kwargs,
         )
 
 
-def format(value, pattern):
+def format(value: Any, pattern: str) -> str:
     """
     Parameters
     ----------
@@ -253,16 +246,18 @@ def format(value, pattern):
 
     quarters = to_quarters(value, exponent)
     rounded = Rounded(
-        quarters.sign,
-        quarters.whole + format_specification.rounding_mode(quarters),
-        exponent,
+        sign=quarters.sign,
+        significand=quarters.whole + format_specification.rounding_mode(quarters),
+        exponent=exponent,
     )
     if format_specification.figures is not None:
 
         # Adjust if necessary.
         if len(str(rounded.significand)) == format_specification.figures + 1:
             rounded = Rounded(
-                rounded.sign, rounded.significand // 10, rounded.exponent + 1
+                sign=rounded.sign,
+                significand=rounded.significand // 10,
+                exponent=rounded.exponent + 1,
             )
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.

@@ -1,17 +1,25 @@
-from rounder.generics import is_finite, to_type_of
+from rounder.core import Rounded
+from rounder.generics import is_finite, is_zero, to_type_of
 
 
 @to_type_of.register(int)
-def _(x, rounded):
+def _(x: int, rounded: Rounded) -> int:
     if rounded.exponent >= 0:
-        significand = rounded.significand * 10**rounded.exponent
+        multiplier: int = 10**rounded.exponent
+        significand = rounded.significand * multiplier
     else:
-        significand, remainder = divmod(rounded.significand, 10**-rounded.exponent)
+        divisor: int = 10**-rounded.exponent
+        significand, remainder = divmod(rounded.significand, divisor)
         if remainder:
             raise ValueError("Not representable as an integer")
     return -significand if rounded.sign else significand
 
 
 @is_finite.register(int)
-def _(x):
+def _(x: int) -> bool:
     return True
+
+
+@is_zero.register(int)
+def _(x: int) -> bool:
+    return x == 0

@@ -46,22 +46,27 @@ To odd: floor(x) if floor(x) is odd, else ceil(x)
     ⋯←←●→→→●←←←●→→→●←←←●→→→●←←⋯
       -2  -1   0   1   2   3
 
-There are six corresponding round-to-nearest rounding modes: where every input
-value x rounds to the nearest integer, and the zero / away / minus / plus / even / odd
-rule only applies in halfway cases - numbers of the form n + 0.5 for an integer n.
+To-nearest rounding modes
+-------------------------
+
+The six round-to-nearest rounding modes correspond directly to the directed rounding
+modes: in non-halfway cases, an input value x is rounded to the nearest integer. In
+halfway cases, the corresponding directed rounding mode is applied, and the value x
+is rounded using the zero / away / minus / plus / even / odd rule as appropriate.
 
 """
 
 
-from typing import Callable
+from typing import Callable, Tuple
 
 from rounder.core import SignedQuarterInt
 
-#: Type for rounding modes.
+#: Type aliases
 RoundingMode = Callable[[SignedQuarterInt], bool]
+Signature = Tuple[Tuple[int, int], Tuple[int, int]]
 
 
-def standard_rounding_mode(signature):
+def standard_rounding_mode(signature: Signature) -> RoundingMode:
     def round_decide(quarters: SignedQuarterInt) -> bool:
         odd = quarters.whole & 1
         return quarters.quarters + signature[quarters.sign][odd] >= 4
@@ -70,22 +75,22 @@ def standard_rounding_mode(signature):
 
 
 #: Round for re-round.
-def TO_ZERO_05_AWAY(quarters):
+def TO_ZERO_05_AWAY(quarters: SignedQuarterInt) -> bool:
     return quarters.quarters > 0 and quarters.whole % 5 == 0
 
 
 #: To-nearest rounding modes.
-TIES_TO_ZERO: RoundingMode = standard_rounding_mode([[1, 1], [1, 1]])
-TIES_TO_AWAY: RoundingMode = standard_rounding_mode([[2, 2], [2, 2]])
-TIES_TO_MINUS: RoundingMode = standard_rounding_mode([[1, 1], [2, 2]])
-TIES_TO_PLUS: RoundingMode = standard_rounding_mode([[2, 2], [1, 1]])
-TIES_TO_EVEN: RoundingMode = standard_rounding_mode([[1, 2], [1, 2]])
-TIES_TO_ODD: RoundingMode = standard_rounding_mode([[2, 1], [2, 1]])
+TIES_TO_ZERO: RoundingMode = standard_rounding_mode(((1, 1), (1, 1)))
+TIES_TO_AWAY: RoundingMode = standard_rounding_mode(((2, 2), (2, 2)))
+TIES_TO_MINUS: RoundingMode = standard_rounding_mode(((1, 1), (2, 2)))
+TIES_TO_PLUS: RoundingMode = standard_rounding_mode(((2, 2), (1, 1)))
+TIES_TO_EVEN: RoundingMode = standard_rounding_mode(((1, 2), (1, 2)))
+TIES_TO_ODD: RoundingMode = standard_rounding_mode(((2, 1), (2, 1)))
 
 #: Directed rounding modes.
-TO_ZERO: RoundingMode = standard_rounding_mode([[0, 0], [0, 0]])
-TO_AWAY: RoundingMode = standard_rounding_mode([[3, 3], [3, 3]])
-TO_MINUS: RoundingMode = standard_rounding_mode([[0, 0], [3, 3]])
-TO_PLUS: RoundingMode = standard_rounding_mode([[3, 3], [0, 0]])
-TO_EVEN: RoundingMode = standard_rounding_mode([[0, 3], [0, 3]])
-TO_ODD: RoundingMode = standard_rounding_mode([[3, 0], [3, 0]])
+TO_ZERO: RoundingMode = standard_rounding_mode(((0, 0), (0, 0)))
+TO_AWAY: RoundingMode = standard_rounding_mode(((3, 3), (3, 3)))
+TO_MINUS: RoundingMode = standard_rounding_mode(((0, 0), (3, 3)))
+TO_PLUS: RoundingMode = standard_rounding_mode(((3, 3), (0, 0)))
+TO_EVEN: RoundingMode = standard_rounding_mode(((0, 3), (0, 3)))
+TO_ODD: RoundingMode = standard_rounding_mode(((3, 0), (3, 0)))

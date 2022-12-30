@@ -4,12 +4,13 @@ Generic extensible computation functions that use singledispatch.
 
 import fractions
 import functools
+from typing import Any
 
-from rounder.core import SignedQuarterInt
+from rounder.core import Rounded, SignedQuarterInt
 
 
 @functools.singledispatch
-def decade(x) -> int:
+def decade(x: Any) -> int:
     """
     Determine the decade that a nonzero number is contained in.
 
@@ -41,6 +42,7 @@ def decade(x) -> int:
     trial_decade = len(str(n)) - len(str(d))
 
     # Is trial_decade an overestimate?
+    too_high: bool
     if trial_decade >= 0:
         too_high = n < 10**trial_decade * d
     else:
@@ -50,7 +52,7 @@ def decade(x) -> int:
 
 
 @functools.singledispatch
-def to_type_of(x, rounded):
+def to_type_of(x: Any, rounded: Rounded) -> Any:
     """
     Convert rounding result to type matching that of x.
     """
@@ -58,7 +60,7 @@ def to_type_of(x, rounded):
 
 
 @functools.singledispatch
-def is_finite(x):
+def is_finite(x: Any) -> bool:
     """
     Determine whether a given number is finite.
     """
@@ -66,25 +68,15 @@ def is_finite(x):
 
 
 @functools.singledispatch
-def is_zero(x):
+def is_zero(x: Any) -> bool:
     """
     Determine whether a given number is zero.
-
-    Parameters
-    ----------
-    x : numeric
-
-    Returns
-    -------
-    is_zero : bool
-        True if x is zero, else False
     """
-    # Generic implementation simply compares with the zero integer.
-    return x == 0
+    raise NotImplementedError(f"No overload available for type {type(x)}")
 
 
 @functools.singledispatch
-def to_quarters(x, exponent):
+def to_quarters(x: Any, exponent: int) -> SignedQuarterInt:
     """
     Pre-rounding step for value x.
 
@@ -94,24 +86,17 @@ def to_quarters(x, exponent):
     The generic implementation works for any value that can be converted
     losslessly to a fraction, and for which signs of zero and special
     values are not a consideration.
-
-    Parameters
-    ----------
-    x : numeric
-    exponent : int
-
-    Returns
-    -------
-    negative : bool
-        True for values that should be treated as negative (including
-        negative zero for floating-point types), False otherwise.
-    inflated_significand : int
-        abs(4*x) as an integer multiple of 10**exponent, rounded to an
-        integer using the round-to-odd rounding mode.
     """
     negative, x = x < 0, 4 * abs(fractions.Fraction(x))
     if exponent <= 0:
         quarters, rest = divmod(10**-exponent * x, 1)
     else:
         quarters, rest = divmod(x, 10**exponent)
-    return SignedQuarterInt(negative, *divmod(int(quarters) | bool(rest), 4))
+
+    whole, quarters = divmod(int(quarters) | bool(rest), 4)
+
+    return SignedQuarterInt(
+        sign=negative,
+        whole=whole,
+        quarters=quarters,
+    )

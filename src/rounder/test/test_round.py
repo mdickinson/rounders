@@ -21,6 +21,7 @@ from rounder import (
     TO_ODD,
     TO_PLUS,
     TO_ZERO,
+    round,
     round_ties_to_away,
     round_ties_to_even,
     round_ties_to_minus,
@@ -65,23 +66,25 @@ TEN = fractions.Fraction(10)
 #: use math.nextafter instead of next_up and next_down.
 
 
-def next_up(x):
+def next_up(x: float) -> float:
     # Assumes IEEE 754
     if not 0 <= x < math.inf:
         raise NotImplementedError("Not implemented for this x")
     (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
     x_up_as_int = x_as_int + 1
     (x_up,) = struct.unpack("<d", struct.pack("<Q", x_up_as_int))
+    assert isinstance(x_up, float)  # help mypy out
     return x_up
 
 
-def next_down(x):
+def next_down(x: float) -> float:
     # Assumes IEEE 754
     if not 0 < x <= math.inf:
         raise NotImplementedError("Not implemented for this x")
     (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
     x_down_as_int = x_as_int - 1
     (x_down,) = struct.unpack("<d", struct.pack("<Q", x_down_as_int))
+    assert isinstance(x_down, float)  # help mypy out
     return x_down
 
 
@@ -137,7 +140,7 @@ ALL_ROUNDING_FUNCTIONS = MIDPOINT_ROUNDING_FUNCTIONS + DIRECTED_ROUNDING_FUNCTIO
 
 
 class TestRound(unittest.TestCase):
-    def test_round_ties_to_away_quarters(self):
+    def test_round_ties_to_away_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -163,7 +166,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_away(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_ties_to_zero_quarters(self):
+    def test_round_ties_to_zero_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -189,7 +192,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_zero(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_ties_to_even_quarters(self):
+    def test_round_ties_to_even_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -215,7 +218,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_even(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_ties_to_odd_quarters(self):
+    def test_round_ties_to_odd_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -241,7 +244,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_odd(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_ties_to_plus_quarters(self):
+    def test_round_ties_to_plus_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -267,7 +270,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_plus(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_ties_to_minus_quarters(self):
+    def test_round_ties_to_minus_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -293,7 +296,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_ties_to_minus(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_to_away_quarters(self):
+    def test_round_to_away_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -319,7 +322,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_away(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_to_zero_quarters(self):
+    def test_round_to_zero_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -1),
@@ -345,7 +348,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_zero(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_to_plus_quarters(self):
+    def test_round_to_plus_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -1),
@@ -371,7 +374,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_plus(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_to_minus_quarters(self):
+    def test_round_to_minus_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -397,7 +400,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_minus(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_to_even_quarters(self):
+    def test_round_to_even_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -2),
@@ -423,7 +426,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_even(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_round_to_odd_quarters(self):
+    def test_round_to_odd_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),
             (-1.75, -1),
@@ -449,7 +452,7 @@ class TestRound(unittest.TestCase):
                 actual_result = round_to_odd(value)
                 self.assertIntsIdentical(actual_result, expected_result)
 
-    def test_all_midpoint_rounding_modes_round_to_nearest(self):
+    def test_all_midpoint_rounding_modes_round_to_nearest(self) -> None:
         # Difference between rounded value and original value should always
         # at most 0.5 in absolute value.
         for round_function in MIDPOINT_ROUNDING_FUNCTIONS:
@@ -460,7 +463,7 @@ class TestRound(unittest.TestCase):
                 )
                 self.assertLessEqual(abs(diff), fractions.Fraction(1, 2))
 
-    def test_all_rounding_modes_round_to_neighbour(self):
+    def test_all_rounding_modes_round_to_neighbour(self) -> None:
         # Difference between rounded value and original value should always
         # be strictly less than 1.0 in absolute value.
         for round_function in ALL_ROUNDING_FUNCTIONS:
@@ -471,18 +474,22 @@ class TestRound(unittest.TestCase):
                 )
                 self.assertLessEqual(abs(diff), 1)
 
-    def test_infinities(self):
+    def test_all_rounding_modes_accept_none(self) -> None:
+        for round_function in ALL_ROUNDING_FUNCTIONS:
+            self.assertIntsIdentical(round_function(4.0, None), 4)
+
+    def test_infinities(self) -> None:
         for round_function in ALL_ROUNDING_FUNCTIONS:
             for infinity in [math.inf, -math.inf]:
                 with self.assertRaises(ValueError):
                     round_function(infinity)
 
-    def test_nan(self):
+    def test_nan(self) -> None:
         for round_function in ALL_ROUNDING_FUNCTIONS:
             with self.assertRaises(ValueError):
                 round_function(math.nan)
 
-    def test_round_to_decimal_places(self):
+    def test_round_to_decimal_places(self) -> None:
         self.assertFloatsIdentical(round_ties_to_away(66.15, -2), 100.0)
         self.assertFloatsIdentical(round_ties_to_away(66.15, -1), 70.0)
         self.assertFloatsIdentical(round_ties_to_away(2.37, -2), 0.0)
@@ -496,7 +503,7 @@ class TestRound(unittest.TestCase):
         self.assertFloatsIdentical(round_ties_to_away(0.0, 1), 0.0)
         self.assertFloatsIdentical(round_ties_to_away(-0.0, 1), -0.0)
 
-    def test_exact_halfway_cases(self):
+    def test_exact_halfway_cases(self) -> None:
         self.assertFloatsIdentical(round_ties_to_zero(2.5, 0), 2.0)
         self.assertFloatsIdentical(round_ties_to_away(2.5, 0), 3.0)
         self.assertFloatsIdentical(round_ties_to_plus(2.5, 0), 3.0)
@@ -525,14 +532,14 @@ class TestRound(unittest.TestCase):
         self.assertFloatsIdentical(round_ties_to_even(-3.5, 0), -4.0)
         self.assertFloatsIdentical(round_ties_to_odd(-3.5, 0), -3.0)
 
-    def test_special_floats(self):
+    def test_special_floats(self) -> None:
         for rounding_function in ALL_ROUNDING_FUNCTIONS:
             with self.subTest(rounding_function=rounding_function):
                 self.assertFloatsIdentical(rounding_function(math.nan, 0), math.nan)
                 self.assertFloatsIdentical(rounding_function(math.inf, 0), math.inf)
                 self.assertFloatsIdentical(rounding_function(-math.inf, 0), -math.inf)
 
-    def test_round_finite_to_overflow(self):
+    def test_round_finite_to_overflow(self) -> None:
         for rounding_function in MIDPOINT_ROUNDING_FUNCTIONS:
             with self.subTest(rounding_function=rounding_function):
                 with self.assertRaises(OverflowError):
@@ -540,14 +547,14 @@ class TestRound(unittest.TestCase):
                 with self.assertRaises(OverflowError):
                     rounding_function(-1.7e308, -308)
 
-    def test_round_integers_places_none(self):
+    def test_round_integers_places_none(self) -> None:
         test_values = [*range(-10, 10), *range(10**100 - 10, 10**100 + 10)]
         for rounding_function in MIDPOINT_ROUNDING_FUNCTIONS:
             for value in test_values:
                 rounded_value = rounding_function(value)
                 self.assertIntsIdentical(rounded_value, value)
 
-    def test_round_integers_places_not_none(self):
+    def test_round_integers_places_not_none(self) -> None:
         self.assertIntsIdentical(round_ties_to_even(123456, 1000), 123456)
         self.assertIntsIdentical(round_ties_to_even(123456, 2), 123456)
         self.assertIntsIdentical(round_ties_to_even(123456, 1), 123456)
@@ -560,12 +567,12 @@ class TestRound(unittest.TestCase):
         self.assertIntsIdentical(round_ties_to_even(123456, -7), 0)
         self.assertIntsIdentical(round_ties_to_even(123456, -1000), 0)
 
-    def test_round_huge_integers(self):
+    def test_round_huge_integers(self) -> None:
         # Check that we're not depending on converting integers to floats
         self.assertIntsIdentical(round_ties_to_away(2**1025, 0), 2**1025)
         self.assertIntsIdentical(round_to_odd(-(2**1025)), -(2**1025))
 
-    def test_round_fractions_places_none(self):
+    def test_round_fractions_places_none(self) -> None:
         # Tests pairs for round-ties-to-even
         F = fractions.Fraction
         self.assertIntsIdentical(round_ties_to_even(F(-3, 2)), -2)
@@ -575,7 +582,7 @@ class TestRound(unittest.TestCase):
 
         self.assertIntsIdentical(round_ties_to_away(F(1, 2)), 1)
 
-    def test_round_fractions_places_not_none(self):
+    def test_round_fractions_places_not_none(self) -> None:
         F = fractions.Fraction
         test_value = fractions.Fraction(10000, 7)
         self.assertFractionsIdentical(round_ties_to_even(test_value, -1000), F(0))
@@ -598,14 +605,14 @@ class TestRound(unittest.TestCase):
             F("1428.57142857142857142857142857142857142857142857142857"),
         )
 
-    def test_round_bool(self):
+    def test_round_bool(self) -> None:
         self.assertIntsIdentical(round_ties_to_even(True), 1)
         self.assertIntsIdentical(round_ties_to_even(False), 0)
 
         self.assertIntsIdentical(round_ties_to_even(True, 10), 1)
         self.assertIntsIdentical(round_ties_to_even(False, -10), 0)
 
-    def test_round_to_figures(self):
+    def test_round_to_figures(self) -> None:
         # Rounding a nonzero number to a given number of significant figures.
         self.assertFloatsIdentical(round_to_figures(1.23456, figures=1), 1.0)
         self.assertFloatsIdentical(round_to_figures(1.23456, figures=2), 1.2)
@@ -620,13 +627,13 @@ class TestRound(unittest.TestCase):
         self.assertFloatsIdentical(round_to_figures(-1.23456, figures=3), -1.23)
         self.assertFloatsIdentical(round_to_figures(123456.0, figures=3), 123000.0)
 
-    def test_round_to_figures_non_positive_figures(self):
+    def test_round_to_figures_non_positive_figures(self) -> None:
         with self.assertRaises(ValueError):
             round_to_figures(1.23456, 0)
         with self.assertRaises(ValueError):
             round_to_figures(1.23456, -1)
 
-    def test_round_to_figures_overflow_case(self):
+    def test_round_to_figures_overflow_case(self) -> None:
         with self.assertRaises(OverflowError):
             round_to_figures(1.797e308, 1)
         with self.assertRaises(OverflowError):
@@ -636,7 +643,7 @@ class TestRound(unittest.TestCase):
         with self.assertRaises(OverflowError):
             round_to_figures(1.797e308, 3)
 
-    def test_round_to_figures_corner_cases(self):
+    def test_round_to_figures_corner_cases(self) -> None:
         # Cases where accurate computation of ilog10(input) matters.
         # Are there actually any floating-point cases where this matters?
         # Possibly not, for rounding.
@@ -667,7 +674,7 @@ class TestRound(unittest.TestCase):
 
                     self.assertFloatsIdentical(actual_result, expected_result)
 
-    def test_round_to_figures_ints(self):
+    def test_round_to_figures_ints(self) -> None:
         self.assertIntsIdentical(round_to_figures(12345, 1), 10000)
         self.assertIntsIdentical(round_to_figures(12345, 2), 12000)
         self.assertIntsIdentical(round_to_figures(12345, 3), 12300)
@@ -679,12 +686,12 @@ class TestRound(unittest.TestCase):
 
         self.assertIntsIdentical(round_to_figures(True, 2), 1)
 
-    def test_round_to_figures_special_values(self):
+    def test_round_to_figures_special_values(self) -> None:
         self.assertFloatsIdentical(round_to_figures(math.nan, 3), math.nan)
         self.assertFloatsIdentical(round_to_figures(math.inf, 3), math.inf)
         self.assertFloatsIdentical(round_to_figures(-math.inf, 3), -math.inf)
 
-    def test_round_to_figures_fractions(self):
+    def test_round_to_figures_fractions(self) -> None:
         test_cases = [
             ("1.25", 2, TIES_TO_EVEN, "1.2"),
             ("1.25", 3, TIES_TO_EVEN, "1.25"),
@@ -700,9 +707,9 @@ class TestRound(unittest.TestCase):
 
         for case in test_cases:
             with self.subTest(case=case):
-                value, figures, mode, expected_result = case
-                value = fractions.Fraction(value)
-                expected_result = fractions.Fraction(expected_result)
+                value_str, figures, mode, expected_result_str = case
+                value = fractions.Fraction(value_str)
+                expected_result = fractions.Fraction(expected_result_str)
                 self.assertFractionsIdentical(
                     round_to_figures(value, figures, mode=mode),
                     expected_result,
@@ -712,7 +719,7 @@ class TestRound(unittest.TestCase):
                     -expected_result,
                 )
 
-    def test_round_to_figures_decimals(self):
+    def test_round_to_figures_decimals(self) -> None:
         # Tuples (value-as-string, figures, mode, expected_result-as-string)
         test_cases = [
             ("1.25", 2, TIES_TO_EVEN, "1.2"),
@@ -734,15 +741,15 @@ class TestRound(unittest.TestCase):
 
         for case in test_cases:
             with self.subTest(case=case):
-                value, figures, mode, expected_result = case
-                value = decimal.Decimal(value)
-                expected_result = decimal.Decimal(expected_result)
+                value_str, figures, mode, expected_result_str = case
+                value = decimal.Decimal(value_str)
+                expected_result = decimal.Decimal(expected_result_str)
                 self.assertDecimalsIdentical(
                     round_to_figures(value, figures, mode=mode),
                     expected_result,
                 )
 
-    def test_round_to_figures_other_rounding_modes(self):
+    def test_round_to_figures_other_rounding_modes(self) -> None:
         # Tuples (value, figures, mode, expected_result)
         test_cases = [
             (1.25, 2, TIES_TO_EVEN, 1.2),
@@ -782,7 +789,7 @@ class TestRound(unittest.TestCase):
                     expected_result,
                 )
 
-    def test_round_to_places_float(self):
+    def test_round_to_places_float(self) -> None:
         # Tuples (value, places, mode, expected_result)
         test_cases = [
             (1.02, 1, TO_EVEN, 1.0),
@@ -867,7 +874,7 @@ class TestRound(unittest.TestCase):
                     expected_result,
                 )
 
-    def test_round_to_zero_05_away(self):
+    def test_round_to_zero_05_away(self) -> None:
         test_cases = [
             (0.0, 0),
             (0.2, 1),
@@ -897,22 +904,48 @@ class TestRound(unittest.TestCase):
             with self.subTest(case=case):
                 self.assertEqual(round_to_zero_05_away(value), expected_result)
 
-    def assertIntsIdentical(self, first, second):
+    def test_round(self) -> None:
+        # Enough checks to establish that we use round-ties-to-even by default.
+        self.assertIntsIdentical(round(-2.5), -2)
+        self.assertIntsIdentical(round(-3.5), -4)
+        self.assertIntsIdentical(round(2.5), 2)
+        self.assertIntsIdentical(round(3.5), 4)
+
+        # An explicit None for the digits should be supported, just as it is in the
+        # builtin round function.
+        self.assertIntsIdentical(round(3.5, None), 4)
+
+        # Rounding with a given number of places produces a float.
+        self.assertFloatsIdentical(round(3.5, 0), 4.0)
+        self.assertFloatsIdentical(round(3.5, 2), 3.5)
+
+        # And the rounding mode can be specified.
+        self.assertIntsIdentical(round(3.5, mode=TIES_TO_ODD), 3)
+        self.assertIntsIdentical(round(3.5, None, mode=TIES_TO_ODD), 3)
+        # ... but only by keyword
+        with self.assertRaises(TypeError):
+            round(3.5, None, TIES_TO_ODD)  # type: ignore
+
+    def assertIntsIdentical(self, first: int, second: int) -> None:
         self.assertEqual(type(first), int)
         self.assertEqual(type(second), int)
         self.assertEqual(first, second)
 
-    def assertFractionsIdentical(self, first, second):
+    def assertFractionsIdentical(
+        self, first: fractions.Fraction, second: fractions.Fraction
+    ) -> None:
         self.assertEqual(type(first), fractions.Fraction)
         self.assertEqual(type(second), fractions.Fraction)
         self.assertEqual(first, second)
 
-    def assertFloatsIdentical(self, first, second):
+    def assertFloatsIdentical(self, first: float, second: float) -> None:
         self.assertEqual(type(first), float)
         self.assertEqual(type(second), float)
         self.assertEqual(str(first), str(second))
 
-    def assertDecimalsIdentical(self, first, second):
+    def assertDecimalsIdentical(
+        self, first: decimal.Decimal, second: decimal.Decimal
+    ) -> None:
         self.assertEqual(type(first), decimal.Decimal)
         self.assertEqual(type(second), decimal.Decimal)
         self.assertEqual(str(first), str(second))

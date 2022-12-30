@@ -1,23 +1,28 @@
 import decimal
 
-from rounder.core import SignedQuarterInt
-from rounder.generics import decade, is_finite, to_quarters, to_type_of
+from rounder.core import Rounded, SignedQuarterInt
+from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 
 
 @to_type_of.register(decimal.Decimal)
-def _(x, rounded):
+def _(x: decimal.Decimal, rounded: Rounded) -> decimal.Decimal:
     return decimal.Decimal(
         f"{'-' if rounded.sign else '+'}{rounded.significand}E{rounded.exponent}"
     )
 
 
 @is_finite.register(decimal.Decimal)
-def _(x):
+def _(x: decimal.Decimal) -> bool:
     return x.is_finite()
 
 
+@is_zero.register(decimal.Decimal)
+def _(x: decimal.Decimal) -> bool:
+    return x.is_zero()
+
+
 @to_quarters.register(decimal.Decimal)
-def _(x: decimal.Decimal, exponent: int = 0):
+def _(x: decimal.Decimal, exponent: int = 0) -> SignedQuarterInt:
     # XXX Tests for non-finite inputs
     # XXX Tests for preservation of sign of zero.
 
@@ -32,11 +37,17 @@ def _(x: decimal.Decimal, exponent: int = 0):
         quarters, rest = 4 * significand * 10 ** (x_exponent - exponent), 0
     else:
         quarters, rest = divmod(4 * significand, 10 ** (exponent - x_exponent))
-    return SignedQuarterInt(sign == 1, *divmod(int(quarters) | bool(rest), 4))
+
+    whole, quarters = divmod(int(quarters) | bool(rest), 4)
+    return SignedQuarterInt(
+        sign=sign == 1,
+        whole=whole,
+        quarters=quarters,
+    )
 
 
 @decade.register(decimal.Decimal)
-def _(x) -> int:
+def _(x: decimal.Decimal) -> int:
     if not x:
         raise ValueError("decade input must be nonzero")
     if not x.is_finite():

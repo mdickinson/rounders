@@ -2,8 +2,8 @@ import fractions
 import math
 import struct
 
-from rounder.core import SignedQuarterInt
-from rounder.generics import decade, is_finite, to_quarters, to_type_of
+from rounder.core import Rounded, SignedQuarterInt
+from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 
 #: Useful constants
 _TEN = fractions.Fraction(10)
@@ -654,11 +654,11 @@ _FRACTION_MASK = 0x000F_FFFF_FFFF_FFFF
 
 
 @decade.register(float)
-def _(x):
+def _(x: float) -> int:
     # Faster decade computation for IEEE 754 binary64 floats, suitable for
     # recoding in C.  Operates directly on the bit representation, ignoring the
     # sign bit.
-    n = struct.unpack("<Q", struct.pack("<d", x))[0] & _ABS_MASK
+    n: int = struct.unpack("<Q", struct.pack("<d", x))[0] & _ABS_MASK
 
     # Compute the binade from the bit representation.
     binade = (n >> 52) - 1023
@@ -699,21 +699,28 @@ def _(x):
 
 
 @to_type_of.register(float)
-def _(x, rounded):
+def _(x: float, rounded: Rounded) -> float:
     if rounded.exponent >= 0:
-        abs_value = float(rounded.significand * 10**rounded.exponent)
+        multiplier = 10**rounded.exponent
+        abs_value = float(rounded.significand * multiplier)
     else:
-        abs_value = rounded.significand / 10**-rounded.exponent
+        divisor = 10**-rounded.exponent
+        abs_value = rounded.significand / divisor
     return -abs_value if rounded.sign else abs_value
 
 
 @is_finite.register(float)
-def _(x):
+def _(x: float) -> bool:
     return math.isfinite(x)
 
 
+@is_zero.register(float)
+def _(x: float) -> bool:
+    return x == 0.0
+
+
 @to_quarters.register(float)
-def _(x: fractions.Fraction, exponent: int = 0):
+def _(x: fractions.Fraction, exponent: int = 0) -> SignedQuarterInt:
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
@@ -722,4 +729,10 @@ def _(x: fractions.Fraction, exponent: int = 0):
         quarters, rest = divmod(4 * 10**-exponent * x, 1)
     else:
         quarters, rest = divmod(4 * x, 10**exponent)
-    return SignedQuarterInt(negative, *divmod(int(quarters) | bool(rest), 4))
+
+    whole, quarters = divmod(int(quarters) | bool(rest), 4)
+    return SignedQuarterInt(
+        sign=negative,
+        whole=whole,
+        quarters=quarters,
+    )
