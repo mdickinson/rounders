@@ -107,6 +107,9 @@ class FormatSpecification:
     #: Sign to use for positive zero values.
     positive_zero_sign: str = ""
 
+    #: Exponent to use for zero.
+    exponent_for_zero: int = 0
+
     def format(self, rounded: Rounded):
 
         # Step 2: convert to string. Only supporting f-presentation format right now.
@@ -173,7 +176,11 @@ class FormatSpecification:
         kwargs = {}
 
         if (round_type := match["type"]) == "f":
-            kwargs.update(places=int(match["precision"]))
+            places = int(match["precision"])
+            kwargs.update(
+                places=places,
+                exponent_for_zero=-places,
+            )
         elif round_type == "e":
             kwargs.update(figures=int(match["precision"]) + 1)
             kwargs.update(scientific=True)
