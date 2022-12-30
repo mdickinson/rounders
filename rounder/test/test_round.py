@@ -5,6 +5,7 @@ Tests for functions in the 'round' module.
 import decimal
 import fractions
 import math
+import struct
 import unittest
 
 from rounder import (
@@ -60,6 +61,30 @@ ALL_TEST_VALUES = [
 #: that is, 10**e <= abs(x) < 10**(e+1)
 TEN = fractions.Fraction(10)
 
+#: We're still supporting Python 3.8; for Python 3.9 and later we _could_
+#: use math.nextafter instead of next_up and next_down.
+
+
+def next_up(x):
+    # Assumes IEEE 754
+    if not 0 <= x < math.inf:
+        raise NotImplementedError("Not implemented for this x")
+    (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
+    x_up_as_int = x_as_int + 1
+    (x_up,) = struct.unpack("<d", struct.pack("<Q", x_up_as_int))
+    return x_up
+
+
+def next_down(x):
+    # Assumes IEEE 754
+    if not 0 < x <= math.inf:
+        raise NotImplementedError("Not implemented for this x")
+    (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
+    x_down_as_int = x_as_int - 1
+    (x_down,) = struct.unpack("<d", struct.pack("<Q", x_down_as_int))
+    return x_down
+
+
 DECADE_STARTS = []
 for e in range(-324, 309):
     try:
@@ -67,10 +92,10 @@ for e in range(-324, 309):
     except OverflowError:
         x = math.inf
     if x < TEN**e:
-        x = math.nextafter(x, math.inf)
+        x = next_up(x)
 
     assert TEN**e <= x < TEN ** (e + 1)
-    assert not (TEN**e <= math.nextafter(x, 0.0) < TEN ** (e + 1))
+    assert not (TEN**e <= next_down(x) < TEN ** (e + 1))
     DECADE_STARTS.append((e, x))
 
 DECADE_ENDS = []
@@ -80,10 +105,10 @@ for e in range(-324, 309):
     except OverflowError:
         x = math.inf
     if x >= TEN ** (e + 1):
-        x = math.nextafter(x, 0.0)
+        x = next_down(x)
 
     assert TEN**e <= x < TEN ** (e + 1)
-    assert not (TEN**e <= math.nextafter(x, math.inf) < TEN ** (e + 1))
+    assert not (TEN**e <= next_up(x) < TEN ** (e + 1))
     DECADE_ENDS.append((e, x))
 
 DECADE_TEST_VALUES = DECADE_STARTS + DECADE_ENDS
