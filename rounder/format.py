@@ -54,9 +54,16 @@ _MODE_FORMAT_CODES = {
     "R": TO_ZERO_05_AWAY,
 }
 
+# Provide compatibility for Python versions older than 3.10, which don't support
+# kw_only.
+try:
+    frozen_dataclass = dataclasses.dataclass(frozen=True, kw_only=True)
+except TypeError:
+    frozen_dataclass = dataclasses.dataclass(frozen=True)
+
 
 #: Class describing a format specification.
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@frozen_dataclass
 class FormatSpecification:
 
     #: The rounding type to use: "e" versus "f". We'll replace
