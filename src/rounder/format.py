@@ -55,7 +55,7 @@ _MODE_FORMAT_CODES = {
 }
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True)
 class FormatSpecification:
     """
     Description of a format specification.

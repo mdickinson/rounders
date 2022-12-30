@@ -5,7 +5,7 @@ Representations of intermediate values.
 import dataclasses
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True)
 class SignedQuarterInt:
     """
     Representation of a quarter-integer with separate sign.
@@ -24,7 +24,7 @@ class SignedQuarterInt:
     quarters: int
 
 
-@dataclasses.dataclass(frozen=True, kw_only=True)
+@dataclasses.dataclass(frozen=True)
 class Rounded:
     """
     Finite rounded value with sign, significand and exponent.
