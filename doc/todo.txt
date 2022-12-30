@@ -17,6 +17,9 @@ To-do list
     and for negative sign suppression). We also need to resolve
     ambiguity between 'e' for "even" and 'e' for the type.
     Suggest prefix of "r" for specifying rounding mode.
+  - Support for form of scientific notation with zero digits before the point:
+    3.1415 -> .3142e-1
+  - Make number of digits and the presence of a + sign in the exponent adjustable.
 
 Done
 ----
@@ -28,4 +31,4 @@ Done
   - Sign management
 - General maintenance
   - Add package structure: setup.py, etc.
-  - Remove setup.py in favour of setup.cfg
+  - Remove setup.py in favour of pyproject.toml
