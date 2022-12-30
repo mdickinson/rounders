@@ -4,6 +4,7 @@ Formatting functionality.
 
 import dataclasses
 import re
+import sys
 import typing
 
 from rounder.core import Rounded
@@ -56,10 +57,10 @@ _MODE_FORMAT_CODES = {
 
 # Provide compatibility for Python versions older than 3.10, which don't support
 # kw_only.
-try:
-    frozen_dataclass = dataclasses.dataclass(frozen=True, kw_only=True)
-except TypeError:
+if sys.version_info < (3, 10):
     frozen_dataclass = dataclasses.dataclass(frozen=True)
+else:
+    frozen_dataclass = dataclasses.dataclass(frozen=True, kw_only=True)
 
 
 #: Class describing a format specification.
