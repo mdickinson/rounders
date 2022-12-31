@@ -5,7 +5,7 @@ from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 from rounder.intermediate import IntermediateForm
 
 
-@decade.register(fractions.Fraction)
+@decade.register
 def _(x: fractions.Fraction) -> int:
     if not x:
         raise ValueError("decade input must be nonzero")
@@ -15,7 +15,7 @@ def _(x: fractions.Fraction) -> int:
     return len(sn) - len(sd) - (sn.rstrip("0") < sd.rstrip("0"))
 
 
-@to_type_of.register(fractions.Fraction)
+@to_type_of.register
 def _(x: fractions.Fraction, rounded: IntermediateForm) -> fractions.Fraction:
     if rounded.exponent >= 0:
         numerator = rounded.significand * cast(int, 10**rounded.exponent)
@@ -30,17 +30,17 @@ def _(x: fractions.Fraction, rounded: IntermediateForm) -> fractions.Fraction:
     )
 
 
-@is_finite.register(fractions.Fraction)
+@is_finite.register
 def _(x: fractions.Fraction) -> bool:
     return True
 
 
-@is_zero.register(fractions.Fraction)
+@is_zero.register
 def _(x: fractions.Fraction) -> bool:
     return x == 0
 
 
-@to_quarters.register(fractions.Fraction)
+@to_quarters.register
 def _(x: fractions.Fraction, exponent: int) -> IntermediateForm:
     return IntermediateForm.from_signed_fraction(
         sign=x < 0,

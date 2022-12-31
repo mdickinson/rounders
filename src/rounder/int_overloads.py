@@ -4,14 +4,14 @@ from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 from rounder.intermediate import IntermediateForm
 
 
-@decade.register(int)
+@decade.register
 def _(x: int) -> int:
     if not x:
         raise ValueError("decade input must be nonzero")
     return len(str(abs(x))) - 1
 
 
-@to_type_of.register(int)
+@to_type_of.register
 def _(x: int, rounded: IntermediateForm) -> int:
     if rounded.exponent >= 0:
         significand = rounded.significand * cast(int, 10**rounded.exponent)
@@ -24,17 +24,17 @@ def _(x: int, rounded: IntermediateForm) -> int:
     return -significand if rounded.sign else significand
 
 
-@is_finite.register(int)
+@is_finite.register
 def _(x: int) -> bool:
     return True
 
 
-@is_zero.register(int)
+@is_zero.register
 def _(x: int) -> bool:
     return x == 0
 
 
-@to_quarters.register(int)
+@to_quarters.register
 def _(x: int, exponent: int) -> IntermediateForm:
     return IntermediateForm.from_signed_fraction(
         sign=x < 0,

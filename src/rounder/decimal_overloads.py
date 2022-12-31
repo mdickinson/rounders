@@ -5,24 +5,24 @@ from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 from rounder.intermediate import IntermediateForm
 
 
-@to_type_of.register(decimal.Decimal)
+@to_type_of.register
 def _(x: decimal.Decimal, rounded: IntermediateForm) -> decimal.Decimal:
     return decimal.Decimal(
         f"{'-' if rounded.sign else '+'}{rounded.significand}E{rounded.exponent}"
     )
 
 
-@is_finite.register(decimal.Decimal)
+@is_finite.register
 def _(x: decimal.Decimal) -> bool:
     return x.is_finite()
 
 
-@is_zero.register(decimal.Decimal)
+@is_zero.register
 def _(x: decimal.Decimal) -> bool:
     return x.is_zero()
 
 
-@to_quarters.register(decimal.Decimal)
+@to_quarters.register
 def _(x: decimal.Decimal, exponent: int = 0) -> IntermediateForm:
     if not x.is_finite():
         raise ValueError("Input must be finite")
@@ -46,7 +46,7 @@ def _(x: decimal.Decimal, exponent: int = 0) -> IntermediateForm:
     )
 
 
-@decade.register(decimal.Decimal)
+@decade.register
 def _(x: decimal.Decimal) -> int:
     if not x:
         raise ValueError("decade input must be nonzero")

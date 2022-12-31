@@ -654,7 +654,7 @@ _ABS_MASK = 0x7FFF_FFFF_FFFF_FFFF
 _FRACTION_MASK = 0x000F_FFFF_FFFF_FFFF
 
 
-@decade.register(float)
+@decade.register
 def _(x: float) -> int:
     # Faster decade computation for IEEE 754 binary64 floats, suitable for
     # recoding in C.  Operates directly on the bit representation, ignoring the
@@ -699,7 +699,7 @@ def _(x: float) -> int:
     return decade
 
 
-@to_type_of.register(float)
+@to_type_of.register
 def _(x: float, rounded: IntermediateForm) -> float:
     if rounded.exponent >= 0:
         multiplier = cast(int, 10**rounded.exponent)
@@ -710,17 +710,17 @@ def _(x: float, rounded: IntermediateForm) -> float:
     return -abs_value if rounded.sign else abs_value
 
 
-@is_finite.register(float)
+@is_finite.register
 def _(x: float) -> bool:
     return math.isfinite(x)
 
 
-@is_zero.register(float)
+@is_zero.register
 def _(x: float) -> bool:
     return x == 0.0
 
 
-@to_quarters.register(float)
+@to_quarters.register
 def _(x: float, exponent: int = 0) -> IntermediateForm:
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
