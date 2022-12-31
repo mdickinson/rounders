@@ -6,8 +6,8 @@ import dataclasses
 import re
 from typing import Any, Dict, Optional
 
-from rounder.core import Rounded
 from rounder.generics import decade, is_zero, to_quarters
+from rounder.intermediate import IntermediateForm
 from rounder.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
@@ -112,7 +112,7 @@ class FormatSpecification:
     #: Exponent to use for zero.
     exponent_for_zero: int = 0
 
-    def format(self, rounded: Rounded) -> str:
+    def format(self, rounded: IntermediateForm) -> str:
 
         # Step 2: convert to string. Only supporting f-presentation format right now.
 
@@ -245,20 +245,12 @@ def format(value: Any, pattern: str) -> str:
         exponent = max(bounds)
 
     quarters = to_quarters(value, exponent)
-    rounded = Rounded(
-        sign=quarters.sign,
-        significand=quarters.whole + format_specification.rounding_mode(quarters),
-        exponent=exponent,
-    )
+    rounded = format_specification.rounding_mode.round(quarters)
     if format_specification.figures is not None:
 
         # Adjust if necessary.
         if len(str(rounded.significand)) == format_specification.figures + 1:
-            rounded = Rounded(
-                sign=rounded.sign,
-                significand=rounded.significand // 10,
-                exponent=rounded.exponent + 1,
-            )
+            rounded = rounded.nudge()
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)

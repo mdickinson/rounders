@@ -1,9 +1,10 @@
 import fractions
 import math
 import struct
+from typing import cast
 
-from rounder.core import Rounded, SignedQuarterInt
 from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.intermediate import IntermediateForm
 
 #: Useful constants
 _TEN = fractions.Fraction(10)
@@ -699,12 +700,12 @@ def _(x: float) -> int:
 
 
 @to_type_of.register(float)
-def _(x: float, rounded: Rounded) -> float:
+def _(x: float, rounded: IntermediateForm) -> float:
     if rounded.exponent >= 0:
-        multiplier = 10**rounded.exponent
+        multiplier = cast(int, 10**rounded.exponent)
         abs_value = float(rounded.significand * multiplier)
     else:
-        divisor = 10**-rounded.exponent
+        divisor = cast(int, 10**-rounded.exponent)
         abs_value = rounded.significand / divisor
     return -abs_value if rounded.sign else abs_value
 
@@ -720,19 +721,14 @@ def _(x: float) -> bool:
 
 
 @to_quarters.register(float)
-def _(x: fractions.Fraction, exponent: int = 0) -> SignedQuarterInt:
+def _(x: float, exponent: int = 0) -> IntermediateForm:
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
-    negative, x = math.copysign(1.0, x) < 0.0, fractions.Fraction(abs(x))
-    if exponent <= 0:
-        quarters, rest = divmod(4 * 10**-exponent * x, 1)
-    else:
-        quarters, rest = divmod(4 * x, 10**exponent)
-
-    whole, quarters = divmod(int(quarters) | bool(rest), 4)
-    return SignedQuarterInt(
-        sign=negative,
-        whole=whole,
-        quarters=quarters,
+    n, d = abs(x).as_integer_ratio()
+    return IntermediateForm.from_signed_fraction(
+        sign=math.copysign(1.0, x) < 0.0,
+        numerator=n,
+        denominator=d,
+        exponent=exponent,
     )

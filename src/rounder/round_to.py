@@ -4,7 +4,6 @@ Top-level rounding functions.
 
 from typing import Any, Optional
 
-from rounder.core import Rounded
 from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
 from rounder.modes import TIES_TO_EVEN, RoundingMode
 
@@ -17,7 +16,7 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     ----------
     x : numeric
     mode : optional, keyword-only
-        Any of the twelve available rounding modes. Defaults to the
+        Any of the available rounding modes. Defaults to the
         ties-to-even rounding mode.
 
     Returns
@@ -29,13 +28,10 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     ValueError
         If the value to be rounded is not finite.
     """
-    # Raise on infinities and NaNs
     if not is_finite(x):
         raise ValueError("x must be finite")
 
-    quarters = to_quarters(x, 0)
-    significand = quarters.whole + mode(quarters)
-    return -significand if quarters.sign else significand
+    return mode.round(to_quarters(x, 0)).as_int()
 
 
 def round_to_places(
@@ -51,21 +47,14 @@ def round_to_places(
     places : integer
         Number of places to round to, relative to the decimal point.
     mode, optional
-        Any of the twelve available rounding modes. Defaults to the
+        Any of the available rounding modes. Defaults to the
         ties-to-even rounding mode.
     """
     # Infinities and nans are returned unchanged.
     if not is_finite(value):
         return value
 
-    exponent = -places
-    quarters = to_quarters(value, exponent)
-    rounded = Rounded(
-        sign=quarters.sign,
-        significand=quarters.whole + mode(quarters),
-        exponent=exponent,
-    )
-    return to_type_of(value, rounded)
+    return to_type_of(value, mode.round(to_quarters(value, -places)))
 
 
 def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
@@ -77,13 +66,13 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     x : numeric
     figures : positive integer
     mode, optional
-        Any of the twelve available rounding modes. Defaults to the
+        Any of the available rounding modes. Defaults to the
         ties-to-even rounding mode.
     """
     if figures <= 0:
         raise ValueError(f"figures must be positive; got {figures}")
 
-    # Special handling for infinite results.
+    # Infinities and nans are returned unchanged.
     if not is_finite(x):
         return x
 
@@ -96,24 +85,15 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     #  1.23e+02
     #  0.00e+00
 
-    exponent = 1 - figures + (0 if is_zero(x) else decade(x))
-    quarters = to_quarters(x, exponent)
-    rounded = Rounded(
-        sign=quarters.sign,
-        significand=quarters.whole + mode(quarters),
-        exponent=exponent,
-    )
+    quarters = to_quarters(x, 1 - figures + (0 if is_zero(x) else decade(x)))
+    rounded = mode.round(quarters)
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
     if len(str(rounded.significand)) == figures + 1:
-        rounded = Rounded(
-            sign=rounded.sign,
-            significand=rounded.significand // 10,
-            exponent=rounded.exponent + 1,
-        )
+        rounded = rounded.nudge()
     return to_type_of(x, rounded)
 
 

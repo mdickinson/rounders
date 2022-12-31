@@ -1,11 +1,8 @@
 To-do list
 ----------
 
-- General maintenance
-  - Add actions workflows
 - Docstrings everywhere
 - Add __all__ to __init__.py
-- Convert namedtuple types to typing.NamedTuple subclasses, or perhaps dataclasses.
 - Add names to the standard rounding modes so that their representations are
   pleasanter. (Currently looks like 'standard_rounding_mode.<locals>.round_decide.)
 - Formatting:
@@ -24,6 +21,9 @@ To-do list
 Done
 ----
 
+- General maintenance
+  - Add actions workflows
+- Convert namedtuple types to typing.NamedTuple subclasses, or perhaps dataclasses.
 - Change name of the package to 'rounder'
 - Implement round_05away
 - Add isort config

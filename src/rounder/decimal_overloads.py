@@ -1,11 +1,12 @@
 import decimal
+from typing import cast
 
-from rounder.core import Rounded, SignedQuarterInt
 from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.intermediate import IntermediateForm
 
 
 @to_type_of.register(decimal.Decimal)
-def _(x: decimal.Decimal, rounded: Rounded) -> decimal.Decimal:
+def _(x: decimal.Decimal, rounded: IntermediateForm) -> decimal.Decimal:
     return decimal.Decimal(
         f"{'-' if rounded.sign else '+'}{rounded.significand}E{rounded.exponent}"
     )
@@ -22,27 +23,26 @@ def _(x: decimal.Decimal) -> bool:
 
 
 @to_quarters.register(decimal.Decimal)
-def _(x: decimal.Decimal, exponent: int = 0) -> SignedQuarterInt:
-    # XXX Tests for non-finite inputs
-    # XXX Tests for preservation of sign of zero.
-
+def _(x: decimal.Decimal, exponent: int = 0) -> IntermediateForm:
     if not x.is_finite():
-        # XXX Is this branch even exercised?
         raise ValueError("Input must be finite")
 
     sign, digit_tuple, x_exponent = x.as_tuple()
     significand = int("".join(map(str, digit_tuple)))
 
-    if x_exponent >= exponent:
-        quarters, rest = 4 * significand * 10 ** (x_exponent - exponent), 0
+    scale = x_exponent - exponent
+    if scale >= 0:
+        numerator, denominator = cast(int, 10**scale) * significand, 1
     else:
-        quarters, rest = divmod(4 * significand, 10 ** (exponent - x_exponent))
+        numerator, denominator = significand, cast(int, 10**-scale)
 
-    whole, quarters = divmod(int(quarters) | bool(rest), 4)
-    return SignedQuarterInt(
+    quarters, inexact = divmod(4 * numerator, denominator)
+    whole, part = divmod(quarters | bool(inexact), 4)
+    return IntermediateForm(
         sign=sign == 1,
-        whole=whole,
-        quarters=quarters,
+        significand=whole,
+        quarters=part,
+        exponent=exponent,
     )
 
 

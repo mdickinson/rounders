@@ -36,7 +36,8 @@ Components
 
 Components of the solution space.
 
-- Rounding modes: 12 available (6 directed, 6 to-nearest)
+- Rounding modes: 13 available (6 directed, 6 to-nearest, plus one
+  odd-ball from Decimal)
 
 - Converters from numeric values of various different types to "sign and
   quarters" or "plus-two-bits" representation, using round-to-odd.
