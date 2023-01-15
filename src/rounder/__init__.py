@@ -40,14 +40,12 @@ from rounder.modes import (
 from rounder.round_to import round, round_to_figures, round_to_int, round_to_places
 
 __all__ = [
-    # Formatting
-    "format",
     # Top-level rounding functions
     "round",
     "round_to_figures",
     "round_to_int",
     "round_to_places",
-    # Mode-specific rounding functions
+    # Mode-specific rounding functions - replacements for round
     "round_ties_to_away",
     "round_ties_to_even",
     "round_ties_to_minus",
@@ -61,18 +59,20 @@ __all__ = [
     "round_to_plus",
     "round_to_zero",
     "round_to_zero_05_away",
-    # Rounding modes
+    # Rounding modes - to-nearest
     "TIES_TO_AWAY",
     "TIES_TO_EVEN",
     "TIES_TO_MINUS",
     "TIES_TO_ODD",
     "TIES_TO_PLUS",
     "TIES_TO_ZERO",
+    # Rounding modes - directed
     "TO_AWAY",
     "TO_EVEN",
     "TO_MINUS",
     "TO_ODD",
     "TO_PLUS",
     "TO_ZERO",
+    # Round for re-round
     "TO_ZERO_05_AWAY",
 ]
