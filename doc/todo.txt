@@ -2,10 +2,10 @@ To-do list
 ----------
 
 - Docstrings everywhere
-- Add __all__ to __init__.py
 - Add names to the standard rounding modes so that their representations are
   pleasanter. (Currently looks like 'standard_rounding_mode.<locals>.round_decide.)
 - Formatting:
+  - Consider implementing __format__ on the intermediate representation.
   - Make precision optional
   - Alignment and field width
   - Support for 'e', 'g', '%', 'n'
@@ -21,6 +21,7 @@ To-do list
 Done
 ----
 
+- Add __all__ to __init__.py
 - General maintenance
   - Add actions workflows
 - Convert namedtuple types to typing.NamedTuple subclasses, or perhaps dataclasses.
