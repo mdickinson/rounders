@@ -6,7 +6,6 @@ import rounder.decimal_overloads  # noqa: F401
 import rounder.float_overloads  # noqa: F401
 import rounder.fraction_overloads  # noqa: F401
 import rounder.int_overloads  # noqa: F401
-from rounder.format import format
 from rounder.mode_specific import (
     round_ties_to_away,
     round_ties_to_even,
