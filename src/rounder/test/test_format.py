@@ -7,8 +7,7 @@ import fractions
 import unittest
 from typing import List, Tuple
 
-from rounder import format
-from rounder.format import FormatSpecification
+from rounder.format import FormatSpecification, format
 from rounder.intermediate import IntermediateForm
 
 
