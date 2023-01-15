@@ -737,6 +737,11 @@ class TestRound(unittest.TestCase):
             # make sure that the context isn't being used.
             ("1" * 100, 100, TIES_TO_EVEN, "1" * 100),
             ("0", 5, TIES_TO_EVEN, "0.0000E+0"),
+            ("-0", 5, TIES_TO_EVEN, "-0.0000E+0"),
+            ("inf", 5, TIES_TO_EVEN, "inf"),
+            ("-inf", 5, TIES_TO_EVEN, "-inf"),
+            ("nan", 5, TIES_TO_EVEN, "nan"),
+            ("snan", 5, TIES_TO_EVEN, "snan"),
         ]
 
         for case in test_cases:

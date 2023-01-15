@@ -2,7 +2,7 @@
 Rounding modes.
 
 A rounding mode is a callable that accepts a quarter integer value (something
-of type SignedQuarterInt) and returns a bool indicating whether that value should
+of type IntermediateForm) and returns a bool indicating whether that value should
 be rounded away from zero.
 
 This module implements 13 rounding modes. There are six directed rounding modes,
@@ -57,40 +57,57 @@ is rounded using the zero / away / minus / plus / even / odd rule as appropriate
 """
 
 
-from typing import Callable, Tuple
+import abc
+from typing import Tuple
 
-from rounder.core import SignedQuarterInt
-
-#: Type aliases
-RoundingMode = Callable[[SignedQuarterInt], bool]
-Signature = Tuple[Tuple[int, int], Tuple[int, int]]
+from rounder.intermediate import IntermediateForm
 
 
-def standard_rounding_mode(signature: Signature) -> RoundingMode:
-    def round_decide(quarters: SignedQuarterInt) -> bool:
-        odd = quarters.whole & 1
-        return quarters.quarters + signature[quarters.sign][odd] >= 4
+class RoundingMode(abc.ABC):
+    @abc.abstractmethod
+    def round(self, quarters: IntermediateForm) -> IntermediateForm:
+        """
+        Round using the given rounding mode.
+        """
+        raise NotImplementedError("Should be implemented in subclasses")
 
-    return round_decide
+
+class _StandardRoundingMode(RoundingMode):
+    def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]]):
+        self._signature = signature
+
+    def round(self, quarters: IntermediateForm) -> IntermediateForm:
+        """
+        Round using the given rounding mode.
+        """
+        is_odd = quarters.significand & 1
+        round_up = quarters.quarters + self._signature[quarters.sign][is_odd] >= 4
+        return quarters.to_away() if round_up else quarters.to_zero()
+
+
+class _RoundForReroundRoundingMode(RoundingMode):
+    def round(self, quarters: IntermediateForm) -> IntermediateForm:
+        """
+        Round using the given rounding mode.
+        """
+        return quarters.to_zero() if quarters.significand % 5 else quarters.to_away()
 
 
 #: Round for re-round.
-def TO_ZERO_05_AWAY(quarters: SignedQuarterInt) -> bool:
-    return quarters.quarters > 0 and quarters.whole % 5 == 0
-
+TO_ZERO_05_AWAY = _RoundForReroundRoundingMode()
 
 #: To-nearest rounding modes.
-TIES_TO_ZERO: RoundingMode = standard_rounding_mode(((1, 1), (1, 1)))
-TIES_TO_AWAY: RoundingMode = standard_rounding_mode(((2, 2), (2, 2)))
-TIES_TO_MINUS: RoundingMode = standard_rounding_mode(((1, 1), (2, 2)))
-TIES_TO_PLUS: RoundingMode = standard_rounding_mode(((2, 2), (1, 1)))
-TIES_TO_EVEN: RoundingMode = standard_rounding_mode(((1, 2), (1, 2)))
-TIES_TO_ODD: RoundingMode = standard_rounding_mode(((2, 1), (2, 1)))
+TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((1, 1), (1, 1)))
+TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(((2, 2), (2, 2)))
+TIES_TO_MINUS: RoundingMode = _StandardRoundingMode(((1, 1), (2, 2)))
+TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(((2, 2), (1, 1)))
+TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(((1, 2), (1, 2)))
+TIES_TO_ODD: RoundingMode = _StandardRoundingMode(((2, 1), (2, 1)))
 
 #: Directed rounding modes.
-TO_ZERO: RoundingMode = standard_rounding_mode(((0, 0), (0, 0)))
-TO_AWAY: RoundingMode = standard_rounding_mode(((3, 3), (3, 3)))
-TO_MINUS: RoundingMode = standard_rounding_mode(((0, 0), (3, 3)))
-TO_PLUS: RoundingMode = standard_rounding_mode(((3, 3), (0, 0)))
-TO_EVEN: RoundingMode = standard_rounding_mode(((0, 3), (0, 3)))
-TO_ODD: RoundingMode = standard_rounding_mode(((3, 0), (3, 0)))
+TO_ZERO: RoundingMode = _StandardRoundingMode(((0, 0), (0, 0)))
+TO_AWAY: RoundingMode = _StandardRoundingMode(((3, 3), (3, 3)))
+TO_MINUS: RoundingMode = _StandardRoundingMode(((0, 0), (3, 3)))
+TO_PLUS: RoundingMode = _StandardRoundingMode(((3, 3), (0, 0)))
+TO_EVEN: RoundingMode = _StandardRoundingMode(((0, 3), (0, 3)))
+TO_ODD: RoundingMode = _StandardRoundingMode(((3, 0), (3, 0)))

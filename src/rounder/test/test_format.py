@@ -8,8 +8,8 @@ import unittest
 from typing import List, Tuple
 
 from rounder import format
-from rounder.core import Rounded
 from rounder.format import FormatSpecification
+from rounder.intermediate import IntermediateForm
 
 
 class TestFormat(unittest.TestCase):
@@ -220,13 +220,13 @@ class TestFormatFromSpecification(unittest.TestCase):
         )
         self.assertEqual(
             format_specification.format(
-                Rounded(sign=False, significand=23, exponent=-2)
+                IntermediateForm(sign=False, significand=23, exponent=-2)
             ),
             ".23",
         )
         self.assertEqual(
             format_specification.format(
-                Rounded(sign=False, significand=67, exponent=-3)
+                IntermediateForm(sign=False, significand=67, exponent=-3)
             ),
             ".067",
         )
