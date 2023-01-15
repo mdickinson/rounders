@@ -134,19 +134,23 @@ There's one miscellaneous rounding mode `TO_ZERO_05_AWAY`, with corresponding fu
 |-----------------|-------------------------|-------------------|
 | TO_ZERO_05_AWAY | `round_to_zero_05_away` | See below         |
 
-This rounding mode matches the `decimal` module's `ROUND_05UP` rounding mode. It
-rounds towards zero, _except_ in the case where there's at least one nonzero digit being
-rounded away, and rounding towards zero would produce a final significant digit of `0`
-or `5` in the rounded result. In that case, it rounds away from zero instead.
+This rounding mode matches the `decimal` module's `ROUND_05UP` rounding mode. It rounds
+towards zero, _except_ in the case where rounding towards zero changes the value, *and*
+rounding towards zero would produce a final significant digit of `0` or `5` in the
+rounded result. In that case, it rounds away from zero instead.
 
 ```python
-from rounder import round_to_zero_05_away
+>>> from rounder import round_to_zero_05_away
 >>> round_to_zero_05_away(1.234, 1)
 1.2
 >>> round_to_zero_05_away(1.294, 1)
 1.2
 >>> round_to_zero_05_away(1.534, 1)  # round_to_zero would give 1.5, so round away
 1.6
+>>> round_to_zero_05_away(-2.088, 1)  # round_to_zero would give -2.0, so round away
+-2.1
+>>> round_to_zero_05_away(3.5, 1)  # round_to_zero wouldn't change the value; leave
+3.5
 ```
 
 ## Supported numeric types
