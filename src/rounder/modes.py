@@ -65,7 +65,7 @@ from rounder.intermediate import IntermediateForm
 
 class RoundingMode(abc.ABC):
     @abc.abstractmethod
-    def round(self, quarters: IntermediateForm) -> IntermediateForm:
+    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
         """
         Round using the given rounding mode.
         """
@@ -76,38 +76,39 @@ class _StandardRoundingMode(RoundingMode):
     def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]]):
         self._signature = signature
 
-    def round(self, quarters: IntermediateForm) -> IntermediateForm:
+    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
         """
         Round using the given rounding mode.
         """
-        is_odd = quarters.significand & 1
-        round_up = quarters.quarters + self._signature[quarters.sign][is_odd] >= 4
-        return quarters.to_away() if round_up else quarters.to_zero()
+        is_odd, tenths = divmod(intermediate.significand % 20, 10)
+        round_up = tenths + self._signature[intermediate.sign][is_odd] >= 10
+        return intermediate.to_away() if round_up else intermediate.to_zero()
 
 
 class _RoundForReroundRoundingMode(RoundingMode):
-    def round(self, quarters: IntermediateForm) -> IntermediateForm:
+    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
         """
         Round using the given rounding mode.
         """
-        return quarters.to_zero() if quarters.significand % 5 else quarters.to_away()
+        round_up = intermediate.significand % 50 < 10
+        return intermediate.to_away() if round_up else intermediate.to_zero()
 
 
 #: Round for re-round.
 TO_ZERO_05_AWAY = _RoundForReroundRoundingMode()
 
 #: To-nearest rounding modes.
-TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((1, 1), (1, 1)))
-TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(((2, 2), (2, 2)))
-TIES_TO_MINUS: RoundingMode = _StandardRoundingMode(((1, 1), (2, 2)))
-TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(((2, 2), (1, 1)))
-TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(((1, 2), (1, 2)))
-TIES_TO_ODD: RoundingMode = _StandardRoundingMode(((2, 1), (2, 1)))
+TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((4, 4), (4, 4)))
+TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(((5, 5), (5, 5)))
+TIES_TO_MINUS: RoundingMode = _StandardRoundingMode(((4, 4), (5, 5)))
+TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(((5, 5), (4, 4)))
+TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(((4, 5), (4, 5)))
+TIES_TO_ODD: RoundingMode = _StandardRoundingMode(((5, 4), (5, 4)))
 
 #: Directed rounding modes.
 TO_ZERO: RoundingMode = _StandardRoundingMode(((0, 0), (0, 0)))
-TO_AWAY: RoundingMode = _StandardRoundingMode(((3, 3), (3, 3)))
-TO_MINUS: RoundingMode = _StandardRoundingMode(((0, 0), (3, 3)))
-TO_PLUS: RoundingMode = _StandardRoundingMode(((3, 3), (0, 0)))
-TO_EVEN: RoundingMode = _StandardRoundingMode(((0, 3), (0, 3)))
-TO_ODD: RoundingMode = _StandardRoundingMode(((3, 0), (3, 0)))
+TO_AWAY: RoundingMode = _StandardRoundingMode(((9, 9), (9, 9)))
+TO_MINUS: RoundingMode = _StandardRoundingMode(((0, 0), (9, 9)))
+TO_PLUS: RoundingMode = _StandardRoundingMode(((9, 9), (0, 0)))
+TO_EVEN: RoundingMode = _StandardRoundingMode(((0, 9), (0, 9)))
+TO_ODD: RoundingMode = _StandardRoundingMode(((9, 0), (9, 0)))

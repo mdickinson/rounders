@@ -6,7 +6,7 @@ import dataclasses
 import re
 from typing import Any, Dict, Optional
 
-from rounder.generics import decade, is_zero, to_quarters
+from rounder.generics import decade, is_zero, preround
 from rounder.intermediate import IntermediateForm
 from rounder.modes import (
     TIES_TO_AWAY,
@@ -244,13 +244,13 @@ def format(value: Any, pattern: str) -> str:
 
         exponent = max(bounds)
 
-    quarters = to_quarters(value, exponent)
-    rounded = format_specification.rounding_mode.round(quarters)
+    prerounded = preround(value, exponent - 1)
+    rounded = format_specification.rounding_mode.round(prerounded)
     if format_specification.figures is not None:
 
         # Adjust if necessary.
         if len(str(rounded.significand)) == format_specification.figures + 1:
-            rounded = rounded.nudge()
+            rounded = rounded.to_zero()
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)

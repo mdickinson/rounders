@@ -4,7 +4,7 @@ Top-level rounding functions.
 
 from typing import Any, Optional
 
-from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounder.modes import TIES_TO_EVEN, RoundingMode
 
 
@@ -31,7 +31,8 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     if not is_finite(x):
         raise ValueError("x must be finite")
 
-    return mode.round(to_quarters(x, 0)).as_int()
+    rounded = mode.round(preround(x, -1))
+    return -rounded.significand if rounded.sign else rounded.significand
 
 
 def round_to_places(
@@ -54,7 +55,8 @@ def round_to_places(
     if not is_finite(value):
         return value
 
-    return to_type_of(value, mode.round(to_quarters(value, -places)))
+    prerounded = preround(value, -places - 1)
+    return to_type_of(value, mode.round(prerounded))
 
 
 def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
@@ -85,15 +87,15 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     #  1.23e+02
     #  0.00e+00
 
-    quarters = to_quarters(x, 1 - figures + (0 if is_zero(x) else decade(x)))
-    rounded = mode.round(quarters)
+    prerounded = preround(x, (0 if is_zero(x) else decade(x)) - figures)
+    rounded = mode.round(prerounded)
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
     if len(str(rounded.significand)) == figures + 1:
-        rounded = rounded.nudge()
+        rounded = rounded.to_zero()
     return to_type_of(x, rounded)
 
 
