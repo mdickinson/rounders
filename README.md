@@ -82,7 +82,7 @@ Or if you want a version of `math.ceil` that accepts a number of places after th
 you can do:
 
 ```python
->>> from rounder import round_to_plus as ceil
+>>> from rounder import ceil
 >>> ceil(1.78)
 2
 >>> ceil(1.782, 2)
@@ -93,10 +93,11 @@ you can do:
 
 The complete list of functions is [below](#rounding-modes)
 
-## Rounding modes
+## Rounding modes and mode-specific rounding function
 
 These are the currently supported rounding modes, along with their corresponding
-mode-specific rounding functions.
+mode-specific rounding functions. The functions `trunc`, `floor` and `ceil` are
+aliases for `round_to_zero`, `round_to_minus` and `round_to_plus`, respectively.
 
 ### To-nearest rounding modes
 

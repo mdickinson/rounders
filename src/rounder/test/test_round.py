@@ -21,6 +21,8 @@ from rounder import (
     TO_ODD,
     TO_PLUS,
     TO_ZERO,
+    ceil,
+    floor,
     round,
     round_ties_to_away,
     round_ties_to_even,
@@ -37,6 +39,7 @@ from rounder import (
     round_to_plus,
     round_to_zero,
     round_to_zero_05_away,
+    trunc,
 )
 
 #: A selection of IEEE 754 binary64 floating-point values used in a wide
@@ -930,6 +933,11 @@ class TestRound(unittest.TestCase):
         # ... but only by keyword
         with self.assertRaises(TypeError):
             round(3.5, None, TIES_TO_ODD)  # type: ignore
+
+    def test_aliases(self) -> None:
+        self.assertIs(ceil, round_to_plus)
+        self.assertIs(floor, round_to_minus)
+        self.assertIs(trunc, round_to_zero)
 
     def assertIntsIdentical(self, first: int, second: int) -> None:
         self.assertEqual(type(first), int)
