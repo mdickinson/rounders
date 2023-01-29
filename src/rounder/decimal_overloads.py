@@ -30,19 +30,20 @@ def _(x: decimal.Decimal, exponent: int = 0) -> IntermediateForm:
     sign, digit_tuple, x_exponent = x.as_tuple()
     significand = int("".join(map(str, digit_tuple)))
 
-    scale = x_exponent - exponent
+    scale = x_exponent - exponent + 1
     if scale >= 0:
         numerator, denominator = cast(int, 10**scale) * significand, 1
     else:
         numerator, denominator = significand, cast(int, 10**-scale)
 
-    quarters, inexact = divmod(4 * numerator, denominator)
-    whole, part = divmod(quarters | bool(inexact), 4)
+    tenths, inexact = divmod(numerator, denominator)
+    if tenths % 5 == 0 and inexact:
+        tenths += 1
+
     return IntermediateForm(
         sign=sign == 1,
-        significand=whole,
-        quarters=part,
-        exponent=exponent,
+        significand=tenths,
+        exponent=exponent - 1,
     )
 
 
