@@ -1,6 +1,6 @@
 from typing import cast
 
-from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounder.intermediate import IntermediateForm
 
 
@@ -34,7 +34,7 @@ def _(x: int) -> bool:
     return x == 0
 
 
-@to_quarters.register
+@preround.register
 def _(x: int, exponent: int) -> IntermediateForm:
     return IntermediateForm.from_signed_fraction(
         sign=x < 0,

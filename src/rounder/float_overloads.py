@@ -3,7 +3,7 @@ import math
 import struct
 from typing import cast
 
-from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounder.intermediate import IntermediateForm
 
 #: Useful constants
@@ -720,15 +720,16 @@ def _(x: float) -> bool:
     return x == 0.0
 
 
-@to_quarters.register
-def _(x: float, exponent: int = 0) -> IntermediateForm:
+@preround.register
+def _(x: float, exponent: int) -> IntermediateForm:
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
-    n, d = abs(x).as_integer_ratio()
+    sign = math.copysign(1.0, x) < 0.0
+    numerator, denominator = abs(x).as_integer_ratio()
     return IntermediateForm.from_signed_fraction(
-        sign=math.copysign(1.0, x) < 0.0,
-        numerator=n,
-        denominator=d,
+        sign=sign,
+        numerator=numerator,
+        denominator=denominator,
         exponent=exponent,
     )
