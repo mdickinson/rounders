@@ -38,6 +38,10 @@ from rounder.modes import (
 )
 from rounder.round_to import round, round_to_figures, round_to_int, round_to_places
 
+ceil = round_to_plus
+floor = round_to_minus
+trunc = round_to_zero
+
 __all__ = [
     # Top-level rounding functions
     "round",
@@ -58,6 +62,10 @@ __all__ = [
     "round_to_plus",
     "round_to_zero",
     "round_to_zero_05_away",
+    # Aliases
+    "ceil",
+    "floor",
+    "trunc",
     # Rounding modes - to-nearest
     "TIES_TO_AWAY",
     "TIES_TO_EVEN",
