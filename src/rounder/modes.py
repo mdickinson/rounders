@@ -65,7 +65,7 @@ from rounder.intermediate import IntermediateForm
 
 class RoundingMode(abc.ABC):
     @abc.abstractmethod
-    def round(self, intermediate: IntermediateForm, /) -> IntermediateForm:
+    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
         """
         Round using the given rounding mode.
         """
@@ -76,7 +76,7 @@ class _StandardRoundingMode(RoundingMode):
     def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]]):
         self._signature = signature
 
-    def round(self, intermediate: IntermediateForm, /) -> IntermediateForm:
+    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
         """
         Round using the given rounding mode.
         """
@@ -86,7 +86,7 @@ class _StandardRoundingMode(RoundingMode):
 
 
 class _RoundForReroundRoundingMode(RoundingMode):
-    def round(self, intermediate: IntermediateForm, /) -> IntermediateForm:
+    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
         """
         Round using the given rounding mode.
         """
