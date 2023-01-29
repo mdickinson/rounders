@@ -44,11 +44,11 @@ def is_zero(x: Any) -> bool:
 
 
 @functools.singledispatch
-def to_quarters(x: Any, exponent: int) -> IntermediateForm:
+def preround(x: Any, exponent: int) -> IntermediateForm:
     """
     Pre-rounding step for value x.
 
-    Rounds the number x / 10**exponent to the nearest quarter, using the
-    round-to-odd rounding mode. Returns the number of quarters.
+    Rounds x to the nearest integer multiple of 10**exponent, using the
+    round-for-reround rounding mode.
     """
     raise NotImplementedError(f"No overload available for type {type(x)}")

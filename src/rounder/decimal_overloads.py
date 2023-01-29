@@ -1,7 +1,7 @@
+import dataclasses
 import decimal
-from typing import cast
 
-from rounder.generics import decade, is_finite, is_zero, to_quarters, to_type_of
+from rounder.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounder.intermediate import IntermediateForm
 
 
@@ -22,28 +22,19 @@ def _(x: decimal.Decimal) -> bool:
     return x.is_zero()
 
 
-@to_quarters.register
-def _(x: decimal.Decimal, exponent: int = 0) -> IntermediateForm:
+@preround.register
+def _(x: decimal.Decimal, exponent: int) -> IntermediateForm:
     if not x.is_finite():
         raise ValueError("Input must be finite")
 
     sign, digit_tuple, x_exponent = x.as_tuple()
-    significand = int("".join(map(str, digit_tuple)))
-
-    scale = x_exponent - exponent
-    if scale >= 0:
-        numerator, denominator = cast(int, 10**scale) * significand, 1
-    else:
-        numerator, denominator = significand, cast(int, 10**-scale)
-
-    quarters, inexact = divmod(4 * numerator, denominator)
-    whole, part = divmod(quarters | bool(inexact), 4)
-    return IntermediateForm(
-        sign=sign == 1,
-        significand=whole,
-        quarters=part,
-        exponent=exponent,
+    rounded = IntermediateForm.from_signed_fraction(
+        sign=bool(sign),
+        numerator=int("".join(map(str, digit_tuple))),
+        denominator=1,
+        exponent=exponent - x_exponent,
     )
+    return dataclasses.replace(rounded, exponent=exponent)
 
 
 @decade.register
