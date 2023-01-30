@@ -93,7 +93,7 @@ you can do:
 
 The complete list of functions is [below](#rounding-modes)
 
-## Rounding modes and mode-specific rounding function
+## Rounding modes and mode-specific rounding functions
 
 These are the currently supported rounding modes, along with their corresponding
 mode-specific rounding functions. The functions `trunc`, `floor` and `ceil` are
