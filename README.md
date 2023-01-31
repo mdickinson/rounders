@@ -256,3 +256,5 @@ Major goals for future releases:
 - Finalise and document mechanisms for adding support for custom types.
 - Improve performance of `round`, especially for the `float` type, with the aid of
   a C extension if necessary.
+- Better document the pitfalls of `round` applied to binary floats (especially for
+  directed rounding modes, where `round` is not idempotent).
