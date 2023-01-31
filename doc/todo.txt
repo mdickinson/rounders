@@ -25,7 +25,6 @@ Done
 - General maintenance
   - Add actions workflows
 - Convert namedtuple types to typing.NamedTuple subclasses, or perhaps dataclasses.
-- Change name of the package to 'rounder'
 - Implement round_05away
 - Add isort config
 - Formatting:

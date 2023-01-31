@@ -6,9 +6,9 @@ import dataclasses
 import re
 from typing import Any, Dict, Optional
 
-from rounder.generics import decade, is_zero, preround
-from rounder.intermediate import IntermediateForm
-from rounder.modes import (
+from rounders.generics import decade, is_zero, preround
+from rounders.intermediate import IntermediateForm
+from rounders.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
     TIES_TO_MINUS,

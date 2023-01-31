@@ -60,7 +60,7 @@ is rounded using the zero / away / minus / plus / even / odd rule as appropriate
 import abc
 from typing import Tuple
 
-from rounder.intermediate import IntermediateForm
+from rounders.intermediate import IntermediateForm
 
 
 class RoundingMode(abc.ABC):

@@ -1,6 +1,6 @@
-# Rounder
+# Rounders
 
-The `rounder` package extends the functionality provided by Python's
+The `rounders` package extends the functionality provided by Python's
 built-in [`round`](https://docs.python.org/3/library/functions.html#round)
 function. It aims to provide a more complete and consistent collection of
 decimal rounding functionality than is provided by the Python core and standard
@@ -21,7 +21,7 @@ There are four general-purpose rounding functions.
   places while preserving the type of the input.
 
   ```python
-  >>> from rounder import round, TIES_TO_AWAY, TO_MINUS
+  >>> from rounders import round, TIES_TO_AWAY, TO_MINUS
   >>> round(2.5)  # The default rounding mode is TIES_TO_EVEN
   2
   >>> round(2.5, mode=TIES_TO_AWAY)  # round halfway cases away from zero
@@ -36,7 +36,7 @@ There are four general-purpose rounding functions.
   rather than to a given number of places before or after the decimal point.
 
   ```python
-  >>> from rounder import round_to_figures, TO_AWAY
+  >>> from rounders import round_to_figures, TO_AWAY
   >>> round_to_figures(1.234567, 3)
   1.23
   >>> round_to_figures(1234567., 3)
@@ -54,7 +54,7 @@ There are four general-purpose rounding functions.
   function is currently a simple wrapper around `round_to_int` and `round_to_places`.
 
   ```python
-  >>> from rounder import round_to_int, round_to_places, TO_PLUS
+  >>> from rounders import round_to_int, round_to_places, TO_PLUS
   >>> round_to_int(3.1415, mode=TO_PLUS)
   4
   >>> round_to_places(3.1415, 2, mode=TO_PLUS)
@@ -71,7 +71,7 @@ use a different rounding mode. For example, if you always want to round ties awa
 from zero instead of to the nearest even number, you can do this:
 
 ```python
->>> from rounder import round_ties_to_away as round
+>>> from rounders import round_ties_to_away as round
 >>> round(4.5)
 5
 >>> round(1.25, 1)
@@ -82,7 +82,7 @@ Or if you want a version of `math.ceil` that accepts a number of places after th
 you can do:
 
 ```python
->>> from rounder import ceil
+>>> from rounders import ceil
 >>> ceil(1.78)
 2
 >>> ceil(1.782, 2)
@@ -145,7 +145,7 @@ value is already rounded to the required number of digits, neither `TO_ZERO` nor
 the value in this case.
 
 ```python
->>> from rounder import round_to_zero_05_away
+>>> from rounders import round_to_zero_05_away
 >>> round_to_zero_05_away(1.234, 1)  # behaves like `TO_ZERO`
 1.2
 >>> round_to_zero_05_away(-1.294, 1)  # also behaves like `TO_ZERO`
@@ -192,7 +192,7 @@ Some notes on particular rounding modes:
   modes defined in this package.
 
   ```python
-  >>> from rounder import *
+  >>> from rounders import *
   >>> import random
   >>> x = random.uniform(-1.0, 1.0)
   >>> y = round(x, 5, mode=TO_ZERO_05_AWAY)
@@ -213,34 +213,34 @@ elsewhere:
   defines an attribute `roundTiesToZero`, corresponding to `TIES_TO_ZERO` in this
   module.
 
-  | IEEE 754 rounding direction | `rounder` rounding mode |
-  |-----------------------------|-------------------------|
-  | `roundTiesToEven`           | `TIES_TO_EVEN`          |
-  | `roundTiesToAway`           | `TIES_TO_AWAY`          |
-  | `roundTiesToZero`           | `TIES_TO_ZERO`          |
-  | `roundTowardPositive`       | `TO_PLUS`               |
-  | `roundTowardNegative`       | `TO_MINUS`              |
-  | `roundTowardZero`           | `TO_ZERO`               |
+  | IEEE 754 rounding direction | `rounders` rounding mode |
+  |-----------------------------|--------------------------|
+  | `roundTiesToEven`           | `TIES_TO_EVEN`           |
+  | `roundTiesToAway`           | `TIES_TO_AWAY`           |
+  | `roundTiesToZero`           | `TIES_TO_ZERO`           |
+  | `roundTowardPositive`       | `TO_PLUS`                |
+  | `roundTowardNegative`       | `TO_MINUS`               |
+  | `roundTowardZero`           | `TO_ZERO`                |
 
 * As of Python 3.11, Python's
   [`decimal`](https://docs.python.org/3/library/decimal.html) module defines eight
   rounding options, corresponding to the rounding modes in this module as follows:
 
-  | `decimal` rounding option | `rounder` rounding mode |
-  |---------------------------|-------------------------|
-  | `ROUND_CEILING`           | `TO_PLUS`               |
-  | `ROUND_DOWN`              | `TO_ZERO`               |
-  | `ROUND_FLOOR`             | `TO_MINUS`              |
-  | `ROUND_HALF_DOWN`         | `TIES_TO_ZERO`          |
-  | `ROUND_HALF_EVEN`         | `TIES_TO_EVEN`          |
-  | `ROUND_HALF_UP`           | `TIES_TO_AWAY`          |
-  | `ROUND_UP`                | `TO_AWAY`               |
-  | `ROUND_05UP`              | `TO_ZERO_05_AWAY`       |
+  | `decimal` rounding option | `rounders` rounding mode |
+  |---------------------------|--------------------------|
+  | `ROUND_CEILING`           | `TO_PLUS`                |
+  | `ROUND_DOWN`              | `TO_ZERO`                |
+  | `ROUND_FLOOR`             | `TO_MINUS`               |
+  | `ROUND_HALF_DOWN`         | `TIES_TO_ZERO`           |
+  | `ROUND_HALF_EVEN`         | `TIES_TO_EVEN`           |
+  | `ROUND_HALF_UP`           | `TIES_TO_AWAY`           |
+  | `ROUND_UP`                | `TO_AWAY`                |
+  | `ROUND_05UP`              | `TO_ZERO_05_AWAY`        |
 
 
 ## Supported numeric types
 
-Out of the box, `rounder` supports Python's built-in numeric types: `int`, `float`,
+Out of the box, `rounders` supports Python's built-in numeric types: `int`, `float`,
 `decimal.Decimal` and `fractions.Fraction`. Under the hood, it uses
 [`functools.singledispatch`](https://docs.python.org/3/library/functools.html#functools.singledispatch)
 for all type-specific operations. This should allow easy extension to new numeric

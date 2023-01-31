@@ -1,8 +1,8 @@
 import fractions
 from typing import cast
 
-from rounder.generics import decade, is_finite, is_zero, preround, to_type_of
-from rounder.intermediate import IntermediateForm
+from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
+from rounders.intermediate import IntermediateForm
 
 
 @decade.register

@@ -50,7 +50,7 @@ Components of the solution space.
 
 From the original README
 
-The goal of the "rounder" package is to provide a more unified, consistent
+The goal of the "rounders" package is to provide a more unified, consistent
 and complete approach to decimal rounding in Python.
 
 Particular goals include:

@@ -4,7 +4,7 @@
 
 from typing import Any, Optional
 
-from rounder.modes import (
+from rounders.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
     TIES_TO_MINUS,
@@ -19,7 +19,7 @@ from rounder.modes import (
     TO_ZERO,
     TO_ZERO_05_AWAY,
 )
-from rounder.round_to import round
+from rounders.round_to import round
 
 
 def round_ties_to_away(x: Any, ndigits: Optional[int] = None) -> Any:

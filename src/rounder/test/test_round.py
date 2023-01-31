@@ -8,7 +8,7 @@ import math
 import struct
 import unittest
 
-from rounder import (
+from rounders import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
     TIES_TO_MINUS,
