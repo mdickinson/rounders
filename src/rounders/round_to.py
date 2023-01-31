@@ -4,8 +4,8 @@ Top-level rounding functions.
 
 from typing import Any, Optional
 
-from rounder.generics import decade, is_finite, is_zero, preround, to_type_of
-from rounder.modes import TIES_TO_EVEN, RoundingMode
+from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
+from rounders.modes import TIES_TO_EVEN, RoundingMode
 
 
 def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:

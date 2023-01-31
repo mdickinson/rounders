@@ -1,5 +1,5 @@
 [project]
-name = 'rounder'
+name = 'rounders'
 version = '0.1.0'
 description = 'round-function equivalents with different rounding-modes'
 readme = 'README.md'
@@ -14,7 +14,7 @@ classifiers = [
 ]
 
 [project.urls]
-source = 'https://github.com/mdickinson/rounder'
+source = 'https://github.com/mdickinson/rounders'
 
 [build-system]
 requires = ['setuptools>=42', 'wheel']

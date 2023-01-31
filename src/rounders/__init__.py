@@ -1,12 +1,12 @@
 """
-Interface for the rounder package.
+Interface for the rounders package.
 """
 
-import rounder.decimal_overloads  # noqa: F401
-import rounder.float_overloads  # noqa: F401
-import rounder.fraction_overloads  # noqa: F401
-import rounder.int_overloads  # noqa: F401
-from rounder.mode_specific import (
+import rounders.decimal_overloads  # noqa: F401
+import rounders.float_overloads  # noqa: F401
+import rounders.fraction_overloads  # noqa: F401
+import rounders.int_overloads  # noqa: F401
+from rounders.mode_specific import (
     round_ties_to_away,
     round_ties_to_even,
     round_ties_to_minus,
@@ -21,7 +21,7 @@ from rounder.mode_specific import (
     round_to_zero,
     round_to_zero_05_away,
 )
-from rounder.modes import (
+from rounders.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
     TIES_TO_MINUS,
@@ -36,7 +36,7 @@ from rounder.modes import (
     TO_ZERO,
     TO_ZERO_05_AWAY,
 )
-from rounder.round_to import round, round_to_figures, round_to_int, round_to_places
+from rounders.round_to import round, round_to_figures, round_to_int, round_to_places
 
 ceil = round_to_plus
 floor = round_to_minus

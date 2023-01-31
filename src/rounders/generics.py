@@ -5,7 +5,7 @@ Generic extensible computation functions that use singledispatch.
 import functools
 from typing import Any
 
-from rounder.intermediate import IntermediateForm
+from rounders.intermediate import IntermediateForm
 
 
 @functools.singledispatch
