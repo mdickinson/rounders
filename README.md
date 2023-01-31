@@ -255,4 +255,4 @@ Major goals for future releases:
   format specification.
 - Finalise and document mechanisms for adding support for custom types.
 - Improve performance of `round`, especially for the `float` type, with the aid of
-  C extension if necessary.
+  a C extension if necessary.
