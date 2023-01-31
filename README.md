@@ -238,12 +238,21 @@ elsewhere:
   | `ROUND_05UP`              | `TO_ZERO_05_AWAY`       |
 
 
-
-
 ## Supported numeric types
 
 Out of the box, `rounder` supports Python's built-in numeric types: `int`, `float`,
 `decimal.Decimal` and `fractions.Fraction`. Under the hood, it uses
 [`functools.singledispatch`](https://docs.python.org/3/library/functools.html#functools.singledispatch)
 for all type-specific operations. This should allow easy extension to new numeric
-types in the future.
+types in the future. The extension mechanism has not yet stabilised.
+
+
+## Future directions
+
+Major goals for future releases:
+
+- Add formatting support, including the ability to specify rounding direction in a
+  format specification.
+- Finalise and document mechanisms for adding support for custom types.
+- Improve performance of `round`, especially for the `float` type, with the aid of
+  C extension if necessary.
