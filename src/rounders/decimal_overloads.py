@@ -28,6 +28,8 @@ def _(x: decimal.Decimal, exponent: int) -> IntermediateForm:
         raise ValueError("Input must be finite")
 
     sign, digit_tuple, x_exponent = x.as_tuple()
+    # since x is finite, x_exponent can't be one of the special strings 'n', 'N', 'F'
+    assert isinstance(x_exponent, int)
     rounded = IntermediateForm.from_signed_fraction(
         sign=bool(sign),
         numerator=int("".join(map(str, digit_tuple))),
