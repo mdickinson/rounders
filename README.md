@@ -1,24 +1,26 @@
 # Rounders
 
-The `rounders` package extends the functionality provided by Python's
-built-in [`round`](https://docs.python.org/3/library/functions.html#round)
-function. It aims to provide a more complete and consistent collection of
-decimal rounding functionality than is provided by the Python core and standard
-library. Specifically, it provides:
+The `rounders` package extends the functionality provided by Python's built-in
+[`round`](https://docs.python.org/3/library/functions.html#round) function. It aims to
+provide a more complete and consistent collection of decimal rounding functionality than
+is provided by the Python core and standard library. Specifically, it provides:
 
-* Drop-in replacements for `round` that use rounding modes other than
-  round-ties-to-even (for example, the commonly needed round-ties-to-away).
-* Functionality for rounding to a given number of significant figures,
-  rather than to a set number of places after (or before) the decimal point.
+* Drop-in replacements for `round` that use rounding modes other than Python's default
+  Banker's rounding mode. Thirteen different rounding modes are available.
+* Functionality for rounding to a given number of significant figures, rather than to a
+  set number of places after or before the decimal point.
 
-## General-purpose rounding functions
+## Package contents
 
-There are four general-purpose rounding functions.
+### General-purpose rounding functions
 
-* The `round` function has the same signature as the built-in `round`, but also allows a
-  rounding mode to be specified. Like `round`, it supports rounding to the nearest
-  integer in the direction of the given rounding mode, and rounding to a given number of
-  places while preserving the type of the input.
+There are four general-purpose rounding functions. These all accept an optional `mode`
+argument for specifying the rounding mode, and default to using `TIES_TO_EVEN` (Banker's
+rounding) if no mode is specified.
+
+* The `round` function has the same signature as the built-in `round`. It supports
+  rounding to the nearest integer in the direction of the given rounding mode, and
+  rounding to a given number of places while preserving the type of the input.
 
   ```python
   >>> from rounders import round, TIES_TO_AWAY, TO_MINUS
@@ -47,11 +49,11 @@ There are four general-purpose rounding functions.
   0.000124
   ```
 
-* The `round_to_int` and `round_to_places` functions provide the two pieces of
-  functionality that `round` combines: `round_to_int` rounds to a
-  nearby integer using the given rounding mode, while `round_to_places` always
-  expects an `ndigits` argument and rounds to the given number of places. The `round`
-  function is currently a simple wrapper around `round_to_int` and `round_to_places`.
+* The `round_to_int` and `round_to_places` functions provide separately the two pieces
+  of functionality that `round` combines: `round_to_int` rounds to a nearby integer
+  using the given rounding mode, while `round_to_places` always expects an `ndigits`
+  argument and rounds to the given number of places. The `round` function is currently a
+  simple wrapper around `round_to_int` and `round_to_places`.
 
   ```python
   >>> from rounders import round_to_int, round_to_places, TO_PLUS
@@ -61,14 +63,12 @@ There are four general-purpose rounding functions.
   3.15
   ```
 
-There are currently thirteen different rounding modes provided, listed
-[below](#rounding-modes).
 
-## Functions providing alternative rounding modes
+### Rounding-mode-specific rounding functions
 
-There are thirteen functions that act as drop-in replacements for `round`, but that
-use a different rounding mode. For example, if you always want to round ties away
-from zero instead of to the nearest even number, you can do this:
+There are thirteen functions that act as drop-in replacements for `round`, but that use
+a specific rounding mode. For example, if you always want to round ties away from zero
+instead of to the nearest even number, you can do this:
 
 ```python
 >>> from rounders import round_ties_to_away as round
@@ -93,11 +93,10 @@ you can do:
 
 The complete list of functions is [below](#rounding-modes)
 
-## Rounding modes and mode-specific rounding functions
+## Rounding modes
 
 These are the currently supported rounding modes, along with their corresponding
-mode-specific rounding functions. The functions `trunc`, `floor` and `ceil` are
-aliases for `round_to_zero`, `round_to_minus` and `round_to_plus`, respectively.
+mode-specific rounding functions.
 
 ### To-nearest rounding modes
 
@@ -158,6 +157,11 @@ the value in this case.
 3.5
 ```
 
+### Aliases
+
+The functions `trunc`, `floor` and `ceil` are aliases for `round_to_zero`,
+`round_to_minus` and `round_to_plus`, respectively.
+
 ## Notes on rounding modes
 
 Some notes on particular rounding modes:
@@ -168,7 +172,7 @@ Some notes on particular rounding modes:
   Python's default rounding mode and the IEEE 754 default rounding mode,
   `roundTiesToEven`. Many other languages also use this rounding mode by default.
 * `TIES_TO_AWAY` appears to be the rounding mode most commonly taught in schools, and
-  the mode that users often mistakenly expect `round` to use. Python 2's `round`
+  is the mode that users often mistakenly expect `round` to use. Python 2's `round`
   function used this rounding mode.
 * `TIES_TO_PLUS` matches the rounding mode used by JavaScript's `Math.round`, and also
   appears to be commonly taught. (See [ECMA-262, 13th
