@@ -168,7 +168,8 @@ Some notes on particular rounding modes:
   Python's default rounding mode and the IEEE 754 default rounding mode,
   `roundTiesToEven`. Many other languages also use this rounding mode by default.
 * `TIES_TO_AWAY` appears to be the rounding mode most commonly taught in schools, and
-  the mode that users often mistakenly expect `round` to use.
+  the mode that users often mistakenly expect `round` to use. Python 2's `round`
+  function used this rounding mode.
 * `TIES_TO_PLUS` matches the rounding mode used by JavaScript's `Math.round`, and also
   appears to be commonly taught. (See [ECMA-262, 13th
   edn.](https://262.ecma-international.org/13.0/), §21.3.2.28.)
