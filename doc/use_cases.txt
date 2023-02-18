@@ -31,6 +31,26 @@ Use cases
     but not going beyond E-324)
 
 
+Issues with Python's rounding functionality
+-------------------------------------------
+
+Summary: inconsistent, not unified.
+
+Then lots of details:
+
+- Decimal: two-argument round uses the rounding mode from context; one-argument round
+  ignores context(!).
+- Decimal: two-argument round fails if the result has more digits than the current
+  context precision.
+- String formatting effectively does round to significant figures, round does not.
+- String formatting does round to places, but only for positive places.
+- `ceil`, `floor` and `trunc` are polymorphic and round to int, but provide no way to do the efficient
+  rounds-to-same-type operation. No support for rounding to a number of places.
+- round itself only supports one rounding mode (and that mode is different in Python 3
+  from Python 2).
+- No builtin way to get the Python 2 rounding mode back.
+
+
 Components
 ----------
 
