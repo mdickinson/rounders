@@ -113,7 +113,6 @@ class FormatSpecification:
     exponent_for_zero: int = 0
 
     def format(self, rounded: IntermediateForm) -> str:
-
         # Step 2: convert to string. Only supporting f-presentation format right now.
 
         # Get digits as a decimal string.
@@ -247,7 +246,6 @@ def format(value: Any, pattern: str) -> str:
     prerounded = preround(value, exponent - 1)
     rounded = format_specification.rounding_mode.round(prerounded)
     if format_specification.figures is not None:
-
         # Adjust if necessary.
         if len(str(rounded.significand)) == format_specification.figures + 1:
             rounded = rounded.to_zero()
