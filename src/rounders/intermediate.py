@@ -29,6 +29,24 @@ class IntermediateForm:
     exponent: int
 
     @classmethod
+    def from_str(cls, s: str) -> "IntermediateForm":
+        """
+        Create from a string. This is currently aimed at test convenience
+        rather than users, and so is rather strict about input format.
+        """
+        # Temporary cheat: use Decimal
+        from decimal import Decimal
+
+        sign, digits, exponent = Decimal(s).as_tuple()
+        if not isinstance(exponent, int):
+            raise ValueError("Invalid representation of an IntermediateForm")
+        return cls(
+            sign=sign,
+            significand=int(''.join(map(str, digits))),
+            exponent=exponent,
+        )
+
+    @classmethod
     def from_signed_fraction(
         cls, *, sign: int, numerator: int, denominator: int, exponent: int
     ) -> "IntermediateForm":
@@ -91,3 +109,6 @@ class IntermediateForm:
                 significand=significand,
                 exponent=exponent,
             )
+
+    def __repr__(self):
+        return f"{'-' * self.sign}{self.significand}e{self.exponent}"
