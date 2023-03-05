@@ -1,4 +1,3 @@
-import dataclasses
 import decimal
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
