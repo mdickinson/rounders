@@ -31,7 +31,7 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     if not is_finite(x):
         raise ValueError("x must be finite")
 
-    rounded = preround(x, -1).round(0, mode)
+    rounded = preround(x, 0).round(0, mode)
     return -rounded.significand if rounded.sign else rounded.significand
 
 
@@ -55,7 +55,7 @@ def round_to_places(
     if not is_finite(value):
         return value
 
-    prerounded = preround(value, -places - 1)
+    prerounded = preround(value, -places)
     rounded = prerounded.round(-places, mode)
     return to_type_of(value, rounded)
 
@@ -88,9 +88,9 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     #  1.23e+02
     #  0.00e+00
 
-    exponent = (0 if is_zero(x) else decade(x)) - figures
+    exponent = (0 if is_zero(x) else decade(x)) + 1 - figures
     prerounded = preround(x, exponent)
-    rounded = prerounded.round(exponent + 1, mode)
+    rounded = prerounded.round(exponent, mode)
 
     # Adjust if the result has one more significant figure than expected.
     # This can happen when a value at the uppermost end of a decade gets

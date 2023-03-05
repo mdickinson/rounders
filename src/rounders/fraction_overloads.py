@@ -46,5 +46,5 @@ def _(x: fractions.Fraction, exponent: int) -> IntermediateForm:
         sign=int(x < 0),
         numerator=abs(x.numerator),
         denominator=x.denominator,
-        exponent=exponent,
+        exponent=exponent - 1,
     )

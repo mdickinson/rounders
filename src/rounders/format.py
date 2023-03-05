@@ -243,7 +243,7 @@ def format(value: Any, pattern: str) -> str:
 
         exponent = max(bounds)
 
-    prerounded = preround(value, exponent - 1)
+    prerounded = preround(value, exponent)
     rounded = prerounded.round(exponent, format_specification.rounding_mode)
     if format_specification.figures is not None:
         # Adjust if necessary.
