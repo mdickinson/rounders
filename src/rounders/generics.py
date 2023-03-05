@@ -48,7 +48,13 @@ def preround(x: Any, exponent: int) -> IntermediateForm:
     """
     Pre-rounding step for value x.
 
-    Rounds x to the nearest integer multiple of 10**exponent, using the
-    round-for-reround rounding mode.
+    Converts the value x to a decimal value y of type IntermediateForm in such a way
+    that rounding y to any exponent greater than or equal to `exponent` is equivalent
+    to rounding x to that exponent, under any of the standard rounding modes.
+
+    For example, given a value of 22/7=3.142857142857... and an exponent of -3, an
+    IntermediateForm element representing the value 3.1428 might be returned. When
+    rounded to 3 or fewer decimal places, 3.1428 rounds the same way as 22/7 under
+    any of the rounding modes provided by this package.
     """
     raise NotImplementedError(f"No overload available for type {type(x)}")
