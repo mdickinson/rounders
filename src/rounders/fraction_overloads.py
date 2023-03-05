@@ -43,7 +43,7 @@ def _(x: fractions.Fraction) -> bool:
 @preround.register
 def _(x: fractions.Fraction, exponent: int) -> IntermediateForm:
     return IntermediateForm.from_signed_fraction(
-        sign=x < 0,
+        sign=int(x < 0),
         numerator=abs(x.numerator),
         denominator=x.denominator,
         exponent=exponent,

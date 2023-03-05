@@ -725,7 +725,7 @@ def _(x: float, exponent: int) -> IntermediateForm:
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
-    sign = math.copysign(1.0, x) < 0.0
+    sign = int(math.copysign(1.0, x) < 0.0)
     numerator, denominator = abs(x).as_integer_ratio()
     return IntermediateForm.from_signed_fraction(
         sign=sign,

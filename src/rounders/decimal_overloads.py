@@ -1,4 +1,3 @@
-import dataclasses
 import decimal
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
@@ -27,16 +26,17 @@ def _(x: decimal.Decimal, exponent: int) -> IntermediateForm:
     if not x.is_finite():
         raise ValueError("Input must be finite")
 
+    # We can convert directly to something of type IntermediateForm without changing
+    # the value, so we do that, ignoring the incoming 'exponent'.
     sign, digit_tuple, x_exponent = x.as_tuple()
     # since x is finite, x_exponent can't be one of the special strings 'n', 'N', 'F'
     assert isinstance(x_exponent, int)
-    rounded = IntermediateForm.from_signed_fraction(
-        sign=bool(sign),
-        numerator=int("".join(map(str, digit_tuple))),
-        denominator=1,
-        exponent=exponent - x_exponent,
+    significand = int("".join(map(str, digit_tuple)))
+    return IntermediateForm(
+        sign=sign,
+        significand=significand,
+        exponent=x_exponent,
     )
-    return dataclasses.replace(rounded, exponent=exponent)
 
 
 @decade.register

@@ -5,6 +5,8 @@ Representations of intermediate values.
 from dataclasses import dataclass, replace
 from typing import cast
 
+from rounders.modes import RoundingMode
+
 
 @dataclass(frozen=True)
 class IntermediateForm:
@@ -17,8 +19,8 @@ class IntermediateForm:
     The value represented is (-1)**sign * significand * 10**exponent.
     """
 
-    # True for negative, False for positive
-    sign: bool
+    # 1 for negative, 0 for positive
+    sign: int
 
     # Significand
     significand: int
@@ -28,7 +30,7 @@ class IntermediateForm:
 
     @classmethod
     def from_signed_fraction(
-        cls, *, sign: bool, numerator: int, denominator: int, exponent: int
+        cls, *, sign: int, numerator: int, denominator: int, exponent: int
     ) -> "IntermediateForm":
         """
         Create from a quotient of the form ±(n/d) with the target exponent, using
@@ -47,18 +49,45 @@ class IntermediateForm:
             exponent=exponent,
         )
 
-    def to_zero(self) -> "IntermediateForm":
+    def nudge(self, figures: int) -> "IntermediateForm":
         """
-        Drop the least significant digit, rounding towards zero.
+        Drop a zero in cases where rounding led us to end up with an extra zero.
         """
+        if len(str(self.significand)) != figures + 1:
+            return self
+
+        new_significand, tenths = divmod(self.significand, 10)
+        if tenths:
+            raise ValueError(
+                "Last digit is nonzero; dropping it would change the value"
+            )
+
         return replace(
-            self, significand=self.significand // 10, exponent=self.exponent + 1
+            self,
+            significand=new_significand,
+            exponent=self.exponent + 1,
         )
 
-    def to_away(self) -> "IntermediateForm":
+    def round(self, exponent: int, mode: RoundingMode) -> "IntermediateForm":
         """
-        Drop the least significant digit, rounding away from zero.
+        Round to the given exponent, using the given rounding mode.
         """
-        return replace(
-            self, significand=-(-self.significand // 10), exponent=self.exponent + 1
-        )
+        diff = self.exponent - exponent
+        if diff >= 0:
+            # No change in value; just adding zeros.
+            return replace(
+                self, significand=self.significand * 10**diff, exponent=exponent
+            )
+        else:
+            # Split into kept digits, rounding digit and trailing digits
+            ten_diff = 10**~diff
+            kept, remainder = divmod(self.significand, 10 * ten_diff)
+            rounding, trailing = divmod(remainder, ten_diff)
+            # Incorporate trailing into rounding digit
+            rounding += trailing and rounding in {0, 5}
+            significand = mode.round(self.sign, kept, rounding)
+            return IntermediateForm(
+                sign=self.sign,
+                significand=significand,
+                exponent=exponent,
+            )

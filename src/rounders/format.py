@@ -244,11 +244,10 @@ def format(value: Any, pattern: str) -> str:
         exponent = max(bounds)
 
     prerounded = preround(value, exponent - 1)
-    rounded = format_specification.rounding_mode.round(prerounded)
+    rounded = prerounded.round(exponent, format_specification.rounding_mode)
     if format_specification.figures is not None:
         # Adjust if necessary.
-        if len(str(rounded.significand)) == format_specification.figures + 1:
-            rounded = rounded.to_zero()
+        rounded = rounded.nudge(format_specification.figures)
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)

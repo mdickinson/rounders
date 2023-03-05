@@ -1,9 +1,9 @@
 """
 Rounding modes.
 
-A rounding mode is a callable that accepts a quarter integer value (something
-of type IntermediateForm) and returns a bool indicating whether that value should
-be rounded away from zero.
+A rounding mode is an object with a 'round' method. That 'round' method accepts
+a value in the form `±(n + d/10)` where n is a nonnegative integer and d is
+a single digit integer (0 <= d < 10), and rounds it to the nearest integer.
 
 This module implements 13 rounding modes. There are six directed rounding modes,
 six to-nearest rounding modes, and one extra rounding mode TO_ZERO_05_AWAY
@@ -60,42 +60,34 @@ is rounded using the zero / away / minus / plus / even / odd rule as appropriate
 import abc
 from typing import Tuple
 
-from rounders.intermediate import IntermediateForm
-
 
 class RoundingMode(abc.ABC):
     @abc.abstractmethod
-    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
+    def round(self, sign: int, significand: int, tenths: int) -> int:
         """
-        Round using the given rounding mode.
+        Round the value represented by (-1)**sign * (significand + tenths / 10)
+        to the nearest integer.
         """
-        raise NotImplementedError("Should be implemented in subclasses")
 
 
 class _StandardRoundingMode(RoundingMode):
     def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]]):
         self._signature = signature
 
-    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
-        """
-        Round using the given rounding mode.
-        """
-        is_odd, tenths = divmod(intermediate.significand % 20, 10)
-        round_up = tenths + self._signature[intermediate.sign][is_odd] >= 10
-        return intermediate.to_away() if round_up else intermediate.to_zero()
+    def round(self, sign: int, significand: int, tenths: int) -> int:
+        is_odd = significand % 2
+        round_up = tenths + self._signature[sign][is_odd] >= 10
+        return significand + round_up
 
 
 class _RoundForReroundRoundingMode(RoundingMode):
-    def round(self, intermediate: IntermediateForm) -> IntermediateForm:
-        """
-        Round using the given rounding mode.
-        """
-        round_up = intermediate.significand % 50 < 10
-        return intermediate.to_away() if round_up else intermediate.to_zero()
+    def round(self, sign: int, significand: int, tenths: int) -> int:
+        round_up = tenths > 0 and significand % 5 == 0
+        return significand + round_up
 
 
 #: Round for re-round.
-TO_ZERO_05_AWAY = _RoundForReroundRoundingMode()
+TO_ZERO_05_AWAY: RoundingMode = _RoundForReroundRoundingMode()
 
 #: To-nearest rounding modes.
 TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((4, 4), (4, 4)))
