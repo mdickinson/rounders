@@ -731,5 +731,5 @@ def _(x: float, exponent: int) -> IntermediateForm:
         sign=sign,
         numerator=numerator,
         denominator=denominator,
-        exponent=exponent,
+        exponent=exponent - 1,
     )
