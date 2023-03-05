@@ -31,7 +31,7 @@ def _(x: decimal.Decimal, exponent: int) -> IntermediateForm:
     # since x is finite, x_exponent can't be one of the special strings 'n', 'N', 'F'
     assert isinstance(x_exponent, int)
     rounded = IntermediateForm.from_signed_fraction(
-        sign=bool(sign),
+        sign=sign,
         numerator=int("".join(map(str, digit_tuple))),
         denominator=1,
         exponent=exponent - x_exponent,

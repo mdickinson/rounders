@@ -219,13 +219,13 @@ class TestFormatFromSpecification(unittest.TestCase):
         )
         self.assertEqual(
             format_specification.format(
-                IntermediateForm(sign=False, significand=23, exponent=-2)
+                IntermediateForm(sign=0, significand=23, exponent=-2)
             ),
             ".23",
         )
         self.assertEqual(
             format_specification.format(
-                IntermediateForm(sign=False, significand=67, exponent=-3)
+                IntermediateForm(sign=0, significand=67, exponent=-3)
             ),
             ".067",
         )
