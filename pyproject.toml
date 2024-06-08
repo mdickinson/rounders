@@ -1,35 +1,45 @@
+[build-system]
+requires = ['setuptools>=70', 'setuptools_scm>=8']
+build-backend = 'setuptools.build_meta'
+
 [project]
 name = 'rounders'
-version = '0.1.0'
 description = 'round-function equivalents with different rounding-modes'
 readme = 'README.md'
 requires-python = '>=3.8'
-authors = [{name = 'Mark Dickinson', email = 'dickinsm@gmail.com'}]
-keywords = ['round', 'rounding', 'significant figures', 'decimal places', 'rounding mode']
+authors = [{ name = 'Mark Dickinson', email = 'dickinsm@gmail.com' }]
+keywords = [
+    'round',
+    'rounding',
+    'significant figures',
+    'decimal places',
+    'rounding mode',
+]
 classifiers = [
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: OS Independent',
     'Programming Language :: Python :: 3',
     'Topic :: Scientific/Engineering :: Mathematics',
 ]
+dynamic = ["version"]
 
 [project.urls]
 source = 'https://github.com/mdickinson/rounders'
 
-[build-system]
-requires = ['setuptools>=42', 'wheel']
-build-backend = 'setuptools.build_meta'
-
-[tool.black]
-target-version = ['py37']
-
-[tool.isort]
-profile = 'black'
-
 [tool.mypy]
-exclude = [
-    'build/',
-]
+exclude = ['build/']
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["D", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["D102"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.setuptools_scm]
+version_scheme = "release-branch-semver"
+
+[tool.scriv]
+format = "md"

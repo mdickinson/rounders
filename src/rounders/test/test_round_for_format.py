@@ -1,6 +1,4 @@
-"""
-Tests for round_for_format.
-"""
+"""Tests for round_for_format."""
 
 import dataclasses
 import decimal
@@ -80,6 +78,11 @@ class TargetFormat:
 def round_for_format(
     x: Any, *, format: TargetFormat, mode: RoundingMode = TIES_TO_EVEN
 ) -> IntermediateForm:
+    """
+    Round a value to a given target format, using a given rounding mode.
+
+    Returns an intermediate form, which can then be formatted to a string.
+    """
     # Preround if necessary.
     # Shouldn't matter if decade(x) is an underestimate - we just end up computing more
     # digits than necessary. In effect, we're saying that we know that x >= 10**d.
@@ -109,6 +112,8 @@ def round_for_format(
 
 
 class TestRoundForFormat(unittest.TestCase):
+    """Tests for round_for_format."""
+
     def test_minimum_exponent(self) -> None:
         format = TargetFormat(minimum_exponent=-3)
 

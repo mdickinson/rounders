@@ -1,6 +1,4 @@
-"""
-Formatting functionality.
-"""
+"""Formatting functionality."""
 
 import dataclasses
 import re
@@ -57,9 +55,7 @@ _MODE_FORMAT_CODES = {
 
 @dataclasses.dataclass(frozen=True)
 class FormatSpecification:
-    """
-    Description of a format specification.
-    """
+    """Description of a format specification."""
 
     #: The rounding type to use: "e" versus "f". We'll replace
     #: this with something more generic later.
@@ -113,8 +109,19 @@ class FormatSpecification:
     exponent_for_zero: int = 0
 
     def format(self, rounded: IntermediateForm) -> str:
-        # Step 2: convert to string. Only supporting f-presentation format right now.
+        """
+        Format a decimal object in intermediate form using this format specification.
 
+        Parameters
+        ----------
+        rounded
+            The value to be formatted.
+
+        Returns
+        -------
+        str
+            The formatted value.
+        """
         # Get digits as a decimal string.
         digits = str(rounded.significand) if rounded.significand else ""
 
@@ -169,6 +176,19 @@ class FormatSpecification:
 
     @classmethod
     def from_string(cls, pattern: str) -> "FormatSpecification":
+        """
+        Create a format specification from a format specification string.
+
+        Parameters
+        ----------
+        pattern
+            The format specification string.
+
+        Returns
+        -------
+        FormatSpecification
+            The format specification object representing the string.
+        """
         match = _PATTERN.match(pattern)
         if match is None:
             raise ValueError(f"Invalid pattern: {pattern!r}")
@@ -215,6 +235,8 @@ class FormatSpecification:
 
 def format(value: Any, pattern: str) -> str:
     """
+    Format a value using the given pattern.
+
     Parameters
     ----------
     value : number
@@ -225,7 +247,6 @@ def format(value: Any, pattern: str) -> str:
     Returns
     -------
     Formatted string
-
     """
     format_specification = FormatSpecification.from_string(pattern)
 

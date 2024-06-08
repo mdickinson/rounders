@@ -1,3 +1,5 @@
+"""Single-dispatch overloads for the float type."""
+
 import fractions
 import math
 import struct

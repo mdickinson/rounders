@@ -1,3 +1,5 @@
+"""Single-dispatch overloads for the decimal.Decimal type."""
+
 import decimal
 from typing import Optional
 

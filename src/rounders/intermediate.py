@@ -1,6 +1,4 @@
-"""
-Representations of intermediate values.
-"""
+"""Representations of intermediate values."""
 
 import math
 from dataclasses import dataclass, replace
@@ -54,8 +52,10 @@ class IntermediateForm:
     @classmethod
     def from_str(cls, s: str) -> "IntermediateForm":
         """
-        Create from a string. This is currently aimed at test convenience
-        rather than users, and so is rather strict about input format.
+        Create an intermediate form from a string.
+
+        This is currently aimed at test convenience rather than users, and so is rather
+        strict about input format.
         """
         # Temporary cheat: use Decimal
         from decimal import Decimal
@@ -74,8 +74,10 @@ class IntermediateForm:
         cls, *, sign: int, numerator: int, denominator: int, exponent: Optional[int]
     ) -> "IntermediateForm":
         """
-        Create from a quotient of the form ±(n/d) with the target exponent, using
-        round-for-reround.
+        Create from a signed fraction, given a target exponent.
+
+        Creates an IntermediateForm from a quotient of the form ±(n/d) with the target
+        exponent, using round-for-reround.
 
         If exponent is None, then the signed fraction must be exactly representable
         in decimal format, otherwise a ValueError will be raised.
@@ -113,7 +115,9 @@ class IntermediateForm:
     @property
     def figures(self) -> int:
         """
-        Number of decimal digits in the significand, or zero if the significand is zero.
+        Number of decimal digits in the significand.
+
+        Returns zero if the significant is zero.
         """
         return len(str(self.significand)) if self.significand != 0 else 0
 
@@ -129,9 +133,7 @@ class IntermediateForm:
         return self.exponent + self.figures - 1
 
     def nudge(self, figures: int) -> "IntermediateForm":
-        """
-        Drop a zero in cases where rounding led us to end up with an extra zero.
-        """
+        """Drop a zero in cases where rounding led us to end up with an extra zero."""
         if self.figures <= figures:
             return self
 
@@ -151,9 +153,7 @@ class IntermediateForm:
         )
 
     def round(self, exponent: int, mode: RoundingMode) -> "IntermediateForm":
-        """
-        Round to the given exponent, using the given rounding mode.
-        """
+        """Round to the given exponent, using the given rounding mode."""
         diff = self.exponent - exponent
         if diff >= 0:
             # No change in value; just adding zeros.
@@ -175,4 +175,5 @@ class IntermediateForm:
             )
 
     def __repr__(self) -> str:
+        """Return a simple string representation of an intermediate form."""
         return f"{'-' * self.sign}{self.significand}e{self.exponent}"

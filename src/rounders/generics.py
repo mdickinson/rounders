@@ -1,6 +1,4 @@
-"""
-Generic extensible computation functions that use singledispatch.
-"""
+"""Generic extensible computation functions that use singledispatch."""
 
 import functools
 from typing import Any, Optional
@@ -21,25 +19,19 @@ def decade(x: Any) -> int:
 
 @functools.singledispatch
 def to_type_of(x: Any, rounded: IntermediateForm) -> Any:
-    """
-    Convert rounding result to type matching that of x.
-    """
+    """Convert rounding result to type matching that of x."""
     raise NotImplementedError(f"No overload available for type {type(x)}")
 
 
 @functools.singledispatch
 def is_finite(x: Any) -> bool:
-    """
-    Determine whether a given number is finite.
-    """
+    """Determine whether a given number is finite."""
     raise NotImplementedError(f"No overload available for type {type(x)}")
 
 
 @functools.singledispatch
 def is_zero(x: Any) -> bool:
-    """
-    Determine whether a given number is zero.
-    """
+    """Determine whether a given number is zero."""
     raise NotImplementedError(f"No overload available for type {type(x)}")
 
 

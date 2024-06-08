@@ -1,6 +1,4 @@
-"""
-Top-level rounding functions.
-"""
+"""Top-level rounding functions."""
 
 from typing import Any, Optional
 
