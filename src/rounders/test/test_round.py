@@ -5,6 +5,7 @@ import fractions
 import math
 import struct
 import unittest
+from typing import Any, Callable
 
 from rounders import (
     TIES_TO_AWAY,
@@ -150,8 +151,89 @@ DIRECTED_ROUNDING_FUNCTIONS = [
 ALL_ROUNDING_FUNCTIONS = MIDPOINT_ROUNDING_FUNCTIONS + DIRECTED_ROUNDING_FUNCTIONS
 
 
+def signature(rounder: Callable[[Any], int]) -> str:
+    """
+    Compute a text representation of a given rounding function.
+
+    Gives a string that represents the action of the rounder on all quarter integers
+    strictly between -2 and 2. Quarter values that are rounded down (i.e., towards
+    negative infinity) are represented by '-', quarter values that are rounded up (i.e.,
+    towards positive infinity) are represented by '+', and values that are left
+    unchanged are represented by '.'.
+    """
+    quarters = [fractions.Fraction(i / 4) for i in range(-7, 8)]
+    return "".join(
+        "-" if rounded < quarter else "+" if rounded > quarter else "."
+        for rounded, quarter in zip(map(rounder, quarters), quarters)
+    )
+
+
 class TestRound(unittest.TestCase):
     """Tests for rounding functionality."""
+
+    def test_rounder_signatures(self) -> None:
+        self.assertEqual(signature(round_ties_to_minus), "--+.--+.--+.--+")
+        self.assertEqual(signature(round_ties_to_plus), "-++.-++.-++.-++")
+        self.assertEqual(signature(round_ties_to_away), "--+.--+.-++.-++")
+        self.assertEqual(signature(round_ties_to_zero), "-++.-++.--+.--+")
+        self.assertEqual(signature(round_ties_to_even), "--+.-++.--+.-++")
+        self.assertEqual(signature(round_ties_to_odd), "-++.--+.-++.--+")
+        self.assertEqual(signature(round_to_minus), "---.---.---.---")
+        self.assertEqual(signature(round_to_plus), "+++.+++.+++.+++")
+        self.assertEqual(signature(round_to_away), "---.---.+++.+++")
+        self.assertEqual(signature(round_to_zero), "+++.+++.---.---")
+        self.assertEqual(signature(round_to_even), "---.+++.---.+++")
+        self.assertEqual(signature(round_to_odd), "+++.---.+++.---")
+
+    def test_standard_rounding_mode_signatures(self) -> None:
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TIES_TO_MINUS)),
+            "--+.--+.--+.--+",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TIES_TO_PLUS)),
+            "-++.-++.-++.-++",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TIES_TO_AWAY)),
+            "--+.--+.-++.-++",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TIES_TO_ZERO)),
+            "-++.-++.--+.--+",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TIES_TO_EVEN)),
+            "--+.-++.--+.-++",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TIES_TO_ODD)),
+            "-++.--+.-++.--+",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TO_MINUS)),
+            "---.---.---.---",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TO_PLUS)),
+            "+++.+++.+++.+++",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TO_AWAY)),
+            "---.---.+++.+++",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TO_ZERO)),
+            "+++.+++.---.---",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TO_EVEN)),
+            "---.+++.---.+++",
+        )
+        self.assertEqual(
+            signature(lambda value: round(value, mode=TO_ODD)),
+            "+++.---.+++.---",
+        )
 
     def test_round_ties_to_away_quarters(self) -> None:
         test_cases = [

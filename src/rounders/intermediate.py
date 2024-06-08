@@ -1,5 +1,7 @@
 """Representations of intermediate values."""
 
+from __future__ import annotations
+
 import math
 from dataclasses import dataclass, replace
 from typing import Optional, cast
@@ -50,7 +52,7 @@ class IntermediateForm:
     exponent: int
 
     @classmethod
-    def from_str(cls, s: str) -> "IntermediateForm":
+    def from_str(cls, s: str) -> IntermediateForm:
         """
         Create an intermediate form from a string.
 
@@ -72,7 +74,7 @@ class IntermediateForm:
     @classmethod
     def from_signed_fraction(
         cls, *, sign: int, numerator: int, denominator: int, exponent: Optional[int]
-    ) -> "IntermediateForm":
+    ) -> IntermediateForm:
         """
         Create from a signed fraction, given a target exponent.
 
@@ -132,7 +134,7 @@ class IntermediateForm:
             return None
         return self.exponent + self.figures - 1
 
-    def nudge(self, figures: int) -> "IntermediateForm":
+    def nudge(self, figures: int) -> IntermediateForm:
         """Drop a zero in cases where rounding led us to end up with an extra zero."""
         if self.figures <= figures:
             return self
@@ -152,7 +154,7 @@ class IntermediateForm:
             exponent=self.exponent + 1,
         )
 
-    def round(self, exponent: int, mode: RoundingMode) -> "IntermediateForm":
+    def round(self, exponent: int, mode: RoundingMode) -> IntermediateForm:
         """Round to the given exponent, using the given rounding mode."""
         diff = self.exponent - exponent
         if diff >= 0:
