@@ -66,44 +66,94 @@ class RoundingMode(abc.ABC):
     @abc.abstractmethod
     def round(self, sign: int, significand: int, tenths: int) -> int:
         """
-        Round a value with tenths to the nearest integer.
+        Round a value with tenths to an integer.
 
         Rounds the value represented by (-1)**sign * (significand + tenths / 10)
-        to the nearest integer.
+        to an integer.
         """
+
+    @property
+    @abc.abstractmethod
+    def name(self) -> str:
+        """Name for this rounding mode."""
+
+    def __repr__(self) -> str:
+        """Representation of this rounding mode."""
+        return f"<RoundingMode: {self.name}>"
 
 
 class _StandardRoundingMode(RoundingMode):
-    def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]]):
+    """
+    Standard rounding mode.
+
+    These rounding modes only depend on the parity of the integer part of the
+    value to be rounded, and are either directed rounding modes (rounding every
+    value between two integers in the same direction), or round-to-nearest rounding
+    modes, rounding all non-ties to an integer.
+    """
+
+    def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]], name: str):
         self._signature = signature
+        self._name = name
 
     def round(self, sign: int, significand: int, tenths: int) -> int:
+        """
+        Round a value with tenths to an integer.
+
+        Rounds the value represented by (-1)**sign * (significand + tenths / 10)
+        to an integer.
+        """
         is_odd = significand % 2
         round_up = tenths + self._signature[sign][is_odd] >= 10
         return significand + round_up
 
+    @property
+    def name(self) -> str:
+        """Name for this rounding mode."""
+        return self._name
+
 
 class _RoundForReroundRoundingMode(RoundingMode):
+    """
+    Round for reround.
+
+    This rounding mode is most useful for allowing subsequent roundings with smaller
+    precision, while avoiding issues from double rounding.
+    """
+
     def round(self, sign: int, significand: int, tenths: int) -> int:
+        """
+        Round a value with tenths to an integer.
+
+        Rounds the value represented by (-1)**sign * (significand + tenths / 10)
+        to an integer.
+        """
         round_up = tenths > 0 and significand % 5 == 0
         return significand + round_up
+
+    @property
+    def name(self) -> str:
+        """Name for this rounding mode."""
+        return "to zero (05 away)"
 
 
 #: Round for re-round.
 TO_ZERO_05_AWAY: RoundingMode = _RoundForReroundRoundingMode()
 
 #: To-nearest rounding modes.
-TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((4, 4), (4, 4)))
-TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(((5, 5), (5, 5)))
-TIES_TO_MINUS: RoundingMode = _StandardRoundingMode(((4, 4), (5, 5)))
-TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(((5, 5), (4, 4)))
-TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(((4, 5), (4, 5)))
-TIES_TO_ODD: RoundingMode = _StandardRoundingMode(((5, 4), (5, 4)))
+TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((4, 4), (4, 4)), name="ties to zero")
+TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(((5, 5), (5, 5)), name="ties to away")
+TIES_TO_MINUS: RoundingMode = _StandardRoundingMode(
+    ((4, 4), (5, 5)), name="ties to minus"
+)
+TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(((5, 5), (4, 4)), name="ties to plus")
+TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(((4, 5), (4, 5)), name="ties to even")
+TIES_TO_ODD: RoundingMode = _StandardRoundingMode(((5, 4), (5, 4)), name="ties to odd")
 
 #: Directed rounding modes.
-TO_ZERO: RoundingMode = _StandardRoundingMode(((0, 0), (0, 0)))
-TO_AWAY: RoundingMode = _StandardRoundingMode(((9, 9), (9, 9)))
-TO_MINUS: RoundingMode = _StandardRoundingMode(((0, 0), (9, 9)))
-TO_PLUS: RoundingMode = _StandardRoundingMode(((9, 9), (0, 0)))
-TO_EVEN: RoundingMode = _StandardRoundingMode(((0, 9), (0, 9)))
-TO_ODD: RoundingMode = _StandardRoundingMode(((9, 0), (9, 0)))
+TO_ZERO: RoundingMode = _StandardRoundingMode(((0, 0), (0, 0)), name="to zero")
+TO_AWAY: RoundingMode = _StandardRoundingMode(((9, 9), (9, 9)), name="to away")
+TO_MINUS: RoundingMode = _StandardRoundingMode(((0, 0), (9, 9)), name="to minus")
+TO_PLUS: RoundingMode = _StandardRoundingMode(((9, 9), (0, 0)), name="to plus")
+TO_EVEN: RoundingMode = _StandardRoundingMode(((0, 9), (0, 9)), name="to even")
+TO_ODD: RoundingMode = _StandardRoundingMode(((9, 0), (9, 0)), name="to odd")

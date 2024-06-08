@@ -1,8 +1,6 @@
 To-do list
 ----------
 
-- Add names to the standard rounding modes so that their representations are
-  pleasanter. (Currently looks like 'standard_rounding_mode.<locals>.round_decide.)
 - Formatting:
   - Consider implementing __format__ on the intermediate representation.
   - Make precision optional
