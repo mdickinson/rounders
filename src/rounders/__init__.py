@@ -33,6 +33,7 @@ from rounders.modes import (
     TO_PLUS,
     TO_ZERO,
     TO_ZERO_05_AWAY,
+    RoundingMode,
 )
 from rounders.round_to import round, round_to_figures, round_to_int, round_to_places
 
@@ -64,6 +65,8 @@ __all__ = [
     "ceil",
     "floor",
     "trunc",
+    # Rounding mode type
+    "RoundingMode",
     # Rounding modes - to-nearest
     "TIES_TO_AWAY",
     "TIES_TO_EVEN",
