@@ -1,41 +1,49 @@
+# Changelog
+
+## Unreleased changes
+
+See the fragment files in the
+[changelog.d](https://github.com/mdickinson/rounders/tree/main/changelog.d) directory.
+
+<!-- scriv-insert-here -->
 
 <a id='changelog-0.2.0'></a>
-# 0.2.0 — 2024-06-08
+
+## rounders 0.2.0 — 2024-06-08
 
 This minor release focuses on clean-up of the original code, and mostly consists
 of changes to the internal logic to better support the planned formatting
 functionality.
 
-## Added
+### Added
 
 - Added the `RoundingMode` type to the top-level exports, since it's potentially
   useful for type hints in client code.
 
 - Added a `py.typed` marker.
 
-## Changed
+### Changed
 
 - Rounding modes now have a more user-friendly representation.
+
+- The minimum Python version is now Python 3.8.
+
+- The README documentation has been expanded and updated.
 
 - The library internals have been significantly reworked, to help support the
   coming formatting functionality.
 
-- The minimum Python version is now Python 3.8.
-
-- We now use `setuptools_scm` for versioning.
-
-- The source now uses `ruff` for formatting and linting.
+- We now use `setuptools_scm` for versioning, and `ruff` for formatting and linting.
 
 - A dependabot config has been added, to help keep GitHub Actions workflows up to date.
 
-- The README documentation has been expanded and updated.
-
-## Fixed
+### Fixed
 
 - Missing docstrings have been added.
 
-<a id='changelog-0.2.0'></a>
-# 0.1.0 — 2023-01-31
+<a id='changelog-0.1.0'></a>
+
+## rounders 0.1.0 — 2023-01-31
 
 This is the initial release of the rounders package.
 
