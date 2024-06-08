@@ -33,3 +33,4 @@ exclude = ['build/']
 extend-select = ["I"]
 
 [tool.setuptools_scm]
+version_scheme = "release-branch-semver"
