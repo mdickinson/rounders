@@ -3,6 +3,7 @@ Tests for round_for_format.
 """
 
 import dataclasses
+import decimal
 import fractions
 import math
 import unittest
@@ -195,6 +196,7 @@ class TestRoundForFormat(unittest.TestCase):
             (fractions.Fraction(3, 40), TIES_TO_EVEN, "0.075"),
             (fractions.Fraction(3, 125), TIES_TO_EVEN, "0.024"),
             (1230, TIES_TO_EVEN, "1230"),
+            (decimal.Decimal("123e4"), TIES_TO_EVEN, "123e4"),
         ]
 
         for unrounded, mode, expected in test_values:

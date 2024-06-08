@@ -11,7 +11,7 @@ from rounders.modes import RoundingMode
 
 def _smallest_ten_power_multiple(d: int) -> int:
     """
-    Find smallest power of 10 that's divisible by d.
+    Find smallest power of 10 that's divisible by a positive integer d.
 
     Raises ValueError if there's no such power.
     """
@@ -76,10 +76,15 @@ class IntermediateForm:
         """
         Create from a quotient of the form ±(n/d) with the target exponent, using
         round-for-reround.
+
+        If exponent is None, then the signed fraction must be exactly representable
+        in decimal format, otherwise a ValueError will be raised.
+
+        `numerator` and `denominator` must be relatively prime, `denominator` must be
+        positive, and `numerator` must be nonnegative.
         """
-        assert (
-            0 <= numerator and 0 < denominator and math.gcd(numerator, denominator) == 1
-        )
+        if numerator < 0 or denominator <= 0 or math.gcd(numerator, denominator) != 1:
+            raise ValueError("Invalid signed fraction representation")
 
         # Case where exponent is None: convert exactly if possible, else raise
         # a ValueError. We use the largest nonpositive exponent possible.
