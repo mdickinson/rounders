@@ -42,4 +42,6 @@ convention = "numpy"
 version_scheme = "release-branch-semver"
 
 [tool.scriv]
+entry_title_template = "rounders {{ version }} — {{ date.strftime('%Y-%m-%d') }}"
 format = "md"
+md_header_level = "2"
