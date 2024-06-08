@@ -8,7 +8,7 @@ See the fragment files in the
 <!-- scriv-insert-here -->
 
 <a id='changelog-0.2.0'></a>
-## rounders 0.2.0 — 2024-06-08
+## rounders 0.2.0 — 2024-06-09
 
 This minor release focuses on clean-up of the original code, and mostly consists
 of changes to the internal logic to better support the planned formatting
