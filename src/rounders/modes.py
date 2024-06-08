@@ -141,13 +141,21 @@ class _RoundForReroundRoundingMode(RoundingMode):
 TO_ZERO_05_AWAY: RoundingMode = _RoundForReroundRoundingMode()
 
 #: To-nearest rounding modes.
-TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(((4, 4), (4, 4)), name="ties to zero")
-TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(((5, 5), (5, 5)), name="ties to away")
+TIES_TO_ZERO: RoundingMode = _StandardRoundingMode(
+    ((4, 4), (4, 4)), name="ties to zero"
+)
+TIES_TO_AWAY: RoundingMode = _StandardRoundingMode(
+    ((5, 5), (5, 5)), name="ties to away"
+)
 TIES_TO_MINUS: RoundingMode = _StandardRoundingMode(
     ((4, 4), (5, 5)), name="ties to minus"
 )
-TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(((5, 5), (4, 4)), name="ties to plus")
-TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(((4, 5), (4, 5)), name="ties to even")
+TIES_TO_PLUS: RoundingMode = _StandardRoundingMode(
+    ((5, 5), (4, 4)), name="ties to plus"
+)
+TIES_TO_EVEN: RoundingMode = _StandardRoundingMode(
+    ((4, 5), (4, 5)), name="ties to even"
+)
 TIES_TO_ODD: RoundingMode = _StandardRoundingMode(((5, 4), (5, 4)), name="ties to odd")
 
 #: Directed rounding modes.
