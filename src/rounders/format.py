@@ -1,5 +1,7 @@
 """Formatting functionality."""
 
+from __future__ import annotations
+
 import dataclasses
 import re
 from typing import Any, Dict, Optional
@@ -175,7 +177,7 @@ class FormatSpecification:
         return sign_str + before_point + point + after_point + exponent
 
     @classmethod
-    def from_string(cls, pattern: str) -> "FormatSpecification":
+    def from_string(cls, pattern: str) -> FormatSpecification:
         """
         Create a format specification from a format specification string.
 
