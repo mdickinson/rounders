@@ -8,7 +8,6 @@ See the fragment files in the
 <!-- scriv-insert-here -->
 
 <a id='changelog-0.2.0'></a>
-
 ## rounders 0.2.0 — 2024-06-08
 
 This minor release focuses on clean-up of the original code, and mostly consists
@@ -42,7 +41,6 @@ functionality.
 - Missing docstrings have been added.
 
 <a id='changelog-0.1.0'></a>
-
 ## rounders 0.1.0 — 2023-01-31
 
 This is the initial release of the rounders package.
