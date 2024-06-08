@@ -11,22 +11,22 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
 
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        allow-prereleases: true
         cache: 'pip'
         cache-dependency-path: '.github/workflows/qc-requirements.txt'
     - run: python -m pip install -r .github/workflows/qc-requirements.txt
     - run: python -m pip install .
     - name: Run style checks
       run: |
-        python -m isort --check --diff .
-        python -m black --check --diff .
+        python -m ruff format --check --diff
+        python -m ruff check
         python -m mypy --strict .
-        python -m flake8 .
     - name: Run test suite
       run: python -m pytest
