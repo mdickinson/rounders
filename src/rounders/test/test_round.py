@@ -1,6 +1,4 @@
-"""
-Tests for functions in the 'round' module.
-"""
+"""Tests for functions in the 'round' module."""
 
 import decimal
 import fractions
@@ -70,6 +68,11 @@ TEN = fractions.Fraction(10)
 
 
 def next_up(x: float) -> float:
+    """
+    Smallest representable float larger than the input.
+
+    Only implemented for nonnegative finite floats.
+    """
     # Assumes IEEE 754
     if not 0 <= x < math.inf:
         raise NotImplementedError("Not implemented for this x")
@@ -81,6 +84,11 @@ def next_up(x: float) -> float:
 
 
 def next_down(x: float) -> float:
+    """
+    Largest representable float smaller than the input. Inverse of next_up.
+
+    Only implemented for positive finite floats and positive infinity.
+    """
     # Assumes IEEE 754
     if not 0 < x <= math.inf:
         raise NotImplementedError("Not implemented for this x")
@@ -143,6 +151,8 @@ ALL_ROUNDING_FUNCTIONS = MIDPOINT_ROUNDING_FUNCTIONS + DIRECTED_ROUNDING_FUNCTIO
 
 
 class TestRound(unittest.TestCase):
+    """Tests for rounding functionality."""
+
     def test_round_ties_to_away_quarters(self) -> None:
         test_cases = [
             (-2.0, -2),

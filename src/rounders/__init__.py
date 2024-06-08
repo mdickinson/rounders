@@ -1,6 +1,4 @@
-"""
-Interface for the rounders package.
-"""
+"""Interface for the rounders package."""
 
 import rounders.decimal_overloads  # noqa: F401
 import rounders.float_overloads  # noqa: F401

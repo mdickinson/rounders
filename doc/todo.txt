@@ -1,7 +1,6 @@
 To-do list
 ----------
 
-- Docstrings everywhere
 - Add names to the standard rounding modes so that their representations are
   pleasanter. (Currently looks like 'standard_rounding_mode.<locals>.round_decide.)
 - Formatting:

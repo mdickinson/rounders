@@ -30,7 +30,16 @@ source = 'https://github.com/mdickinson/rounders'
 exclude = ['build/']
 
 [tool.ruff.lint]
-extend-select = ["I"]
+extend-select = ["D", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"test_*.py" = ["D102"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [tool.setuptools_scm]
 version_scheme = "release-branch-semver"
+
+[tool.scriv]
+format = "md"

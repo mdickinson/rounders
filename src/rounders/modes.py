@@ -61,10 +61,14 @@ from typing import Tuple
 
 
 class RoundingMode(abc.ABC):
+    """Abstract base class for rounding modes."""
+
     @abc.abstractmethod
     def round(self, sign: int, significand: int, tenths: int) -> int:
         """
-        Round the value represented by (-1)**sign * (significand + tenths / 10)
+        Round a value with tenths to the nearest integer.
+
+        Rounds the value represented by (-1)**sign * (significand + tenths / 10)
         to the nearest integer.
         """
 
