@@ -1,6 +1,4 @@
-"""
-Representations of intermediate values.
-"""
+"""Representations of intermediate values."""
 
 from dataclasses import dataclass, replace
 from typing import cast
@@ -33,8 +31,10 @@ class IntermediateForm:
         cls, *, sign: int, numerator: int, denominator: int, exponent: int
     ) -> "IntermediateForm":
         """
-        Create from a quotient of the form ±(n/d) with the target exponent, using
-        round-for-reround.
+        Create from a signed fraction, given a target exponent.
+
+        Creates an IntermediateForm from a quotient of the form ±(n/d) with the target
+        exponent, using round-for-reround.
         """
         if exponent <= 0:
             n, d = numerator * cast(int, 10**-exponent), denominator
@@ -50,9 +50,7 @@ class IntermediateForm:
         )
 
     def nudge(self, figures: int) -> "IntermediateForm":
-        """
-        Drop a zero in cases where rounding led us to end up with an extra zero.
-        """
+        """Drop a zero in cases where rounding led us to end up with an extra zero."""
         if len(str(self.significand)) != figures + 1:
             return self
 
@@ -69,9 +67,7 @@ class IntermediateForm:
         )
 
     def round(self, exponent: int, mode: RoundingMode) -> "IntermediateForm":
-        """
-        Round to the given exponent, using the given rounding mode.
-        """
+        """Round to the given exponent, using the given rounding mode."""
         diff = self.exponent - exponent
         if diff >= 0:
             # No change in value; just adding zeros.

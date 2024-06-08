@@ -1,6 +1,4 @@
-"""
-Tests for extended formatting functionality.
-"""
+"""Tests for extended formatting functionality."""
 
 import decimal
 import fractions
@@ -12,6 +10,8 @@ from rounders.intermediate import IntermediateForm
 
 
 class TestFormat(unittest.TestCase):
+    """Tests for the 'format' functionality."""
+
     def test_format_fraction(self) -> None:
         self.assertEqual(format(fractions.Fraction(3, 7), ".3f"), "0.429")
         self.assertEqual(format(fractions.Fraction(3, 7), ".4f"), "0.4286")
@@ -210,6 +210,8 @@ class TestFormat(unittest.TestCase):
 
 
 class TestFormatFromSpecification(unittest.TestCase):
+    """Tests for conversion of a format string to a FormatSpecification."""
+
     def test_min_digits_before_point(self) -> None:
         format_specification = FormatSpecification(
             min_digits_before_point=0,

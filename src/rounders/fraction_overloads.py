@@ -1,3 +1,5 @@
+"""Single-dispatch overloads for the fractions.Fraction type."""
+
 import fractions
 from typing import cast
 
