@@ -2,8 +2,6 @@
 # every few months or so, so that the cache is regenerated with the latest
 # packages.
 # --> 000 <---
-black
-flake8
-isort
 mypy
 pytest
+ruff

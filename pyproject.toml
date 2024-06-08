@@ -30,3 +30,6 @@ profile = 'black'
 exclude = [
     'build/',
 ]
+
+[tool.ruff.lint]
+extend-select = ["I"]
