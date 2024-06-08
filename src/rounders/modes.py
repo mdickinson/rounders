@@ -56,7 +56,6 @@ is rounded using the zero / away / minus / plus / even / odd rule as appropriate
 
 """
 
-
 import abc
 from typing import Tuple
 
