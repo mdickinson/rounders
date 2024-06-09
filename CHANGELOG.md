@@ -36,6 +36,8 @@ functionality.
 
 - A dependabot config has been added, to help keep GitHub Actions workflows up to date.
 
+- A workflow for automatically publishing releases to PyPI has been added.
+
 ### Fixed
 
 - Missing docstrings have been added.
