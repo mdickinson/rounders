@@ -176,6 +176,18 @@ class IntermediateForm:
                 exponent=exponent,
             )
 
+    def force_unsigned_zero(self) -> IntermediateForm:
+        """Replace a negative zero with an unsigned zero."""
+        return (
+            self
+            if self.significand != 0
+            else IntermediateForm(
+                sign=0,
+                significand=self.significand,
+                exponent=self.exponent,
+            )
+        )
+
     def __repr__(self) -> str:
         """Return a simple string representation of an intermediate form."""
         return f"{'-' * self.sign}{self.significand}e{self.exponent}"

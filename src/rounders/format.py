@@ -73,6 +73,9 @@ class FormatSpecification:
     #: Number of significant figures. If given, must be positive.
     figures: Optional[int] = None
 
+    #: Whether the target format allows negative zeros or not.
+    signed_zero: bool = True
+
     #: Whether to always output in scientific format.
     scientific: bool = False
 
@@ -95,20 +98,72 @@ class FormatSpecification:
     #: String used to introduce the exponent.
     e: str = "e"
 
-    #: Sign to use for negative nonzero values.
+    #: Sign to use for negative values.
     negative_sign: str = "-"
-
-    #: Sign to use for negative zero values.
-    negative_zero_sign: str = "-"
 
     #: Sign to use for positive values.
     positive_sign: str = ""
 
-    #: Sign to use for positive zero values.
-    positive_zero_sign: str = ""
-
     #: Exponent to use for zero.
     exponent_for_zero: int = 0
+
+    @classmethod
+    def from_string(cls, pattern: str) -> FormatSpecification:
+        """
+        Create a format specification from a format specification string.
+
+        Parameters
+        ----------
+        pattern
+            The format specification string.
+
+        Returns
+        -------
+        FormatSpecification
+            The format specification object representing the string.
+        """
+        match = _PATTERN.match(pattern)
+        if match is None:
+            raise ValueError(f"Invalid pattern: {pattern!r}")
+
+        kwargs: Dict[str, Any] = {}
+
+        round_type = match["type"]
+        if round_type == "f":
+            places = int(match["precision"])
+            kwargs.update(
+                places=places,
+                exponent_for_zero=-places,
+            )
+        elif round_type == "e":
+            kwargs.update(figures=int(match["precision"]) + 1)
+            kwargs.update(scientific=True)
+        else:
+            raise ValueError("Unhandled round type")
+
+        if (mode_code := match["mode"]) is not None:
+            kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
+        if (sign := match["sign"]) == "+" or sign == " ":
+            kwargs.update(positive_sign=sign)
+        if match["no_neg_0"]:
+            kwargs.update(signed_zero=False)
+        if match["alt"] is not None:
+            kwargs.update(always_include_point=True)
+
+        return cls(
+            round_type=round_type,
+            **kwargs,
+        )
+
+    @property
+    def target_format(self) -> TargetFormat:
+        """Get the target format for this format specification."""
+        minimum_exponent = None if self.places is None else -self.places
+        return TargetFormat(
+            minimum_exponent=minimum_exponent,
+            maximum_figures=self.figures,
+            signed_zero=self.signed_zero,
+        )
 
     def format(self, rounded: IntermediateForm) -> str:
         """
@@ -155,12 +210,8 @@ class FormatSpecification:
             digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
             end_exponent = -self.min_digits_after_point
 
-        # Determine the sign.
-        iszero = rounded.significand == 0
-        if rounded.sign:
-            sign_str = self.negative_zero_sign if iszero else self.negative_sign
-        else:
-            sign_str = self.positive_zero_sign if iszero else self.positive_sign
+        # Determine the string to use to represent the sign.
+        sign_str = self.negative_sign if rounded.sign else self.positive_sign
 
         # Assemble the result.
         before_point = digits[:start_exponent]
@@ -176,63 +227,85 @@ class FormatSpecification:
 
         return sign_str + before_point + point + after_point + exponent
 
-    @classmethod
-    def from_string(cls, pattern: str) -> FormatSpecification:
+
+@dataclasses.dataclass(frozen=True)
+class TargetFormat:
+    """
+    Class representing a target format for a rounding operation.
+
+    This is a parametric description of a (typically infinite) collection of
+    IntermediateForm values.
+    """
+
+    # Minimum exponent for represented values. Every representable value is an integer
+    # multiple of 10**minimum_exponent.
+    minimum_exponent: Optional[int] = None
+
+    # Maximum number of significant figures in the result.
+    maximum_figures: Optional[int] = None
+
+    # Whether the target format has negative zeros.
+    signed_zero: bool = True
+
+    def target_exponent(self, decade: Optional[int]) -> Optional[int]:
         """
-        Create a format specification from a format specification string.
+        Exponent to round to, given the decade of the value being rounded.
 
-        Parameters
-        ----------
-        pattern
-            The format specification string.
+        The decade of a nonzero (finite) value v is the unique integer e
+        satisfying 10**e <= abs(v) < 10**(e+1). For a zero value, this function
+        accepts a decade of `None`.
 
-        Returns
-        -------
-        FormatSpecification
-            The format specification object representing the string.
+        A return value of None should be interpreted as -infinity - that is,
+        no rounding is permitted, and the value must be unchanged.
         """
-        match = _PATTERN.match(pattern)
-        if match is None:
-            raise ValueError(f"Invalid pattern: {pattern!r}")
+        exponents = []
+        if self.minimum_exponent is not None:
+            exponents.append(self.minimum_exponent)
+        if self.maximum_figures is not None:
+            if decade is None:
+                decade = 0
+            exponents.append(decade + 1 - self.maximum_figures)
+        return max(exponents, default=None)
 
-        kwargs: Dict[str, Any] = {}
 
-        round_type = match["type"]
-        if round_type == "f":
-            places = int(match["precision"])
-            kwargs.update(
-                places=places,
-                exponent_for_zero=-places,
-            )
-        elif round_type == "e":
-            kwargs.update(figures=int(match["precision"]) + 1)
-            kwargs.update(scientific=True)
-        else:
-            raise ValueError("Unhandled round type")
+def round_for_format(
+    x: Any, *, format: TargetFormat, mode: RoundingMode = TIES_TO_EVEN
+) -> IntermediateForm:
+    """
+    Round a value to a given target format, using a given rounding mode.
 
-        mode_code = match["mode"]
-        if mode_code is not None:
-            kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
+    Returns an intermediate form, which can then be formatted to a string.
+    """
+    # Preround if necessary.
+    # Shouldn't matter if decade(x) is an underestimate - we just end up computing more
+    # digits than necessary. In effect, we're saying that we know that x >= 10**d.
 
-        sign = match["sign"]
-        if sign == "+" or sign == " ":
-            kwargs.update(
-                positive_sign=sign,
-                positive_zero_sign=sign,
-            )
-        if match["no_neg_0"]:
-            if sign == "+" or sign == " ":
-                kwargs.update(negative_zero_sign=sign)
-            else:
-                kwargs.update(negative_zero_sign="")
+    # We _do_ assume that target_exponent is increasing with increasing decade.
+    decade_x = None if is_zero(x) else decade(x)
+    target_exponent = format.target_exponent(decade_x)
+    prerounded = preround(x, target_exponent)
 
-        if match["alt"] is not None:
-            kwargs.update(always_include_point=True)
+    actual_target_exponent = format.target_exponent(prerounded.decade)
+    assert (
+        target_exponent is None
+        or actual_target_exponent is not None
+        and actual_target_exponent >= target_exponent
+    )
 
-        return cls(
-            round_type=round_type,
-            **kwargs,
-        )
+    if actual_target_exponent is None:
+        return prerounded
+
+    result = prerounded.round(actual_target_exponent, mode)
+
+    # Drop negative sign on zeros.
+    if not format.signed_zero:
+        result = result.force_unsigned_zero()
+
+    # Adjust in the case that rounding has changed the decade.
+    if format.maximum_figures is not None:
+        result = result.nudge(format.maximum_figures)
+
+    return result
 
 
 def format(value: Any, pattern: str) -> str:
@@ -253,24 +326,11 @@ def format(value: Any, pattern: str) -> str:
     format_specification = FormatSpecification.from_string(pattern)
 
     # Step 1: convert to rounded value.
-    bounds = []
-    if is_zero(value):
-        exponent = format_specification.exponent_for_zero
-
-    else:
-        if format_specification.places is not None:
-            bounds.append(-format_specification.places)
-
-        if format_specification.figures is not None:
-            bounds.append(decade(value) + 1 - format_specification.figures)
-
-        exponent = max(bounds)
-
-    prerounded = preround(value, exponent)
-    rounded = prerounded.round(exponent, format_specification.rounding_mode)
-    if format_specification.figures is not None:
-        # Adjust if necessary.
-        rounded = rounded.nudge(format_specification.figures)
+    rounded2 = round_for_format(
+        value,
+        format=format_specification.target_format,
+        mode=format_specification.rounding_mode,
+    )
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
-    return format_specification.format(rounded)
+    return format_specification.format(rounded2)

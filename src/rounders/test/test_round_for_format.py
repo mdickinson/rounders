@@ -1,20 +1,10 @@
 """Tests for round_for_format."""
 
-import dataclasses
-import decimal
-import fractions
-import math
-import unittest
-from typing import Any, Optional
+# To do
 
-from rounders.generics import decade, is_zero, preround
-from rounders.intermediate import IntermediateForm, _smallest_ten_power_multiple
-from rounders.modes import TIES_TO_EVEN, TO_AWAY, TO_ZERO, RoundingMode
-
-# XXX Consider implementing __contains__ (possibly as a synonym for is_representable)
+# XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
+#     is_representable).
 # XXX Don't use Decimal in from_str
-# XXX Add support for suppressing sign of zero.
-# XXX Fix typing issues.
 # XXX Later on, we should allow decade to be a lower bound. If it's
 #     too small, the only effect is that we do extra work.
 # XXX To do: Try testing after deliberately reducing decade by 1 (or 2, or 10)
@@ -23,92 +13,43 @@ from rounders.modes import TIES_TO_EVEN, TO_AWAY, TO_ZERO, RoundingMode
 # XXX Decide on signature and preferred calling pattern for IntermediateForm.round
 #     - should we always pass by position?
 # XXX Rethink IntermediateForm.__repr__.
-# XXX Move key classes and functions to their own homes.
 # XXX Support keeping the extra zero in the case where we round up to the next
 #     power of 10.
 # XXX Move decade computation for IntermediateForm to an overload for IntermediateForm.
 #     Or possibly a method on IntermediateForm. Or both.
 # XXX Test case where prerounding rounds a nonzero value to zero, so that the
 #     original value has a valid decade but the prerounded value does not.
-# XXX Consider making unsigned zero the default.
 # XXX Think about exponent preservation (e.g., for Decimal inputs); what should
 #     rounding do?
-# XXX Consider format flag requiring particular exponent for zero.
-# XXX Remove tests for _smallest_ten_power_multiple
+# XXX Remove tests for _smallest_ten_power_multiple; check coverage.
 # XXX Make _smallest_ten_power_multiple more efficient
+# XXX Consider format flag requiring particular exponent for zero. Or perhaps
+#     just a minimum exponent for zero? Maximum exponent? (Ideally, we want for
+#     example a decimal zero to keep its exponent.)
+# XXX Make the target decade for zero configurable in TargetFormat.
+# XXX When the target format has unsigned zero, allow specifying the sign character
+#     to use for zero.
+
+# Doing
 
 
-@dataclasses.dataclass(frozen=True)
-class TargetFormat:
-    """
-    Class representing a target format for a rounding operation.
+# Done
 
-    This is a parametric description of a (typically infinite) collection of
-    IntermediateForm values.
-    """
+# XXX Fix typing issues.
+# XXX Add support for suppressing sign of zero.
+# XXX Consider making unsigned zero the default.
+#     (Considered, but we're not going to do it.)
+# XXX Move key classes and functions to their own homes.
+# XXX Consolidate: use round_for_format in format.
 
-    # Minimum exponent for represented values.
-    minimum_exponent: Optional[int] = None
+import decimal
+import fractions
+import math
+import unittest
 
-    # Maximum number of significant figures in the result.
-    maximum_figures: Optional[int] = None
-
-    def target_exponent(self, decade: Optional[int]) -> Optional[int]:
-        """
-        Exponent to round to, given the decade of the value being rounded.
-
-        The decade of a nonzero (finite) value v is the unique integer e
-        satisfying 10**e <= abs(v) < 10**(e+1). For a zero value, this function
-        accepts a decade of `None`.
-
-        A return value of None should be interpreted as -infinity - that is,
-        no rounding is permitted, and the value must be unchanged.
-        """
-        exponents = []
-        if self.minimum_exponent is not None:
-            exponents.append(self.minimum_exponent)
-        if self.maximum_figures is not None:
-            if decade is None:
-                # XXX Better heuristic for this; make this configurable.
-                decade = 0
-            exponents.append(decade + 1 - self.maximum_figures)
-        return max(exponents, default=None)
-
-
-def round_for_format(
-    x: Any, *, format: TargetFormat, mode: RoundingMode = TIES_TO_EVEN
-) -> IntermediateForm:
-    """
-    Round a value to a given target format, using a given rounding mode.
-
-    Returns an intermediate form, which can then be formatted to a string.
-    """
-    # Preround if necessary.
-    # Shouldn't matter if decade(x) is an underestimate - we just end up computing more
-    # digits than necessary. In effect, we're saying that we know that x >= 10**d.
-
-    # We _do_ assume that target_exponent is increasing with increasing decade.
-    decade_x = None if is_zero(x) else decade(x)
-    target_exponent = format.target_exponent(decade_x)
-    prerounded = preround(x, target_exponent)
-
-    actual_target_exponent = format.target_exponent(prerounded.decade)
-    assert (
-        target_exponent is None
-        or actual_target_exponent is not None
-        and actual_target_exponent >= target_exponent
-    )
-
-    if actual_target_exponent is None:
-        return prerounded
-
-    result = prerounded.round(actual_target_exponent, mode)
-
-    # Adjust in the case that rounding has changed the decade.
-    if format.maximum_figures is not None:
-        result = result.nudge(format.maximum_figures)
-
-    return result
+from rounders.format import TargetFormat, round_for_format
+from rounders.intermediate import IntermediateForm, _smallest_ten_power_multiple
+from rounders.modes import TIES_TO_EVEN, TO_AWAY, TO_ZERO
 
 
 class TestRoundForFormat(unittest.TestCase):
@@ -231,3 +172,32 @@ class TestRoundForFormat(unittest.TestCase):
                     d = b * 2**etwo * 5**efive
                     with self.assertRaises(ValueError):
                         _smallest_ten_power_multiple(d)
+
+    def test_no_negative_zero(self) -> None:
+        format = TargetFormat(signed_zero=False, minimum_exponent=-3)
+        self.assertEqual(
+            round_for_format(3e-4, format=format),
+            IntermediateForm.from_str("0e-3"),
+        )
+        self.assertEqual(
+            round_for_format(-3e-4, format=format),
+            IntermediateForm.from_str("0e-3"),
+        )
+        self.assertEqual(
+            round_for_format(-0.0, format=format),
+            IntermediateForm.from_str("0e-3"),
+        )
+
+        format = TargetFormat(signed_zero=True, minimum_exponent=-3)
+        self.assertEqual(
+            round_for_format(3e-4, format=format),
+            IntermediateForm.from_str("0e-3"),
+        )
+        self.assertEqual(
+            round_for_format(-3e-4, format=format),
+            IntermediateForm.from_str("-0e-3"),
+        )
+        self.assertEqual(
+            round_for_format(-0.0, format=format),
+            IntermediateForm.from_str("-0e-3"),
+        )
