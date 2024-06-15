@@ -26,11 +26,9 @@
 #     to use for zero.
 # XXX Rename 'round_for_format' to 'round_to_format'?
 # XXX Formatting of infinities and nans?
+# XXX Determine exponent to show for zeros.
 
 # Doing
-
-# XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
-#     is_representable).
 
 # Done
 
@@ -43,6 +41,9 @@
 # XXX Don't use Decimal in from_str
 # XXX Test case where prerounding rounds a nonzero value to zero, so that the
 #     original value has a valid decade but the prerounded value does not.
+# XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
+#     is_representable).
+
 
 import decimal
 import fractions
@@ -59,6 +60,7 @@ class TestRoundForFormat(unittest.TestCase):
 
     def test_minimum_exponent(self) -> None:
         format = TargetFormat(minimum_exponent=-3)
+        zero_exponent = -3
 
         # Pairs (value, mode, expected)
         test_values = [
@@ -75,11 +77,14 @@ class TestRoundForFormat(unittest.TestCase):
 
         for unrounded, mode, expected in test_values:
             with self.subTest(unrounded=unrounded, mode=mode):
-                rounded = round_for_format(unrounded, format=format, mode=mode)
+                rounded = round_for_format(
+                    unrounded, format=format, mode=mode, zero_exponent=zero_exponent
+                )
                 self.assertEqual(rounded, IntermediateForm.from_str(expected))
 
     def test_maximum_figures(self) -> None:
         format = TargetFormat(maximum_figures=3)
+        zero_exponent = -2
 
         # Pairs (value, mode, expected)
         test_values = [
@@ -107,11 +112,14 @@ class TestRoundForFormat(unittest.TestCase):
 
         for unrounded, mode, expected in test_values:
             with self.subTest(unrounded=unrounded, mode=mode):
-                rounded = round_for_format(unrounded, format=format, mode=mode)
+                rounded = round_for_format(
+                    unrounded, format=format, mode=mode, zero_exponent=zero_exponent
+                )
                 self.assertEqual(rounded, IntermediateForm.from_str(expected))
 
     def test_minimum_exponent_and_maximum_figures(self) -> None:
         format = TargetFormat(maximum_figures=4, minimum_exponent=-2)
+        zero_exponent = -2
 
         # Pairs (value, mode, expected)
         test_values = [
@@ -132,11 +140,14 @@ class TestRoundForFormat(unittest.TestCase):
 
         for unrounded, mode, expected in test_values:
             with self.subTest(unrounded=unrounded, mode=mode):
-                rounded = round_for_format(unrounded, format=format, mode=mode)
+                rounded = round_for_format(
+                    unrounded, format=format, mode=mode, zero_exponent=zero_exponent
+                )
                 self.assertEqual(rounded, IntermediateForm.from_str(expected))
 
     def test_neither_minimum_exponent_nor_maximum_figures(self) -> None:
         format = TargetFormat()
+        zero_exponent = None
 
         test_values = [
             (1.0, TIES_TO_EVEN, "1"),
@@ -149,7 +160,9 @@ class TestRoundForFormat(unittest.TestCase):
 
         for unrounded, mode, expected in test_values:
             with self.subTest(unrounded=unrounded, mode=mode):
-                rounded = round_for_format(unrounded, format=format, mode=mode)
+                rounded = round_for_format(
+                    unrounded, format=format, mode=mode, zero_exponent=zero_exponent
+                )
                 self.assertEqual(rounded, IntermediateForm.from_str(expected))
 
         bad_values = [
@@ -158,7 +171,9 @@ class TestRoundForFormat(unittest.TestCase):
         ]
         for value in bad_values:
             with self.assertRaises(ValueError):
-                round_for_format(value, format=format, mode=TIES_TO_EVEN)
+                round_for_format(
+                    value, format=format, mode=TIES_TO_EVEN, zero_exponent=zero_exponent
+                )
 
     def test__smallest_ten_power_multiple(self) -> None:
         for etwo in range(100):
@@ -178,28 +193,34 @@ class TestRoundForFormat(unittest.TestCase):
     def test_no_negative_zero(self) -> None:
         format = TargetFormat(signed_zero=False, minimum_exponent=-3)
         self.assertEqual(
-            round_for_format(3e-4, format=format),
+            round_for_format(3e-4, format=format, zero_exponent=-3),
             IntermediateForm.from_str("0e-3"),
         )
         self.assertEqual(
-            round_for_format(-3e-4, format=format),
+            round_for_format(-3e-4, format=format, zero_exponent=-3),
             IntermediateForm.from_str("0e-3"),
         )
         self.assertEqual(
-            round_for_format(-0.0, format=format),
+            round_for_format(-0.0, format=format, zero_exponent=-3),
             IntermediateForm.from_str("0e-3"),
+        )
+
+        format = TargetFormat(signed_zero=False)
+        self.assertEqual(
+            round_for_format(-0.0, format=format, zero_exponent=None),
+            IntermediateForm.from_str("0"),
         )
 
         format = TargetFormat(signed_zero=True, minimum_exponent=-3)
         self.assertEqual(
-            round_for_format(3e-4, format=format),
+            round_for_format(3e-4, format=format, zero_exponent=-3),
             IntermediateForm.from_str("0e-3"),
         )
         self.assertEqual(
-            round_for_format(-3e-4, format=format),
+            round_for_format(-3e-4, format=format, zero_exponent=-3),
             IntermediateForm.from_str("-0e-3"),
         )
         self.assertEqual(
-            round_for_format(-0.0, format=format),
+            round_for_format(-0.0, format=format, zero_exponent=-3),
             IntermediateForm.from_str("-0e-3"),
         )

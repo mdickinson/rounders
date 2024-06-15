@@ -134,14 +134,10 @@ class IntermediateForm:
         return len(str(self.significand)) if self.significand != 0 else 0
 
     @property
-    def decade(self) -> Optional[int]:
-        """
-        Returns an integer e such that 10**e <= abs(self) < 10**(e+1).
-
-        If the value represented is zero, returns None.
-        """
+    def decade(self) -> int:
+        """Return an integer e such that 10**e <= abs(self) < 10**(e+1)."""
         if self.significand == 0:
-            return None
+            raise ValueError(f"zero value {self} has no decade")
         return self.exponent + self.figures - 1
 
     def nudge(self, figures: int) -> IntermediateForm:
@@ -185,6 +181,10 @@ class IntermediateForm:
                 significand=significand,
                 exponent=exponent,
             )
+
+    def is_zero(self) -> bool:
+        """Return True if value is zero, else False."""
+        return self.significand == 0
 
     def force_unsigned_zero(self) -> IntermediateForm:
         """Replace a negative zero with an unsigned zero."""

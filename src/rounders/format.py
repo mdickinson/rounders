@@ -81,7 +81,7 @@ class TargetFormat:
             and (self.signed_zero or value.sign == 0 or value.significand != 0)
         )
 
-    def minimum_exponent_for_decade(self, decade: Optional[int]) -> Optional[int]:
+    def minimum_exponent_for_decade(self, decade: int) -> Optional[int]:
         """
         Return the minimum possible exponent for a value in a given decade.
 
@@ -97,9 +97,6 @@ class TargetFormat:
         if self.minimum_exponent is not None:
             exponents.append(self.minimum_exponent)
         if self.maximum_figures is not None:
-            # XXX This is fishy ...
-            if decade is None:
-                decade = 0
             exponents.append(decade + 1 - self.maximum_figures)
         return max(exponents, default=None)
 
@@ -214,6 +211,20 @@ class FormatSpecification:
             signed_zero=self.signed_zero,
         )
 
+    @property
+    def zero_exponent(self) -> Optional[int]:
+        """
+        Exponent to use for formatting zeros.
+
+        None to pass through the existing exponent.
+        """
+        exponents = []
+        if self.places is not None:
+            exponents.append(-self.places)
+        if self.figures is not None:
+            exponents.append(1 - self.figures)
+        return max(exponents, default=None)
+
     def format(self, rounded: IntermediateForm) -> str:
         """
         Format a decimal object in intermediate form using this format specification.
@@ -278,33 +289,28 @@ class FormatSpecification:
 
 
 def round_for_format(
-    x: Any, *, format: TargetFormat, mode: RoundingMode = TIES_TO_EVEN
+    x: Any,
+    *,
+    format: TargetFormat,
+    mode: RoundingMode = TIES_TO_EVEN,
+    zero_exponent: Optional[int],
 ) -> IntermediateForm:
     """
-    Round a value to a given target format, using a given rounding mode.
+    Round a finite value to a given target format, using a given rounding mode.
 
     Returns an intermediate form, which can then be formatted to a string
     or converted back to a target numeric format.
     """
-    # We assume that non-finite numbers have already been taken care of.
+    # Preround to convert x to IntermediateForm.
+    exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
+    result: IntermediateForm = preround(x, exponent=exponent)
 
-    # For zeros, we can assume that the preround has no effect, so we're starting
-    # from an IntermediateForm (sign, 0, exponent).
-
-    # Preround if necessary.
-    # Shouldn't matter if decade(x) is an underestimate - we just end up computing more
-    # digits than necessary. In effect, we're saying that we know that x >= 10**d.
-
-    # We _do_ assume that target_exponent is increasing with increasing decade.
-    decade_x = None if is_zero(x) else decade(x)
-    preround_target_exponent = format.minimum_exponent_for_decade(decade_x)
-    prerounded = preround(x, preround_target_exponent)
-
-    target_exponent = format.minimum_exponent_for_decade(prerounded.decade)
-    if target_exponent is None:
-        return prerounded
-
-    result = prerounded.round(target_exponent, mode)
+    if result.is_zero():
+        target_exponent = zero_exponent
+    else:
+        target_exponent = format.minimum_exponent_for_decade(result.decade)
+    if target_exponent is not None:
+        result = result.round(target_exponent, mode)
 
     # Drop negative sign on zeros (even those that arise from rounding nonzero values).
     if not format.signed_zero:
@@ -339,6 +345,7 @@ def format(value: Any, pattern: str) -> str:
         value,
         format=format_specification.target_format,
         mode=format_specification.rounding_mode,
+        zero_exponent=format_specification.zero_exponent,
     )
 
     # XXX Remove this once everything's well tested and working
