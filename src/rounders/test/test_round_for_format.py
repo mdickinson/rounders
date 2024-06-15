@@ -16,8 +16,6 @@
 #     power of 10.
 # XXX Move decade computation for IntermediateForm to an overload for IntermediateForm.
 #     Or possibly a method on IntermediateForm. Or both.
-# XXX Test case where prerounding rounds a nonzero value to zero, so that the
-#     original value has a valid decade but the prerounded value does not.
 # XXX Think about exponent preservation (e.g., for Decimal inputs); what should
 #     rounding do?
 # XXX Remove tests for _smallest_ten_power_multiple; check coverage.
@@ -41,6 +39,8 @@
 # XXX Move key classes and functions to their own homes.
 # XXX Consolidate: use round_for_format in format.
 # XXX Don't use Decimal in from_str
+# XXX Test case where prerounding rounds a nonzero value to zero, so that the
+#     original value has a valid decade but the prerounded value does not.
 
 import decimal
 import fractions

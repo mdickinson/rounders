@@ -247,6 +247,11 @@ class TargetFormat:
     # Whether the target format has negative zeros.
     signed_zero: bool = True
 
+    # XXX Move this logic somewhere else; the job of TargetFormat is simply to
+    # describe the target format (and perhaps properties of it). Stuff about _how_
+    # we get to that target format belongs elsewhere.
+    # Or maybe rename / rephrase so that this _is_ obviously a property of the format.
+
     def target_exponent(self, decade: Optional[int]) -> Optional[int]:
         """
         Exponent to round to, given the decade of the value being rounded.
@@ -274,7 +279,8 @@ def round_for_format(
     """
     Round a value to a given target format, using a given rounding mode.
 
-    Returns an intermediate form, which can then be formatted to a string.
+    Returns an intermediate form, which can then be formatted to a string
+    or converted back to a target numeric format.
     """
     # Preround if necessary.
     # Shouldn't matter if decade(x) is an underestimate - we just end up computing more
@@ -282,20 +288,14 @@ def round_for_format(
 
     # We _do_ assume that target_exponent is increasing with increasing decade.
     decade_x = None if is_zero(x) else decade(x)
-    target_exponent = format.target_exponent(decade_x)
-    prerounded = preround(x, target_exponent)
+    preround_target_exponent = format.target_exponent(decade_x)
+    prerounded = preround(x, preround_target_exponent)
 
-    actual_target_exponent = format.target_exponent(prerounded.decade)
-    assert (
-        target_exponent is None
-        or actual_target_exponent is not None
-        and actual_target_exponent >= target_exponent
-    )
-
-    if actual_target_exponent is None:
+    target_exponent = format.target_exponent(prerounded.decade)
+    if target_exponent is None:
         return prerounded
 
-    result = prerounded.round(actual_target_exponent, mode)
+    result = prerounded.round(target_exponent, mode)
 
     # Drop negative sign on zeros.
     if not format.signed_zero:
