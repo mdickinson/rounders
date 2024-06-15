@@ -26,15 +26,15 @@ from rounders.modes import (
 )
 
 _PATTERN = re.compile(
-    r"""\A
-(?P<sign>[-+ ])?
-(?P<no_neg_0>z)?
-(?P<alt>\#)?
-\.
-(?P<precision>-?\d+)
-(?P<mode>[aemopzAEMOPRZ])?
-(?P<type>[ef])
-\Z""",
+    r"""
+    (?P<sign>[-+ ])?
+    (?P<no_neg_0>z)?
+    (?P<alt>\#)?
+    \.
+    (?P<precision>-?[0-9]+)
+    (?P<mode>[aemopzAEMOPRZ])?
+    (?P<type>[ef])
+    """,
     re.VERBOSE,
 )
 
@@ -122,7 +122,7 @@ class FormatSpecification:
         FormatSpecification
             The format specification object representing the string.
         """
-        match = _PATTERN.match(pattern)
+        match = _PATTERN.fullmatch(pattern)
         if match is None:
             raise ValueError(f"Invalid pattern: {pattern!r}")
 

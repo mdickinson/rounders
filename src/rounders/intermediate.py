@@ -3,10 +3,22 @@
 from __future__ import annotations
 
 import math
+import re
 from dataclasses import dataclass, replace
 from typing import Optional, cast
 
 from rounders.modes import RoundingMode
+
+#: Pattern for string representation of an intermediate form value.
+_INTERMEDIATE_FORM_PATTERN = re.compile(
+    r"""
+    (?P<sign>-?)
+    (?P<intpart>[0-9]+)
+    (\.(?P<fracpart>[0-9]+))?
+    (e(?P<exponent>-?[0-9]+))?
+    """,
+    re.VERBOSE,
+)
 
 
 def _smallest_ten_power_multiple(d: int) -> int:
@@ -59,16 +71,14 @@ class IntermediateForm:
         This is currently aimed at test convenience rather than users, and so is rather
         strict about input format.
         """
-        # Temporary cheat: use Decimal
-        from decimal import Decimal
+        if (match := _INTERMEDIATE_FORM_PATTERN.fullmatch(s)) is None:
+            raise ValueError(f"Invalid numeric string: {s}")
 
-        sign, digits, exponent = Decimal(s).as_tuple()
-        if not isinstance(exponent, int):
-            raise ValueError("Invalid representation of an IntermediateForm")
+        fracpart = match["fracpart"] or ""
         return cls(
-            sign=sign,
-            significand=int("".join(map(str, digits))),
-            exponent=exponent,
+            sign=1 if match["sign"] == "-" else 0,
+            significand=int(match["intpart"] + fracpart),
+            exponent=int(match["exponent"] or 0) - len(fracpart),
         )
 
     @classmethod

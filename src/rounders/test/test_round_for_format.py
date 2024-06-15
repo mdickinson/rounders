@@ -4,7 +4,6 @@
 
 # XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
 #     is_representable).
-# XXX Don't use Decimal in from_str
 # XXX Later on, we should allow decade to be a lower bound. If it's
 #     too small, the only effect is that we do extra work.
 # XXX To do: Try testing after deliberately reducing decade by 1 (or 2, or 10)
@@ -41,6 +40,7 @@
 #     (Considered, but we're not going to do it.)
 # XXX Move key classes and functions to their own homes.
 # XXX Consolidate: use round_for_format in format.
+# XXX Don't use Decimal in from_str
 
 import decimal
 import fractions
