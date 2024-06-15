@@ -2,8 +2,6 @@
 
 # To do
 
-# XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
-#     is_representable).
 # XXX Later on, we should allow decade to be a lower bound. If it's
 #     too small, the only effect is that we do extra work.
 # XXX To do: Try testing after deliberately reducing decade by 1 (or 2, or 10)
@@ -26,9 +24,13 @@
 # XXX Make the target decade for zero configurable in TargetFormat.
 # XXX When the target format has unsigned zero, allow specifying the sign character
 #     to use for zero.
+# XXX Rename 'round_for_format' to 'round_to_format'?
+# XXX Formatting of infinities and nans?
 
 # Doing
 
+# XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
+#     is_representable).
 
 # Done
 

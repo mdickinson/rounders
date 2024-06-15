@@ -57,7 +57,7 @@ class IntermediateForm:
     # 1 for negative, 0 for positive
     sign: int
 
-    # Significand
+    # Significand: must be nonnegative
     significand: int
 
     # Exponent
@@ -129,7 +129,7 @@ class IntermediateForm:
         """
         Number of decimal digits in the significand.
 
-        Returns zero if the significant is zero.
+        Returns zero if the significand is zero.
         """
         return len(str(self.significand)) if self.significand != 0 else 0
 

@@ -56,6 +56,55 @@ _MODE_FORMAT_CODES = {
 
 
 @dataclasses.dataclass(frozen=True)
+class TargetFormat:
+    """
+    Class representing a target format for a rounding operation.
+
+    This is a parametric description of a (typically infinite) collection of
+    IntermediateForm values.
+    """
+
+    # Minimum exponent for represented values.
+    minimum_exponent: Optional[int] = None
+
+    # Maximum number of significant figures.
+    maximum_figures: Optional[int] = None
+
+    # Whether to allow negative zeros.
+    signed_zero: bool = True
+
+    def __contains__(self, value: IntermediateForm) -> bool:
+        """Determine whether a value belongs to this format."""
+        return (
+            (self.minimum_exponent is None or value.exponent >= self.minimum_exponent)
+            and (self.maximum_figures is None or value.figures <= self.maximum_figures)
+            and (self.signed_zero or value.sign == 0 or value.significand != 0)
+        )
+
+    def minimum_exponent_for_decade(self, decade: Optional[int]) -> Optional[int]:
+        """
+        Return the minimum possible exponent for a value in a given decade.
+
+        The decade of a nonzero (finite) value v is the unique integer e satisfying
+        10**e <= abs(v) < 10**(e+1). For a zero value, this function accepts a decade of
+        `None`.
+
+        Returns None if the exponent can be arbitrarily small. This occurs for zeros if
+        the format has no minimum exponent, and for nonzero numbers if the format has
+        neither a minimum exponent nor a maximum number of figures.
+        """
+        exponents = []
+        if self.minimum_exponent is not None:
+            exponents.append(self.minimum_exponent)
+        if self.maximum_figures is not None:
+            # XXX This is fishy ...
+            if decade is None:
+                decade = 0
+            exponents.append(decade + 1 - self.maximum_figures)
+        return max(exponents, default=None)
+
+
+@dataclasses.dataclass(frozen=True)
 class FormatSpecification:
     """Description of a format specification."""
 
@@ -228,51 +277,6 @@ class FormatSpecification:
         return sign_str + before_point + point + after_point + exponent
 
 
-@dataclasses.dataclass(frozen=True)
-class TargetFormat:
-    """
-    Class representing a target format for a rounding operation.
-
-    This is a parametric description of a (typically infinite) collection of
-    IntermediateForm values.
-    """
-
-    # Minimum exponent for represented values. Every representable value is an integer
-    # multiple of 10**minimum_exponent.
-    minimum_exponent: Optional[int] = None
-
-    # Maximum number of significant figures in the result.
-    maximum_figures: Optional[int] = None
-
-    # Whether the target format has negative zeros.
-    signed_zero: bool = True
-
-    # XXX Move this logic somewhere else; the job of TargetFormat is simply to
-    # describe the target format (and perhaps properties of it). Stuff about _how_
-    # we get to that target format belongs elsewhere.
-    # Or maybe rename / rephrase so that this _is_ obviously a property of the format.
-
-    def target_exponent(self, decade: Optional[int]) -> Optional[int]:
-        """
-        Exponent to round to, given the decade of the value being rounded.
-
-        The decade of a nonzero (finite) value v is the unique integer e
-        satisfying 10**e <= abs(v) < 10**(e+1). For a zero value, this function
-        accepts a decade of `None`.
-
-        A return value of None should be interpreted as -infinity - that is,
-        no rounding is permitted, and the value must be unchanged.
-        """
-        exponents = []
-        if self.minimum_exponent is not None:
-            exponents.append(self.minimum_exponent)
-        if self.maximum_figures is not None:
-            if decade is None:
-                decade = 0
-            exponents.append(decade + 1 - self.maximum_figures)
-        return max(exponents, default=None)
-
-
 def round_for_format(
     x: Any, *, format: TargetFormat, mode: RoundingMode = TIES_TO_EVEN
 ) -> IntermediateForm:
@@ -282,22 +286,27 @@ def round_for_format(
     Returns an intermediate form, which can then be formatted to a string
     or converted back to a target numeric format.
     """
+    # We assume that non-finite numbers have already been taken care of.
+
+    # For zeros, we can assume that the preround has no effect, so we're starting
+    # from an IntermediateForm (sign, 0, exponent).
+
     # Preround if necessary.
     # Shouldn't matter if decade(x) is an underestimate - we just end up computing more
     # digits than necessary. In effect, we're saying that we know that x >= 10**d.
 
     # We _do_ assume that target_exponent is increasing with increasing decade.
     decade_x = None if is_zero(x) else decade(x)
-    preround_target_exponent = format.target_exponent(decade_x)
+    preround_target_exponent = format.minimum_exponent_for_decade(decade_x)
     prerounded = preround(x, preround_target_exponent)
 
-    target_exponent = format.target_exponent(prerounded.decade)
+    target_exponent = format.minimum_exponent_for_decade(prerounded.decade)
     if target_exponent is None:
         return prerounded
 
     result = prerounded.round(target_exponent, mode)
 
-    # Drop negative sign on zeros.
+    # Drop negative sign on zeros (even those that arise from rounding nonzero values).
     if not format.signed_zero:
         result = result.force_unsigned_zero()
 
@@ -326,11 +335,14 @@ def format(value: Any, pattern: str) -> str:
     format_specification = FormatSpecification.from_string(pattern)
 
     # Step 1: convert to rounded value.
-    rounded2 = round_for_format(
+    rounded = round_for_format(
         value,
         format=format_specification.target_format,
         mode=format_specification.rounding_mode,
     )
 
+    # XXX Remove this once everything's well tested and working
+    assert rounded in format_specification.target_format
+
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
-    return format_specification.format(rounded2)
+    return format_specification.format(rounded)
