@@ -9,11 +9,13 @@
 # XXX Rethink IntermediateForm.__repr__.
 # XXX Support keeping the extra zero in the case where we round up to the next
 #     power of 10.
-# XXX Move decade computation for IntermediateForm to an overload for IntermediateForm.
-#     Or possibly a method on IntermediateForm. Or both.
 # XXX Think about exponent preservation (e.g., for Decimal inputs); what should
 #     rounding do?
-# XXX Make _smallest_ten_power_multiple more efficient
+# XXX Make _smallest_ten_power_multiple more efficient - once we've eliminated
+#     powers of two, all we need to do is determine whether the value is a power of
+#     five, and if so what its exponent is. The order of 5 modulo 1024 is 256, so
+#     a lookup table based on the last ten bits (or even bits 2 through 9 inclusive)
+#     could be used. That then leaves a power of 5**256 ...
 # XXX Consider format flag requiring particular exponent for zero. Or perhaps
 #     just a minimum exponent for zero? Maximum exponent? (Ideally, we want for
 #     example a decimal zero to keep its exponent.)
@@ -22,6 +24,13 @@
 #     to use for zero.
 # XXX Rename 'round_for_format' to 'round_to_format'?
 # XXX Formatting of infinities and nans?
+# XXX Reorganize: group overloads together?
+#     Architecture:
+#     - Overloads need to know about generics, IntermediateForm
+#     - Main exports need the overloads
+#     - Don't we end up with circular import problems? Possibly not.
+# XXX Rework so that we're not using the decimal type anywhere outside the overloads
+#     (except perhaps in dedicated end-to-end tests)
 # XXX Add overloads for IntermediateForm, so that we can easily use it in tests
 #     in place of decimal.Decimal. (preround would simply return the value unchanged)
 
@@ -44,7 +53,8 @@
 # XXX Remove tests for _smallest_ten_power_multiple; check coverage.
 # XXX Allow decade to be a lower bound. If it's too small, the only effect is that we do
 #     extra work.
-
+# XXX Move decade computation for IntermediateForm to an overload for IntermediateForm.
+#     Or possibly a method on IntermediateForm. Or both.
 
 import decimal
 import fractions
