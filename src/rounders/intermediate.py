@@ -2,10 +2,22 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, replace
 from typing import cast
 
 from rounders.modes import RoundingMode
+
+#: Pattern for string representation of an intermediate form value.
+_INTERMEDIATE_FORM_PATTERN = re.compile(
+    r"""
+    (?P<sign>-?)
+    (?P<intpart>[0-9]+)
+    (\.(?P<fracpart>[0-9]+))?
+    (e(?P<exponent>-?[0-9]+))?
+    """,
+    re.VERBOSE,
+)
 
 
 @dataclass(frozen=True)
@@ -27,6 +39,24 @@ class IntermediateForm:
 
     # Exponent
     exponent: int
+
+    @classmethod
+    def from_str(cls, s: str) -> IntermediateForm:
+        """
+        Create an intermediate form from a string.
+
+        This is currently aimed at test convenience rather than users, and so is rather
+        strict about input format.
+        """
+        if (match := _INTERMEDIATE_FORM_PATTERN.fullmatch(s)) is None:
+            raise ValueError(f"invalid numeric string: {s}")
+
+        fracpart = match["fracpart"] or ""
+        return cls(
+            sign=1 if match["sign"] == "-" else 0,
+            significand=int(match["intpart"] + fracpart),
+            exponent=int(match["exponent"] or 0) - len(fracpart),
+        )
 
     @classmethod
     def from_signed_fraction(
