@@ -73,6 +73,9 @@ class TestIntermediateForm(unittest.TestCase):
         cases = [
             (1, 3),
             (1, 7),
+            (1, 6),
+            (1, 15),
+            (1, 30),
         ]
         for numerator, denominator in cases:
             # Double check that our test cases satisfy the preconditions
