@@ -76,7 +76,7 @@ def next_up(x: float) -> float:
     """
     # Assumes IEEE 754
     if not 0 <= x < math.inf:
-        raise NotImplementedError("Not implemented for this x")
+        raise NotImplementedError(f"next_up not implemented for {x}")
     (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
     x_up_as_int = x_as_int + 1
     (x_up,) = struct.unpack("<d", struct.pack("<Q", x_up_as_int))
@@ -92,7 +92,7 @@ def next_down(x: float) -> float:
     """
     # Assumes IEEE 754
     if not 0 < x <= math.inf:
-        raise NotImplementedError("Not implemented for this x")
+        raise NotImplementedError(f"next_down not implemented for {x}")
     (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
     x_down_as_int = x_as_int - 1
     (x_down,) = struct.unpack("<d", struct.pack("<Q", x_down_as_int))

@@ -26,7 +26,6 @@
 #     to use for zero.
 # XXX Rename 'round_for_format' to 'round_to_format'?
 # XXX Formatting of infinities and nans?
-# XXX Determine exponent to show for zeros.
 
 # Doing
 
@@ -43,7 +42,7 @@
 #     original value has a valid decade but the prerounded value does not.
 # XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
 #     is_representable).
-
+# XXX Determine exponent to show for zeros.
 
 import decimal
 import fractions

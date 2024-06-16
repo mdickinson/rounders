@@ -242,21 +242,21 @@ class FormatSpecification:
         # Get digits as a decimal string.
         digits = str(rounded.significand) if rounded.significand else ""
 
-        # Adjust for scientific notation
+        # Adjust for scientific notation. For zeros, we force the exponent to 0.
         use_exponent = self.scientific
-        if use_exponent:
-            if not rounded.significand:
-                # Q: What should the displayed exponent be in this case?
-                raise NotImplementedError("later")
-
-            # Nonzero value: place the decimal point after the
-            # first digit.
+        if use_exponent and rounded.significand:
             e_exponent = rounded.exponent + len(digits) - 1
-            end_exponent = rounded.exponent - e_exponent
         else:
-            end_exponent = rounded.exponent
+            e_exponent = 0
 
-        # Figure out number-line positions.
+        # Figure out number-line positions for the significand portion of the output. In
+        # the significand, the last digit has place-value 10**end_exponent, while the
+        # first has place-value 10**(start_exponent - 1). Ex: for a significand 123.4,
+        # end_exponent is -1 while start_exponent is 3. In general, if end_exponent <= 0
+        # then -end_exponent gives the number of digits after the point, while if
+        # start_exponent >= 0 then start_exponent gives the number of digits before the
+        # point.
+        end_exponent = rounded.exponent - e_exponent
         start_exponent = end_exponent + len(digits)
 
         # Pad with zeros to ensure required minimum number of digits before and
@@ -266,7 +266,7 @@ class FormatSpecification:
                 self.zero * (self.min_digits_before_point - start_exponent) + digits
             )
             start_exponent = self.min_digits_before_point
-        if end_exponent >= -self.min_digits_after_point:
+        if end_exponent > -self.min_digits_after_point:
             digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
             end_exponent = -self.min_digits_after_point
 
@@ -283,6 +283,7 @@ class FormatSpecification:
         if use_exponent:
             exponent = self.e + str(e_exponent)
         else:
+            assert e_exponent == 0
             exponent = ""
 
         return sign_str + before_point + point + after_point + exponent
