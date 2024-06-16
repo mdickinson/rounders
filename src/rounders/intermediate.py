@@ -142,6 +142,10 @@ class IntermediateForm:
             raise ValueError(f"zero value {self} has no decade")
         return self.exponent + self.figures - 1
 
+    def is_zero(self) -> bool:
+        """Return True if value is zero, else False."""
+        return self.significand == 0
+
     def nudge(self, figures: int) -> IntermediateForm:
         """Drop a zero in cases where rounding led us to end up with an extra zero."""
         if self.figures <= figures:

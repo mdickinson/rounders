@@ -1,9 +1,10 @@
 """Interface for the rounders package."""
 
-import rounders.decimal_overloads  # noqa: F401
-import rounders.float_overloads  # noqa: F401
-import rounders.fraction_overloads  # noqa: F401
-import rounders.int_overloads  # noqa: F401
+import rounders.overloads.decimal  # noqa: F401
+import rounders.overloads.float  # noqa: F401
+import rounders.overloads.fraction  # noqa: F401
+import rounders.overloads.int  # noqa: F401
+import rounders.overloads.intermediate_form  # noqa: F401
 from rounders.mode_specific import (
     round_ties_to_away,
     round_ties_to_even,
