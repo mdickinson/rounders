@@ -8,7 +8,7 @@ from rounders.intermediate import IntermediateForm
 class TestIntermediateForm(unittest.TestCase):
     """Tests for the IntermediateForm class."""
 
-    def test_from_str(self):
+    def test_from_str(self) -> None:
         # Tuples (input, sign, significand, exponent)
         cases = [
             ("2e3", 0, 2, 3),
