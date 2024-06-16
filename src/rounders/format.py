@@ -7,7 +7,7 @@ import re
 from typing import Any, Dict, Optional
 
 from rounders.generics import decade, is_zero, preround
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 from rounders.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
