@@ -26,6 +26,10 @@ dynamic = ["version"]
 [project.urls]
 source = 'https://github.com/mdickinson/rounders'
 
+[tool.coverage.run]
+branch = true
+source_pkgs = ["rounders"]
+
 [tool.mypy]
 exclude = ['build/']
 

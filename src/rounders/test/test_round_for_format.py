@@ -16,7 +16,6 @@
 #     Or possibly a method on IntermediateForm. Or both.
 # XXX Think about exponent preservation (e.g., for Decimal inputs); what should
 #     rounding do?
-# XXX Remove tests for _smallest_ten_power_multiple; check coverage.
 # XXX Make _smallest_ten_power_multiple more efficient
 # XXX Consider format flag requiring particular exponent for zero. Or perhaps
 #     just a minimum exponent for zero? Maximum exponent? (Ideally, we want for
@@ -43,14 +42,14 @@
 # XXX Consider implementing TargetFormat.__contains__ (possibly as a synonym for
 #     is_representable).
 # XXX Determine exponent to show for zeros.
+# XXX Remove tests for _smallest_ten_power_multiple; check coverage.
 
 import decimal
 import fractions
-import math
 import unittest
 
 from rounders.format import TargetFormat, round_for_format
-from rounders.intermediate import IntermediateForm, _smallest_ten_power_multiple
+from rounders.intermediate import IntermediateForm
 from rounders.modes import TIES_TO_EVEN, TO_AWAY, TO_ZERO
 
 
@@ -173,21 +172,6 @@ class TestRoundForFormat(unittest.TestCase):
                 round_for_format(
                     value, format=format, mode=TIES_TO_EVEN, zero_exponent=zero_exponent
                 )
-
-    def test__smallest_ten_power_multiple(self) -> None:
-        for etwo in range(100):
-            for efive in range(100):
-                d = 2**etwo * 5**efive
-                self.assertEqual(_smallest_ten_power_multiple(d), max(etwo, efive))
-
-        bad = [n for n in range(2, 1000) if math.gcd(n, 10) == 1]
-
-        for etwo in range(10):
-            for efive in range(10):
-                for b in bad:
-                    d = b * 2**etwo * 5**efive
-                    with self.assertRaises(ValueError):
-                        _smallest_ten_power_multiple(d)
 
     def test_no_negative_zero(self) -> None:
         format = TargetFormat(signed_zero=False, minimum_exponent=-3)
