@@ -210,7 +210,7 @@ class TestFormat(unittest.TestCase):
 
 
 class TestFormatFromSpecification(unittest.TestCase):
-    """Tests for conversion of a format string to a FormatSpecification."""
+    """Test FormatSpecification.format."""
 
     def test_min_digits_before_point(self) -> None:
         format_specification = FormatSpecification(

@@ -180,3 +180,9 @@ class IntermediateForm:
                 significand=significand,
                 exponent=exponent,
             )
+
+    def __int__(self) -> int:
+        """Convert a value with exponent 0 to an integer."""
+        if self.exponent != 0:
+            raise ValueError("can only convert a value with exponent 0 to an integer")
+        return -self.significand if self.sign else self.significand

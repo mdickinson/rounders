@@ -30,7 +30,7 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
         raise ValueError("x must be finite")
 
     rounded = preround(x, 0).round(0, mode)
-    return -rounded.significand if rounded.sign else rounded.significand
+    return int(rounded)
 
 
 def round_to_places(
