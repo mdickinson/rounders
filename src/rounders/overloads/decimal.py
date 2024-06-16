@@ -4,7 +4,7 @@ import decimal
 from typing import Optional
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 
 
 @to_type_of.register

@@ -3,7 +3,7 @@
 import math
 import unittest
 
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 
 
 class TestIntermediateForm(unittest.TestCase):

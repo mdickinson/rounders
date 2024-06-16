@@ -6,7 +6,7 @@ import unittest
 from typing import List, Tuple
 
 from rounders.format import FormatSpecification, format
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 
 
 class TestFormat(unittest.TestCase):
