@@ -3,9 +3,31 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import cast
+from typing import Optional, cast
 
 from rounders.modes import RoundingMode
+
+
+def _smallest_ten_power_multiple(d: int) -> int:
+    """
+    Find smallest power of 10 that's divisible by a positive integer d.
+
+    Raises ValueError if there's no such power.
+    """
+    assert d > 0
+
+    two_exp = (d & -d).bit_length() - 1
+    d >>= two_exp
+
+    five_exp = 0
+    while d % 5 == 0:
+        d //= 5
+        five_exp += 1
+
+    if d != 1:
+        raise ValueError("d is not a divisor of any power of 10")
+
+    return max(two_exp, five_exp)
 
 
 @dataclass(frozen=True)
@@ -30,14 +52,31 @@ class IntermediateForm:
 
     @classmethod
     def from_signed_fraction(
-        cls, *, sign: int, numerator: int, denominator: int, exponent: int
+        cls, *, sign: int, numerator: int, denominator: int, exponent: Optional[int]
     ) -> IntermediateForm:
         """
         Create from a signed fraction, given a target exponent.
 
         Creates an IntermediateForm from a quotient of the form ±(n/d) with the target
         exponent, using round-for-reround.
+
+        If exponent is None, then the signed fraction must be exactly representable
+        in decimal format, otherwise a ValueError will be raised.
         """
+        if numerator < 0 or denominator <= 0:
+            raise ValueError("Invalid signed fraction representation")
+
+        # Case where exponent is None: convert exactly if possible, else raise
+        # a ValueError. We use the largest nonpositive exponent possible.
+        if exponent is None:
+            e = _smallest_ten_power_multiple(denominator)
+            assert 10**e % denominator == 0
+            return IntermediateForm(
+                sign=sign,
+                significand=numerator * (10**e // denominator),
+                exponent=-e,
+            )
+
         if exponent <= 0:
             n, d = numerator * cast(int, 10**-exponent), denominator
         else:
