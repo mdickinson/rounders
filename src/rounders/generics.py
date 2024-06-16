@@ -48,7 +48,7 @@ def preround(x: Any, exponent: Optional[int]) -> IntermediateForm:
     an exact conversion can be performed, and then `exponent` can be ignored.
 
     If exponent is None, then this should either perform an exact conversion, or
-    raise ValueError is such an exact conversion isn't possible.
+    raise ValueError if such an exact conversion isn't possible.
 
     For example, given a value of 22/7=3.142857142857... and an exponent of -3, an
     IntermediateForm element representing the value 3.1428 might be returned. When
