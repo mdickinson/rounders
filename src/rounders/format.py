@@ -154,7 +154,7 @@ class FormatSpecification:
     exponent_for_zero: int = 0
 
     @classmethod
-    def from_string(cls, pattern: str) -> FormatSpecification:
+    def from_str(cls, pattern: str) -> FormatSpecification:
         """
         Create a format specification from a format specification string.
 
@@ -340,7 +340,7 @@ def format(value: Any, pattern: str) -> str:
     -------
     Formatted string
     """
-    format_specification = FormatSpecification.from_string(pattern)
+    format_specification = FormatSpecification.from_str(pattern)
 
     # Step 1: convert to rounded value.
     rounded = round_for_format(
