@@ -43,6 +43,28 @@ def _smallest_ten_power_multiple(d: int) -> int:
     return max(two_exp, five_exp)
 
 
+def _smallest_ten_power_multiple(d: int) -> int:
+    """
+    Find smallest power of 10 that's divisible by a positive integer d.
+
+    Raises ValueError if there's no such power.
+    """
+    assert d > 0
+
+    two_exp = (d & -d).bit_length() - 1
+    d >>= two_exp
+
+    five_exp = 0
+    while d % 5 == 0:
+        d //= 5
+        five_exp += 1
+
+    if d != 1:
+        raise ValueError("d is not a divisor of any power of 10")
+
+    return max(two_exp, five_exp)
+
+
 @dataclass(frozen=True)
 class IntermediateForm:
     """
@@ -97,7 +119,7 @@ class IntermediateForm:
         `numerator` and `denominator` must be relatively prime, `denominator` must be
         positive, and `numerator` must be nonnegative.
         """
-        if numerator < 0 or denominator <= 0 or math.gcd(numerator, denominator) != 1:
+        if numerator < 0 or denominator <= 0:
             raise ValueError("Invalid signed fraction representation")
 
         # Case where exponent is None: convert exactly if possible, else raise
