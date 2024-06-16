@@ -1,5 +1,6 @@
 """Tests for the IntermediateForm class."""
 
+import math
 import unittest
 
 from rounders.intermediate import IntermediateForm
@@ -41,3 +42,49 @@ class TestIntermediateForm(unittest.TestCase):
                         exponent=exponent,
                     ),
                 )
+
+    def test_from_signed_fraction_exponent_none(self) -> None:
+        # triples (numerator, denominator, expected result)
+        cases = [
+            (1, 1, "1"),
+            (1, 5, "0.2"),
+            (1, 25, "0.04"),
+            (1, 2, "0.5"),
+            (1, 4, "0.25"),
+            (1, 10, "0.1"),
+            (1, 40, "0.025"),
+        ]
+        for numerator, denominator, expected_result in cases:
+            # Double check that our test cases satisfy the preconditions
+            self.assertEqual(math.gcd(numerator, denominator), 1)
+            with self.subTest(numerator=numerator, denominator=denominator):
+                self.assertEqual(
+                    IntermediateForm.from_signed_fraction(
+                        sign=0,
+                        numerator=numerator,
+                        denominator=denominator,
+                        exponent=None,
+                    ),
+                    IntermediateForm.from_str(expected_result),
+                )
+
+    def test_from_signed_fraction_exponent_none_invalid_cases(self) -> None:
+        # pairs (numerator, denominator)
+        cases = [
+            (1, 3),
+            (1, 7),
+            (1, 6),
+            (1, 15),
+            (1, 30),
+        ]
+        for numerator, denominator in cases:
+            # Double check that our test cases satisfy the preconditions
+            self.assertEqual(math.gcd(numerator, denominator), 1)
+            with self.subTest(numerator=numerator, denominator=denominator):
+                with self.assertRaises(ValueError):
+                    IntermediateForm.from_signed_fraction(
+                        sign=0,
+                        numerator=numerator,
+                        denominator=denominator,
+                        exponent=None,
+                    )

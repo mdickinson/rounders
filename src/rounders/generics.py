@@ -1,7 +1,7 @@
 """Generic extensible computation functions that use singledispatch."""
 
 import functools
-from typing import Any
+from typing import Any, Optional
 
 from rounders.intermediate import IntermediateForm
 
@@ -36,7 +36,7 @@ def is_zero(x: Any) -> bool:
 
 
 @functools.singledispatch
-def preround(x: Any, exponent: int) -> IntermediateForm:
+def preround(x: Any, exponent: Optional[int]) -> IntermediateForm:
     """
     Pre-rounding step for value x.
 
@@ -46,6 +46,9 @@ def preround(x: Any, exponent: int) -> IntermediateForm:
 
     For values that can be represented exactly in the target IntermediateForm type,
     an exact conversion can be performed, and then `exponent` can be ignored.
+
+    If exponent is None, then this should either perform an exact conversion, or
+    raise ValueError if such an exact conversion isn't possible.
 
     For example, given a value of 22/7=3.142857142857... and an exponent of -3, an
     IntermediateForm element representing the value 3.1428 might be returned. When
