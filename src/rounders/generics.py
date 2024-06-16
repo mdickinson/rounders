@@ -7,18 +7,6 @@ from rounders.intermediate import IntermediateForm
 
 
 @functools.singledispatch
-def is_zero(x: Any) -> bool:
-    """Determine whether a given number is zero."""
-    raise NotImplementedError(f"No overload available for type {type(x)}")
-
-
-@functools.singledispatch
-def is_finite(x: Any) -> bool:
-    """Determine whether a given number is finite."""
-    raise NotImplementedError(f"No overload available for type {type(x)}")
-
-
-@functools.singledispatch
 def decade(x: Any) -> int:
     """
     Determine the decade that a nonzero number is contained in.
@@ -29,6 +17,24 @@ def decade(x: Any) -> int:
     lower bound for the decade: an integer e such that 10**e <= abs(x). This causes some
     extra work during rounding.
     """
+    raise NotImplementedError(f"No overload available for type {type(x)}")
+
+
+@functools.singledispatch
+def to_type_of(x: Any, rounded: IntermediateForm) -> Any:
+    """Convert rounding result to type matching that of x."""
+    raise NotImplementedError(f"No overload available for type {type(x)}")
+
+
+@functools.singledispatch
+def is_finite(x: Any) -> bool:
+    """Determine whether a given number is finite."""
+    raise NotImplementedError(f"No overload available for type {type(x)}")
+
+
+@functools.singledispatch
+def is_zero(x: Any) -> bool:
+    """Determine whether a given number is zero."""
     raise NotImplementedError(f"No overload available for type {type(x)}")
 
 
@@ -52,10 +58,4 @@ def preround(x: Any, exponent: Optional[int]) -> IntermediateForm:
     rounded to 3 or fewer decimal places, 3.1428 rounds the same way as 22/7 under
     any of the rounding modes provided by this package.
     """
-    raise NotImplementedError(f"No overload available for type {type(x)}")
-
-
-@functools.singledispatch
-def to_type_of(x: Any, rounded: IntermediateForm) -> Any:
-    """Convert rounding result to type matching that of x."""
     raise NotImplementedError(f"No overload available for type {type(x)}")
