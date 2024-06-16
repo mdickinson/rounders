@@ -126,9 +126,25 @@ class IntermediateForm:
             exponent=exponent,
         )
 
+    @property
+    def figures(self) -> int:
+        """
+        Number of decimal digits in the significand.
+
+        Returns zero if the significand is zero.
+        """
+        return len(str(self.significand)) if self.significand != 0 else 0
+
+    @property
+    def decade(self) -> int:
+        """Return an integer e such that 10**e <= abs(self) < 10**(e+1)."""
+        if self.significand == 0:
+            raise ValueError(f"zero value {self} has no decade")
+        return self.exponent + self.figures - 1
+
     def nudge(self, figures: int) -> IntermediateForm:
         """Drop a zero in cases where rounding led us to end up with an extra zero."""
-        if len(str(self.significand)) != figures + 1:
+        if self.figures != figures + 1:
             return self
 
         new_significand, tenths = divmod(self.significand, 10)
