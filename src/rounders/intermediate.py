@@ -62,6 +62,9 @@ class IntermediateForm:
 
         If exponent is None, then the signed fraction must be exactly representable
         in decimal format, otherwise a ValueError will be raised.
+
+        `numerator` and `denominator` must be relatively prime, `denominator` must be
+        positive, and `numerator` must be nonnegative.
         """
         if numerator < 0 or denominator <= 0:
             raise ValueError("Invalid signed fraction representation")
