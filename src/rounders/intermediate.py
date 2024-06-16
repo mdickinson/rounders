@@ -71,7 +71,7 @@ class IntermediateForm:
         strict about input format.
         """
         if (match := _INTERMEDIATE_FORM_PATTERN.fullmatch(s)) is None:
-            raise ValueError(f"Invalid numeric string: {s}")
+            raise ValueError(f"invalid numeric string: {s}")
 
         fracpart = match["fracpart"] or ""
         return cls(
