@@ -3,7 +3,7 @@
 import functools
 from typing import Any, Optional
 
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 
 
 @functools.singledispatch

@@ -3,7 +3,7 @@
 import math
 import unittest
 
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 
 
 class TestIntermediateForm(unittest.TestCase):
@@ -88,3 +88,14 @@ class TestIntermediateForm(unittest.TestCase):
                         denominator=denominator,
                         exponent=None,
                     )
+
+    def test_is_zero(self) -> None:
+        self.assertTrue(IntermediateForm.from_str("0").is_zero())
+        self.assertTrue(IntermediateForm.from_str("0e10").is_zero())
+        self.assertTrue(IntermediateForm.from_str("0e-10").is_zero())
+        self.assertTrue(IntermediateForm.from_str("-0").is_zero())
+        self.assertTrue(IntermediateForm.from_str("-0e10").is_zero())
+        self.assertTrue(IntermediateForm.from_str("-0e-10").is_zero())
+
+        self.assertFalse(IntermediateForm.from_str("1.23").is_zero())
+        self.assertFalse(IntermediateForm.from_str("-1.23").is_zero())

@@ -7,7 +7,7 @@ import re
 from typing import Any, Dict, Optional
 
 from rounders.generics import decade, is_zero, preround
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 from rounders.modes import (
     TIES_TO_AWAY,
     TIES_TO_EVEN,
@@ -156,7 +156,7 @@ class FormatSpecification:
             end_exponent = -self.min_digits_after_point
 
         # Determine the sign.
-        iszero = rounded.significand == 0
+        iszero = is_zero(rounded)
         if rounded.sign:
             sign_str = self.negative_zero_sign if iszero else self.negative_sign
         else:
