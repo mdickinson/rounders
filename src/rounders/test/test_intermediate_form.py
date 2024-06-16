@@ -89,7 +89,7 @@ class TestIntermediateForm(unittest.TestCase):
                         exponent=None,
                     )
 
-    def test_is_zero(self):
+    def test_is_zero(self) -> None:
         self.assertTrue(IntermediateForm.from_str("0").is_zero())
         self.assertTrue(IntermediateForm.from_str("0e10").is_zero())
         self.assertTrue(IntermediateForm.from_str("0e-10").is_zero())
