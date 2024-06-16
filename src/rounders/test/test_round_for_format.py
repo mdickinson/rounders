@@ -2,9 +2,6 @@
 
 # To do
 
-# XXX Later on, we should allow decade to be a lower bound. If it's
-#     too small, the only effect is that we do extra work.
-# XXX To do: Try testing after deliberately reducing decade by 1 (or 2, or 10)
 # XXX To do: rewire round_to_figures to use this function, so that
 #     we can benefit from existing tests.
 # XXX Decide on signature and preferred calling pattern for IntermediateForm.round
@@ -25,6 +22,8 @@
 #     to use for zero.
 # XXX Rename 'round_for_format' to 'round_to_format'?
 # XXX Formatting of infinities and nans?
+# XXX Add overloads for IntermediateForm, so that we can easily use it in tests
+#     in place of decimal.Decimal. (preround would simply return the value unchanged)
 
 # Doing
 
@@ -43,6 +42,9 @@
 #     is_representable).
 # XXX Determine exponent to show for zeros.
 # XXX Remove tests for _smallest_ten_power_multiple; check coverage.
+# XXX Allow decade to be a lower bound. If it's too small, the only effect is that we do
+#     extra work.
+
 
 import decimal
 import fractions

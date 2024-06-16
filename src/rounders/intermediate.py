@@ -198,6 +198,12 @@ class IntermediateForm:
             )
         )
 
+    def __int__(self) -> int:
+        """Convert a value with exponent 0 to an integer."""
+        if self.exponent != 0:
+            raise ValueError("can only convert a value with exponent 0 to an integer")
+        return -self.significand if self.sign else self.significand
+
     def __repr__(self) -> str:
         """Return a simple string representation of an intermediate form."""
         return f"{'-' * self.sign}{self.significand}e{self.exponent}"

@@ -30,7 +30,7 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
         raise ValueError("x must be finite")
 
     rounded = preround(x, 0).round(0, mode)
-    return -rounded.significand if rounded.sign else rounded.significand
+    return int(rounded)
 
 
 def round_to_places(
@@ -77,6 +77,8 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     if not is_finite(x):
         return x
 
+    prerounded = preround(x, exponent=None if is_zero(x) else decade(x) + 1 - figures)
+
     # The choice of exponent for zero is rather arbitrary. The choice
     # here ensures alignment in a table of values expressed in
     # scientific notation, assuming that 0 is represented with
@@ -85,9 +87,7 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     #  4.56e-02
     #  1.23e+02
     #  0.00e+00
-
-    exponent = (0 if is_zero(x) else decade(x)) + 1 - figures
-    prerounded = preround(x, exponent)
+    exponent = (0 if is_zero(x) else prerounded.decade) + 1 - figures
     rounded = prerounded.round(exponent, mode)
 
     # Adjust if the result has one more significant figure than expected.

@@ -302,7 +302,8 @@ def round_for_format(
     Returns an intermediate form, which can then be formatted to a string
     or converted back to a target numeric format.
     """
-    # Preround to convert x to IntermediateForm.
+    # Convert x to IntermediateForm, with sufficient digits for subsequent
+    # roundings.
     exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
     result: IntermediateForm = preround(x, exponent=exponent)
 
