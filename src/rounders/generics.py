@@ -12,7 +12,6 @@ def decade(x: Any) -> int:
     Determine the decade that a nonzero number is contained in.
 
     The decade of x is the unique integer e satisfying 10**e <= abs(x) < 10**(e + 1).
-
     Where the decade is expensive to compute, it's enough for the overloads to return a
     lower bound for the decade: an integer e such that 10**e <= abs(x). This causes some
     extra work during rounding.

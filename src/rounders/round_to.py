@@ -77,8 +77,6 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     if not is_finite(x):
         return x
 
-    prerounded = preround(x, exponent=None if is_zero(x) else decade(x) + 1 - figures)
-
     # The choice of exponent for zero is rather arbitrary. The choice
     # here ensures alignment in a table of values expressed in
     # scientific notation, assuming that 0 is represented with
@@ -87,6 +85,8 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     #  4.56e-02
     #  1.23e+02
     #  0.00e+00
+
+    prerounded = preround(x, exponent=None if is_zero(x) else decade(x) + 1 - figures)
     exponent = (0 if is_zero(x) else prerounded.decade) + 1 - figures
     rounded = prerounded.round(exponent, mode)
 
