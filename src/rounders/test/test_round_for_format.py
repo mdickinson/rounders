@@ -61,7 +61,7 @@ import fractions
 import unittest
 
 from rounders.format import TargetFormat, round_for_format
-from rounders.intermediate import IntermediateForm
+from rounders.intermediate_form import IntermediateForm
 from rounders.modes import TIES_TO_EVEN, TO_AWAY, TO_ZERO
 
 
