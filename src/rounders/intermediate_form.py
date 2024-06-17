@@ -188,10 +188,6 @@ class IntermediateForm:
                 exponent=exponent,
             )
 
-    def is_zero(self) -> bool:
-        """Return True if value is zero, else False."""
-        return self.significand == 0
-
     def force_unsigned_zero(self) -> IntermediateForm:
         """Replace a negative zero with an unsigned zero."""
         return (
