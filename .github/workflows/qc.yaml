@@ -31,4 +31,4 @@ jobs:
           python -m ruff check
           python -m mypy --strict .
       - name: Run test suite
-        run: python -m pytest
+        run: python -m pytest -v
