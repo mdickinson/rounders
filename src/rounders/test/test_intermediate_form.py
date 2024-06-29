@@ -130,3 +130,18 @@ class TestIntermediateForm(unittest.TestCase):
                 input = IntermediateForm.from_str(input_str)
                 with self.assertRaises(ValueError):
                     input.trim(figures)
+
+    def test_str(self) -> None:
+        # Pairs (input, output)
+        test_cases = [
+            ("1.234", "1234e-3"),
+            ("1.2345", "12345e-4"),
+            ("1", "1e0"),
+            ("-123", "-123e0"),
+            ("0.000", "0e-3"),
+        ]
+
+        for input_str, expected in test_cases:
+            with self.subTest(input=input_str):
+                input = IntermediateForm.from_str(input_str)
+                self.assertEqual(str(input), expected)
