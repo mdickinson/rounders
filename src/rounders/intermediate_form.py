@@ -159,11 +159,7 @@ class IntermediateForm:
         new_significand, remainder = divmod(self.significand, 10**diff)
         if remainder:
             raise ValueError("trim would remove nonzero digits")
-        return replace(
-            self,
-            significand=new_significand,
-            exponent=self.exponent + diff
-        )
+        return replace(self, significand=new_significand, exponent=self.exponent + diff)
 
     def round(self, exponent: int, mode: RoundingMode) -> IntermediateForm:
         """Round to the given exponent, using the given rounding mode."""
