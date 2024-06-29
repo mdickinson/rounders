@@ -146,21 +146,23 @@ class IntermediateForm:
         """Return True if value is zero, else False."""
         return self.significand == 0
 
-    def nudge(self, figures: int) -> IntermediateForm:
-        """Drop a zero in cases where rounding led us to end up with an extra zero."""
-        if self.figures != figures + 1:
+    def trim(self, figures: int) -> IntermediateForm:
+        """
+        Trim to a given number of significant figures by removing trailing zeros.
+
+        Raises ValueError if trimming would involve removing non-zero digits.
+        """
+        diff = self.figures - figures
+        if diff <= 0:
             return self
 
-        new_significand, tenths = divmod(self.significand, 10)
-        if tenths:
-            raise ValueError(
-                "Last digit is nonzero; dropping it would change the value"
-            )
-
+        new_significand, remainder = divmod(self.significand, 10**diff)
+        if remainder:
+            raise ValueError("trim would remove nonzero digits")
         return replace(
             self,
             significand=new_significand,
-            exponent=self.exponent + 1,
+            exponent=self.exponent + diff
         )
 
     def round(self, exponent: int, mode: RoundingMode) -> IntermediateForm:

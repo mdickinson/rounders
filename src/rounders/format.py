@@ -270,7 +270,7 @@ def format(value: Any, pattern: str) -> str:
     rounded = prerounded.round(exponent, format_specification.rounding_mode)
     if format_specification.figures is not None:
         # Adjust if necessary.
-        rounded = rounded.nudge(format_specification.figures)
+        rounded = rounded.trim(format_specification.figures)
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)
