@@ -320,7 +320,7 @@ def round_for_format(
 
     # Adjust in the case that rounding has changed the decade.
     if format.maximum_figures is not None:
-        result = result.nudge(format.maximum_figures)
+        result = result.trim(format.maximum_figures)
 
     return result
 
