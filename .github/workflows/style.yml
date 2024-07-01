@@ -14,10 +14,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
+          python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: ".github/workflows/qc-requirements.txt"
-      - run: python -m pip install -r .github/workflows/qc-requirements.txt
-      - run: python -m pip install .
+      - run: python -m pip install ruff
       - name: Run style checks
         run: |
           python -m ruff format --check --diff
