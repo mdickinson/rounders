@@ -99,3 +99,49 @@ class TestIntermediateForm(unittest.TestCase):
 
         self.assertFalse(IntermediateForm.from_str("1.23").is_zero())
         self.assertFalse(IntermediateForm.from_str("-1.23").is_zero())
+
+    def test_trim(self) -> None:
+        # Triples (input, figures, result)
+        test_cases = [
+            ("1.230", 3, "1.23"),
+            ("0.0001230", 3, "0.000123"),
+            ("1230", 3, "123e1"),
+            ("1.2", 3, "1.2"),
+            ("1.200", 3, "1.20"),
+            ("1.2000", 3, "1.20"),
+            ("1.2000000", 3, "1.20"),
+            ("0.0000", 3, "0.0000"),
+        ]
+        for input_str, figures, expected_result_str in test_cases:
+            with self.subTest(input=input_str, figures=figures):
+                input = IntermediateForm.from_str(input_str)
+                expected_result = IntermediateForm.from_str(expected_result_str)
+                self.assertEqual(input.trim(figures), expected_result)
+
+    def test_trim_invalid(self) -> None:
+        # Pairs (input, figures)
+        test_cases = [
+            ("1.234", 3),
+            ("1.2345", 3),
+            ("1", 0),
+        ]
+        for input_str, figures in test_cases:
+            with self.subTest(input=input_str, figures=figures):
+                input = IntermediateForm.from_str(input_str)
+                with self.assertRaises(ValueError):
+                    input.trim(figures)
+
+    def test_str(self) -> None:
+        # Pairs (input, output)
+        test_cases = [
+            ("1.234", "1234e-3"),
+            ("1.2345", "12345e-4"),
+            ("1", "1e0"),
+            ("-123", "-123e0"),
+            ("0.000", "0e-3"),
+        ]
+
+        for input_str, expected in test_cases:
+            with self.subTest(input=input_str):
+                input = IntermediateForm.from_str(input_str)
+                self.assertEqual(str(input), expected)

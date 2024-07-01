@@ -94,7 +94,7 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     # This can happen when a value at the uppermost end of a decade gets
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
-    rounded = rounded.nudge(figures)
+    rounded = rounded.trim(figures)
     return to_type_of(x, rounded)
 
 
