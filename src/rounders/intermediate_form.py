@@ -59,7 +59,7 @@ class IntermediateForm:
     # 1 for negative, 0 for positive
     sign: int
 
-    # Significand
+    # Significand: must be nonnegative
     significand: int
 
     # Exponent
@@ -182,6 +182,18 @@ class IntermediateForm:
                 significand=significand,
                 exponent=exponent,
             )
+
+    def force_unsigned_zero(self) -> IntermediateForm:
+        """Replace a negative zero with an unsigned zero."""
+        return (
+            self
+            if self.significand != 0
+            else IntermediateForm(
+                sign=0,
+                significand=self.significand,
+                exponent=self.exponent,
+            )
+        )
 
     def __int__(self) -> int:
         """Convert a value with exponent 0 to an integer."""
