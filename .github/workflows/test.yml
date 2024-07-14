@@ -1,6 +1,6 @@
-# Run tests and style checks
+# Run tests and type checks
 
-name: qc
+name: test
 
 on:
   - pull_request
@@ -15,17 +15,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: true
           cache: "pip"
-          cache-dependency-path: ".github/workflows/qc-requirements.txt"
-      - run: python -m pip install -r .github/workflows/qc-requirements.txt
+      - run: python -m pip install mypy pytest
       - run: python -m pip install .
-      - name: Run style checks
+      - name: Run type checks
         run: python -m mypy --strict .
       - name: Run test suite
         run: python -m pytest --verbose

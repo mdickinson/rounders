@@ -1,7 +1,0 @@
-# For the pip cache to remain useful, the number below should be modified
-# every few months or so, so that the cache is regenerated with the latest
-# packages.
-# --> 000 <---
-mypy
-pytest
-ruff
