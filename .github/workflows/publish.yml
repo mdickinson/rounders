@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         # Full clone so that the setuptools-scm version is computed correctly.
         with:
           fetch-depth: 0
