@@ -3,7 +3,6 @@
 import decimal
 import fractions
 import math
-import struct
 import unittest
 from typing import Any, Callable
 
@@ -64,66 +63,31 @@ ALL_TEST_VALUES = [
 #: that is, 10**e <= abs(x) < 10**(e+1)
 TEN = fractions.Fraction(10)
 
-#: We're still supporting Python 3.8; for Python 3.9 and later we _could_
-#: use math.nextafter instead of next_up and next_down.
 
-
-def next_up(x: float) -> float:
-    """
-    Smallest representable float larger than the input.
-
-    Only implemented for nonnegative finite floats.
-    """
-    # Assumes IEEE 754
-    if not 0 <= x < math.inf:
-        raise NotImplementedError(f"next_up not implemented for {x}")
-    (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
-    x_up_as_int = x_as_int + 1
-    (x_up,) = struct.unpack("<d", struct.pack("<Q", x_up_as_int))
-    assert isinstance(x_up, float)  # help mypy out
-    return x_up
-
-
-def next_down(x: float) -> float:
-    """
-    Largest representable float smaller than the input. Inverse of next_up.
-
-    Only implemented for positive finite floats and positive infinity.
-    """
-    # Assumes IEEE 754
-    if not 0 < x <= math.inf:
-        raise NotImplementedError(f"next_down not implemented for {x}")
-    (x_as_int,) = struct.unpack("<Q", struct.pack("<d", x))
-    x_down_as_int = x_as_int - 1
-    (x_down,) = struct.unpack("<d", struct.pack("<Q", x_down_as_int))
-    assert isinstance(x_down, float)  # help mypy out
-    return x_down
-
-
-DECADE_STARTS = []
+DECADE_STARTS: list[tuple[int, float]] = []
 for e in range(-324, 309):
     try:
         x = float(TEN**e)
     except OverflowError:
         x = math.inf
     if x < TEN**e:
-        x = next_up(x)
+        x = math.nextafter(x, math.inf)
 
     assert TEN**e <= x < TEN ** (e + 1)
-    assert not (TEN**e <= next_down(x) < TEN ** (e + 1))
+    assert not (TEN**e <= math.nextafter(x, 0.0) < TEN ** (e + 1))
     DECADE_STARTS.append((e, x))
 
-DECADE_ENDS = []
+DECADE_ENDS: list[tuple[int, float]] = []
 for e in range(-324, 309):
     try:
         x = float(TEN ** (e + 1))
     except OverflowError:
         x = math.inf
     if x >= TEN ** (e + 1):
-        x = next_down(x)
+        x = math.nextafter(x, 0.0)
 
     assert TEN**e <= x < TEN ** (e + 1)
-    assert not (TEN**e <= next_up(x) < TEN ** (e + 1))
+    assert not (TEN**e <= math.nextafter(x, math.inf) < TEN ** (e + 1))
     DECADE_ENDS.append((e, x))
 
 DECADE_TEST_VALUES = DECADE_STARTS + DECADE_ENDS
