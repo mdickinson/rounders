@@ -1,5 +1,5 @@
-*.pyc
-*.egg-info/
+# Python bytecode
+__pycache__/
+
+# Coverage database
 /.coverage
-/build/
-/dist/

@@ -1,0 +1,23 @@
+name: on-release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v5
+    - uses: astral-sh/setup-uv@v6
+      with:
+        version: "0.9.7"
+    - name: Build package
+      run: uv build
+    - name: Publish package
+      run: uv publish
