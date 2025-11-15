@@ -1,9 +1,10 @@
 [build-system]
-requires = ['setuptools>=70', 'setuptools_scm>=8']
-build-backend = 'setuptools.build_meta'
+requires = ["uv_build>=0.9.9,<0.10.0"]
+build-backend = "uv_build"
 
 [project]
 name = 'rounders'
+version = "0.3.0"
 description = 'round-function equivalents with different rounding-modes'
 readme = 'README.md'
 requires-python = '>=3.10'
@@ -21,17 +22,28 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Topic :: Scientific/Engineering :: Mathematics',
 ]
-dynamic = ["version"]
 
 [project.urls]
 source = 'https://github.com/mdickinson/rounders'
 
+[dependency-groups]
+dev = [
+    "coverage>=7.6.1",
+    "mypy>=1.14.1",
+    "pytest>=8.3.5",
+]
+
 [tool.coverage.run]
 branch = true
 source_pkgs = ["rounders"]
+command_line = "-m pytest"
 
 [tool.mypy]
-exclude = ['build/']
+packages = ["rounders"]
+strict = true
+
+[tool.pytest.ini_options]
+addopts = ["--pyargs", "--import-mode=importlib"]
 
 [tool.ruff.lint]
 extend-select = ["D", "I", "UP", "W"]  # pydocstyle, isort, pyupgrade, pycodestyle warnings
@@ -41,9 +53,6 @@ extend-select = ["D", "I", "UP", "W"]  # pydocstyle, isort, pyupgrade, pycodesty
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
-
-[tool.setuptools_scm]
-version_scheme = "release-branch-semver"
 
 [tool.scriv]
 entry_title_template = "rounders {{ version }} — {{ date.strftime('%Y-%m-%d') }}"
