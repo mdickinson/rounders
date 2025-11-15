@@ -1,7 +1,7 @@
 """Generic extensible computation functions that use singledispatch."""
 
 import functools
-from typing import Any, Optional
+from typing import Any
 
 from rounders.intermediate_form import IntermediateForm
 
@@ -38,7 +38,7 @@ def is_zero(x: Any) -> bool:
 
 
 @functools.singledispatch
-def preround(x: Any, exponent: Optional[int]) -> IntermediateForm:
+def preround(x: Any, exponent: int | None) -> IntermediateForm:
     """
     Pre-rounding step for value x.
 

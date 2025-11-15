@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from typing import Any, Dict, Optional
+from typing import Any
 
 from rounders.generics import decade, is_zero, preround
 from rounders.intermediate_form import IntermediateForm
@@ -68,10 +68,10 @@ class FormatSpecification:
 
     #: Number of decimal places after the point. May be
     #: zero or negative.
-    places: Optional[int] = None
+    places: int | None = None
 
     #: Number of significant figures. If given, must be positive.
-    figures: Optional[int] = None
+    figures: int | None = None
 
     #: Whether to always output in scientific format.
     scientific: bool = False
@@ -195,7 +195,7 @@ class FormatSpecification:
         if match is None:
             raise ValueError(f"Invalid pattern: {pattern!r}")
 
-        kwargs: Dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
 
         round_type = match["type"]
         if round_type == "f":

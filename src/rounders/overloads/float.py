@@ -3,7 +3,7 @@
 import fractions
 import math
 import struct
-from typing import Optional, cast
+from typing import cast
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounders.intermediate_form import IntermediateForm
@@ -723,7 +723,7 @@ def _(x: float) -> bool:
 
 
 @preround.register
-def _(x: float, exponent: Optional[int]) -> IntermediateForm:
+def _(x: float, exponent: int | None) -> IntermediateForm:
     if not math.isfinite(x):
         raise ValueError("Input must be finite")
 
