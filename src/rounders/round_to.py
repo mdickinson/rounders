@@ -1,6 +1,6 @@
 """Top-level rounding functions."""
 
-from typing import Any, Optional
+from typing import Any
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounders.modes import TIES_TO_EVEN, RoundingMode
@@ -99,7 +99,7 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
 
 
 def round(
-    x: Any, ndigits: Optional[int] = None, *, mode: RoundingMode = TIES_TO_EVEN
+    x: Any, ndigits: int | None = None, *, mode: RoundingMode = TIES_TO_EVEN
 ) -> Any:
     """
     Round a value using a given rounding mode.

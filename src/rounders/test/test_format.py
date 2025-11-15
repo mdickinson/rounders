@@ -3,7 +3,6 @@
 import decimal
 import fractions
 import unittest
-from typing import List, Tuple
 
 from rounders.format import FormatSpecification, format
 from rounders.intermediate_form import IntermediateForm
@@ -205,7 +204,7 @@ class TestFormat(unittest.TestCase):
         ]
         self.check_cases(cases)
 
-    def check_cases(self, cases: List[Tuple[str, str, str]]) -> None:
+    def check_cases(self, cases: list[tuple[str, str, str]]) -> None:
         for case in cases:
             value_str, pattern, expected_result = case
             with self.subTest(case=case):

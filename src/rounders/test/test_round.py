@@ -4,7 +4,8 @@ import decimal
 import fractions
 import math
 import unittest
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from rounders import (
     TIES_TO_AWAY,
