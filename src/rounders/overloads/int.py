@@ -1,6 +1,6 @@
 """Single-dispatch overloads for the int type."""
 
-from typing import Optional, cast
+from typing import cast
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounders.intermediate_form import IntermediateForm
@@ -37,7 +37,7 @@ def _(x: int) -> bool:
 
 
 @preround.register
-def _(x: int, exponent: Optional[int]) -> IntermediateForm:
+def _(x: int, exponent: int | None) -> IntermediateForm:
     return IntermediateForm(
         sign=int(x < 0),
         significand=abs(x),
