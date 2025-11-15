@@ -1,7 +1,5 @@
 """Single-dispatch overloads for the IntermediateForm type."""
 
-from typing import Optional
-
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounders.intermediate_form import IntermediateForm
 
@@ -30,5 +28,5 @@ def _(x: IntermediateForm) -> bool:
 
 
 @preround.register
-def _(x: IntermediateForm, exponent: Optional[int]) -> IntermediateForm:
+def _(x: IntermediateForm, exponent: int | None) -> IntermediateForm:
     return x

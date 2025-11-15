@@ -57,7 +57,6 @@ is rounded using the zero / away / minus / plus / even / odd rule as appropriate
 """
 
 import abc
-from typing import Tuple
 
 
 class RoundingMode(abc.ABC):
@@ -92,7 +91,7 @@ class _StandardRoundingMode(RoundingMode):
     modes, rounding all non-ties to an integer.
     """
 
-    def __init__(self, signature: Tuple[Tuple[int, int], Tuple[int, int]], name: str):
+    def __init__(self, signature: tuple[tuple[int, int], tuple[int, int]], name: str):
         self._signature = signature
         self._name = name
 

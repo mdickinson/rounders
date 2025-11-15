@@ -7,7 +7,7 @@ build-in round function: round to some number of places, returning a value
 of the same type as the input, or round to the nearest integer, return an int.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from rounders.modes import (
     TIES_TO_AWAY,
@@ -27,67 +27,67 @@ from rounders.modes import (
 from rounders.round_to import round
 
 
-def round_ties_to_away(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_ties_to_away(x: Any, ndigits: int | None = None) -> Any:
     """Round to the nearest integer, rounding ties away from zero."""
     return round(x, ndigits, mode=TIES_TO_AWAY)
 
 
-def round_ties_to_zero(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_ties_to_zero(x: Any, ndigits: int | None = None) -> Any:
     """Round to the nearest integer, rounding ties towards zero."""
     return round(x, ndigits, mode=TIES_TO_ZERO)
 
 
-def round_ties_to_even(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_ties_to_even(x: Any, ndigits: int | None = None) -> Any:
     """Round to the nearest integer, rounding ties to the nearest even integer."""
     return round(x, ndigits, mode=TIES_TO_EVEN)
 
 
-def round_ties_to_odd(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_ties_to_odd(x: Any, ndigits: int | None = None) -> Any:
     """Round to the nearest integer, rounding ties to the nearest odd integer."""
     return round(x, ndigits, mode=TIES_TO_ODD)
 
 
-def round_ties_to_plus(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_ties_to_plus(x: Any, ndigits: int | None = None) -> Any:
     """Round to the nearest integer, rounding ties towards positive infinity."""
     return round(x, ndigits, mode=TIES_TO_PLUS)
 
 
-def round_ties_to_minus(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_ties_to_minus(x: Any, ndigits: int | None = None) -> Any:
     """Round to the nearest integer, rounding ties towards negative infinity."""
     return round(x, ndigits, mode=TIES_TO_MINUS)
 
 
-def round_to_away(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_away(x: Any, ndigits: int | None = None) -> Any:
     """Round the input x to the nearest integer away from zero."""
     return round(x, ndigits, mode=TO_AWAY)
 
 
-def round_to_zero(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_zero(x: Any, ndigits: int | None = None) -> Any:
     """Round the input x to the nearest integer towards zero."""
     return round(x, ndigits, mode=TO_ZERO)
 
 
-def round_to_plus(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_plus(x: Any, ndigits: int | None = None) -> Any:
     """Round the input x to the nearest integer towards positive infinity."""
     return round(x, ndigits, mode=TO_PLUS)
 
 
-def round_to_minus(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_minus(x: Any, ndigits: int | None = None) -> Any:
     """Round the input x to the nearest integer towards negative infinity."""
     return round(x, ndigits, mode=TO_MINUS)
 
 
-def round_to_even(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_even(x: Any, ndigits: int | None = None) -> Any:
     """Round the input x to the nearest even integer."""
     return round(x, ndigits, mode=TO_EVEN)
 
 
-def round_to_odd(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_odd(x: Any, ndigits: int | None = None) -> Any:
     """Round the input x to the nearest odd integer."""
     return round(x, ndigits, mode=TO_ODD)
 
 
-def round_to_zero_05_away(x: Any, ndigits: Optional[int] = None) -> Any:
+def round_to_zero_05_away(x: Any, ndigits: int | None = None) -> Any:
     """
     Round for re-rounding.
 

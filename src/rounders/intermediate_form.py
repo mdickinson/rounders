@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, replace
-from typing import Optional, cast
+from typing import cast
 
 from rounders.modes import RoundingMode
 
@@ -85,7 +85,7 @@ class IntermediateForm:
 
     @classmethod
     def from_signed_fraction(
-        cls, *, sign: int, numerator: int, denominator: int, exponent: Optional[int]
+        cls, *, sign: int, numerator: int, denominator: int, exponent: int | None
     ) -> IntermediateForm:
         """
         Create from a signed fraction, given a target exponent.
