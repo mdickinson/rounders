@@ -6,7 +6,7 @@ build-backend = 'setuptools.build_meta'
 name = 'rounders'
 description = 'round-function equivalents with different rounding-modes'
 readme = 'README.md'
-requires-python = '>=3.8'
+requires-python = '>=3.10'
 authors = [{ name = 'Mark Dickinson', email = 'dickinsm@gmail.com' }]
 keywords = [
     'round',
