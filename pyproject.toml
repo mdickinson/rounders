@@ -53,3 +53,8 @@ extend-select = ["D", "I", "UP", "W"]  # pydocstyle, isort, pyupgrade, pycodesty
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.scriv]
+entry_title_template = "rounders {{ version }} — {{ date.strftime('%Y-%m-%d') }}"
+format = "md"
+md_header_level = "2"
