@@ -65,10 +65,10 @@ class TargetFormat:
     """
 
     # Minimum exponent for represented values.
-    minimum_exponent: Optional[int] = None
+    minimum_exponent: int | None = None
 
     # Maximum number of significant figures.
-    maximum_figures: Optional[int] = None
+    maximum_figures: int | None = None
 
     # Whether to allow negative zeros.
     signed_zero: bool = True
@@ -81,7 +81,7 @@ class TargetFormat:
             and (self.signed_zero or value.sign == 0 or value.significand != 0)
         )
 
-    def minimum_exponent_for_decade(self, decade: int) -> Optional[int]:
+    def minimum_exponent_for_decade(self, decade: int) -> int | None:
         """
         Return the minimum possible exponent for a value in a given decade.
 
@@ -212,7 +212,7 @@ class FormatSpecification:
         )
 
     @property
-    def zero_exponent(self) -> Optional[int]:
+    def zero_exponent(self) -> int | None:
         """
         Exponent to use for formatting zeros.
 
@@ -294,7 +294,7 @@ def round_for_format(
     *,
     format: TargetFormat,
     mode: RoundingMode = TIES_TO_EVEN,
-    zero_exponent: Optional[int],
+    zero_exponent: int | None,
 ) -> IntermediateForm:
     """
     Round a finite value to a given target format, using a given rounding mode.
