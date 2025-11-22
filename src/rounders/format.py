@@ -262,6 +262,7 @@ def round_for_format(
     exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
     result: IntermediateForm = preround(x, exponent=exponent)
 
+    target_exponent: int | None
     if result.is_zero():
         target_exponent = zero_exponent
     else:
