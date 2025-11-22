@@ -24,6 +24,7 @@ from rounders.modes import (
     TO_ZERO_05_AWAY,
     RoundingMode,
 )
+from rounders.target_format import TargetFormat
 
 _PATTERN = re.compile(
     r"""
@@ -157,6 +158,16 @@ class FormatSpecification:
         return cls(
             round_type=round_type,
             **kwargs,
+        )
+
+    @property
+    def target_format(self) -> TargetFormat:
+        """Get the target format for this format specification."""
+        minimum_exponent = None if self.places is None else -self.places
+        return TargetFormat(
+            minimum_exponent=minimum_exponent,
+            maximum_figures=self.figures,
+            signed_zero=self.signed_zero,
         )
 
     def format(self, rounded: IntermediateForm) -> str:
