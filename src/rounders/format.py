@@ -105,9 +105,6 @@ class FormatSpecification:
     #: Sign to use for positive values.
     positive_sign: str = ""
 
-    #: Exponent to use for zero.
-    exponent_for_zero: int = 0
-
     @classmethod
     def from_str(cls, pattern: str) -> FormatSpecification:
         """
@@ -132,10 +129,7 @@ class FormatSpecification:
         round_type = match["type"]
         if round_type == "f":
             places = int(match["precision"])
-            kwargs.update(
-                places=places,
-                exponent_for_zero=-places,
-            )
+            kwargs.update(places=places)
         elif round_type == "e":
             kwargs.update(figures=int(match["precision"]) + 1)
             kwargs.update(scientific=True)
@@ -169,11 +163,12 @@ class FormatSpecification:
     @property
     def zero_exponent(self) -> int | None:
         """
-        Exponent to use for formatting zeros.
+        Exponent to use when formatting zeros.
 
-        None to pass through the existing exponent.
+        A return value of None indicates that the existing exponent should be passed
+        through.
         """
-        exponents = []
+        exponents: list[int] = []
         if self.places is not None:
             exponents.append(-self.places)
         if self.figures is not None:
@@ -200,6 +195,8 @@ class FormatSpecification:
         # Adjust for scientific notation. For zeros, we force the exponent to 0.
         use_exponent = self.scientific
         if use_exponent and rounded.significand:
+            # Nonzero value: place the decimal point after the
+            # first digit.
             e_exponent = rounded.exponent + len(digits) - 1
         else:
             e_exponent = 0
