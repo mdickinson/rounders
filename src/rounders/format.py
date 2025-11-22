@@ -136,16 +136,12 @@ class FormatSpecification:
         else:
             raise ValueError("Unhandled round type")
 
-        mode_code = match["mode"]
-        if mode_code is not None:
+        if mode_code := match["mode"]:
             kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
-
-        sign = match["sign"]
-        if sign == "+" or sign == " ":
+        if (sign := match["sign"]) == "+" or sign == " ":
             kwargs.update(positive_sign=sign)
         if match["no_neg_0"]:
             kwargs.update(signed_zero=False)
-
         if match["alt"] is not None:
             kwargs.update(always_include_point=True)
 
@@ -199,15 +195,13 @@ class FormatSpecification:
         # Adjust for scientific notation
         use_exponent = self.scientific
         if use_exponent and rounded.significand:
-            # Nonzero value: place the decimal point after the
-            # first digit.
+            # Nonzero value: place the decimal point after the first digit.
             e_exponent = rounded.exponent + len(digits) - 1
-            end_exponent = rounded.exponent - e_exponent
         else:
             e_exponent = 0
-            end_exponent = rounded.exponent
 
         # Figure out number-line positions.
+        end_exponent = rounded.exponent - e_exponent
         start_exponent = end_exponent + len(digits)
 
         # Pad with zeros to ensure required minimum number of digits before and
@@ -217,7 +211,7 @@ class FormatSpecification:
                 self.zero * (self.min_digits_before_point - start_exponent) + digits
             )
             start_exponent = self.min_digits_before_point
-        if end_exponent >= -self.min_digits_after_point:
+        if end_exponent > -self.min_digits_after_point:
             digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
             end_exponent = -self.min_digits_after_point
 
