@@ -190,9 +190,10 @@ class FormatSpecification:
             The formatted value.
         """
         # Get digits as a decimal string.
-        digits = str(rounded.significand) if rounded.significand else ""
+        digits = rounded.digits
 
-        # Adjust for scientific notation
+        # Adjust for scientific notation. e_exponent is the value that will appear after
+        # the 'e' in the formatted result.
         use_exponent = self.scientific
         if use_exponent and rounded.significand:
             # Nonzero value: place the decimal point after the first digit.
