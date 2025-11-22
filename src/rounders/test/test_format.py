@@ -94,6 +94,11 @@ class TestFormat(unittest.TestCase):
             ("0.996", ".1e", "1.0e0"),
             ("3.14159", ".0e", "3e0"),
             ("3.14159", "#.0e", "3.e0"),
+            # Formatting zeros
+            ("0", ".2e", "0.00e0"),
+            ("0", ".1e", "0.0e0"),
+            ("0", ".0e", "0e0"),
+            ("0", "#.0e", "0.e0"),
         ]
         self.check_cases(cases)
 
