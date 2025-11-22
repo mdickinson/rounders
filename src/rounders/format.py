@@ -110,6 +110,64 @@ class FormatSpecification:
     #: Exponent to use for zero.
     exponent_for_zero: int = 0
 
+    @classmethod
+    def from_str(cls, pattern: str) -> FormatSpecification:
+        """
+        Create a format specification from a format specification string.
+
+        Parameters
+        ----------
+        pattern
+            The format specification string.
+
+        Returns
+        -------
+        FormatSpecification
+            The format specification object representing the string.
+        """
+        match = _PATTERN.fullmatch(pattern)
+        if match is None:
+            raise ValueError(f"Invalid pattern: {pattern!r}")
+
+        kwargs: dict[str, Any] = {}
+
+        round_type = match["type"]
+        if round_type == "f":
+            places = int(match["precision"])
+            kwargs.update(
+                places=places,
+                exponent_for_zero=-places,
+            )
+        elif round_type == "e":
+            kwargs.update(figures=int(match["precision"]) + 1)
+            kwargs.update(scientific=True)
+        else:
+            raise ValueError("Unhandled round type")
+
+        mode_code = match["mode"]
+        if mode_code is not None:
+            kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
+
+        sign = match["sign"]
+        if sign == "+" or sign == " ":
+            kwargs.update(
+                positive_sign=sign,
+                positive_zero_sign=sign,
+            )
+        if match["no_neg_0"]:
+            if sign == "+" or sign == " ":
+                kwargs.update(negative_zero_sign=sign)
+            else:
+                kwargs.update(negative_zero_sign="")
+
+        if match["alt"] is not None:
+            kwargs.update(always_include_point=True)
+
+        return cls(
+            round_type=round_type,
+            **kwargs,
+        )
+
     def format(self, rounded: IntermediateForm) -> str:
         """
         Format a decimal object in intermediate form using this format specification.
@@ -176,64 +234,6 @@ class FormatSpecification:
 
         return sign_str + before_point + point + after_point + exponent
 
-    @classmethod
-    def from_string(cls, pattern: str) -> FormatSpecification:
-        """
-        Create a format specification from a format specification string.
-
-        Parameters
-        ----------
-        pattern
-            The format specification string.
-
-        Returns
-        -------
-        FormatSpecification
-            The format specification object representing the string.
-        """
-        match = _PATTERN.fullmatch(pattern)
-        if match is None:
-            raise ValueError(f"Invalid pattern: {pattern!r}")
-
-        kwargs: dict[str, Any] = {}
-
-        round_type = match["type"]
-        if round_type == "f":
-            places = int(match["precision"])
-            kwargs.update(
-                places=places,
-                exponent_for_zero=-places,
-            )
-        elif round_type == "e":
-            kwargs.update(figures=int(match["precision"]) + 1)
-            kwargs.update(scientific=True)
-        else:
-            raise ValueError("Unhandled round type")
-
-        mode_code = match["mode"]
-        if mode_code is not None:
-            kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
-
-        sign = match["sign"]
-        if sign == "+" or sign == " ":
-            kwargs.update(
-                positive_sign=sign,
-                positive_zero_sign=sign,
-            )
-        if match["no_neg_0"]:
-            if sign == "+" or sign == " ":
-                kwargs.update(negative_zero_sign=sign)
-            else:
-                kwargs.update(negative_zero_sign="")
-
-        if match["alt"] is not None:
-            kwargs.update(always_include_point=True)
-
-        return cls(
-            round_type=round_type,
-            **kwargs,
-        )
-
 
 def format(value: Any, pattern: str) -> str:
     """
@@ -250,7 +250,7 @@ def format(value: Any, pattern: str) -> str:
     -------
     Formatted string
     """
-    format_specification = FormatSpecification.from_string(pattern)
+    format_specification = FormatSpecification.from_str(pattern)
 
     # Step 1: convert to rounded value.
     bounds = []
