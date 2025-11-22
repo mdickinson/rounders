@@ -136,7 +136,7 @@ class FormatSpecification:
         else:
             raise ValueError("Unhandled round type")
 
-        if (mode_code := match["mode"]) is not None:
+        if mode_code := match["mode"]:
             kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
         if (sign := match["sign"]) == "+" or sign == " ":
             kwargs.update(positive_sign=sign)
@@ -192,11 +192,10 @@ class FormatSpecification:
         # Get digits as a decimal string.
         digits = str(rounded.significand) if rounded.significand else ""
 
-        # Adjust for scientific notation. For zeros, we force the exponent to 0.
+        # Adjust for scientific notation.
         use_exponent = self.scientific
         if use_exponent and rounded.significand:
-            # Nonzero value: place the decimal point after the
-            # first digit.
+            # Nonzero value: place the decimal point after the first digit.
             e_exponent = rounded.exponent + len(digits) - 1
         else:
             e_exponent = 0
@@ -235,7 +234,6 @@ class FormatSpecification:
         if use_exponent:
             exponent = self.e + str(e_exponent)
         else:
-            assert e_exponent == 0
             exponent = ""
 
         return sign_str + before_point + point + after_point + exponent
@@ -251,11 +249,8 @@ def round_for_format(
     """
     Round a finite value to a given target format, using a given rounding mode.
 
-    Returns an intermediate form, which can then be formatted to a string
-    or converted back to a target numeric format.
+    Returns a value in intermediate form.
     """
-    # Convert x to IntermediateForm, with sufficient digits for subsequent
-    # roundings.
     exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
     result: IntermediateForm = preround(x, exponent=exponent)
 
@@ -264,6 +259,7 @@ def round_for_format(
         target_exponent = zero_exponent
     else:
         target_exponent = format.minimum_exponent_for_decade(result.decade)
+
     if target_exponent is not None:
         result = result.round(target_exponent, mode)
 
