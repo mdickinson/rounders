@@ -19,13 +19,13 @@ _INTERMEDIATE_FORM_PATTERN = re.compile(
     re.VERBOSE,
 )
 
-_5_POW_256 = 5 ** 256
+_5_POW_256 = 5**256
 
 #: Lookup table from bits 9 through 2 of a power of 5 to the matching power.
-_5_POW_FROM_LOW_BITS = {(5**e >> 2) & 0xff: 5**e for e in range(256)}
+_5_POW_FROM_LOW_BITS = {(5**e >> 2) & 0xFF: 5**e for e in range(256)}
 
 #: Lookup table from bits 9 through 2 of a power of 5 to the matching exponent.
-_5_POW_EXPONENT_FROM_LOW_BITS = {(5**e >> 2) & 0xff: e for e in range(256)}
+_5_POW_EXPONENT_FROM_LOW_BITS = {(5**e >> 2) & 0xFF: e for e in range(256)}
 
 
 def _smallest_ten_power_multiple(d: int) -> int:
@@ -65,7 +65,7 @@ def log5exact(d: int) -> int:
 
     # If d is a power of 5, it's divisible by 5**e where e is determined
     # by the lower order bits of d.
-    low_bits = d >> 2 & 0xff
+    low_bits = d >> 2 & 0xFF
     d, rem = divmod(d, _5_POW_FROM_LOW_BITS[low_bits])
     if rem:
         raise ValueError(f"{d} is not a power of 5")
@@ -81,14 +81,7 @@ def log5exact(d: int) -> int:
     if d != 1:
         raise ValueError(f"{d} is not a power of 5")
 
-
-
-
-
     return five_exp
-
-
-
 
 
 @dataclass(frozen=True)
