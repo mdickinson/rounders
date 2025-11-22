@@ -59,7 +59,7 @@ class IntermediateForm:
     # 1 for negative, 0 for positive
     sign: int
 
-    # Significand: must be nonnegative
+    # Significand: a nonnegative integer
     significand: int
 
     # Exponent
