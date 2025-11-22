@@ -162,3 +162,26 @@ class TestIntermediateForm(unittest.TestCase):
                 powers_of_five.append((d, e))
 
         self.assertEqual(powers_of_five, [(1, 0), (5, 1), (25, 2), (125, 3)])
+
+    def test_force_unsigned_zero(self) -> None:
+        # Pairs (input, output)
+        test_cases = [
+            ("-0.01", "-0.01"),
+            ("-0.00", "0.00"),
+            ("0.00", "0.00"),
+            ("0.01", "0.01"),
+            ("-123", "-123"),
+            ("-0", "0"),
+            ("0", "0"),
+            ("123", "123"),
+            ("-1e2", "-1e2"),
+            ("-0e2", "0e2"),
+            ("0e2", "0e2"),
+            ("1e2", "1e2"),
+        ]
+
+        for input_str, result_str in test_cases:
+            with self.subTest(input=input_str):
+                input = IntermediateForm.from_str(input_str)
+                result = IntermediateForm.from_str(result_str)
+                self.assertEqual(input.force_unsigned_zero(), result)

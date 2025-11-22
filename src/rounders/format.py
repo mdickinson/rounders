@@ -24,6 +24,7 @@ from rounders.modes import (
     TO_ZERO_05_AWAY,
     RoundingMode,
 )
+from rounders.target_format import TargetFormat
 
 _PATTERN = re.compile(
     r"""
@@ -73,6 +74,9 @@ class FormatSpecification:
     #: Number of significant figures. If given, must be positive.
     figures: int | None = None
 
+    #: Whether the target format allows negative zeros or not.
+    signed_zero: bool = True
+
     #: Whether to always output in scientific format.
     scientific: bool = False
 
@@ -95,89 +99,14 @@ class FormatSpecification:
     #: String used to introduce the exponent.
     e: str = "e"
 
-    #: Sign to use for negative nonzero values.
+    #: Sign to use for negative values.
     negative_sign: str = "-"
-
-    #: Sign to use for negative zero values.
-    negative_zero_sign: str = "-"
 
     #: Sign to use for positive values.
     positive_sign: str = ""
 
-    #: Sign to use for positive zero values.
-    positive_zero_sign: str = ""
-
-    #: Exponent to use for zero.
-    exponent_for_zero: int = 0
-
-    def format(self, rounded: IntermediateForm) -> str:
-        """
-        Format a decimal object in intermediate form using this format specification.
-
-        Parameters
-        ----------
-        rounded
-            The value to be formatted.
-
-        Returns
-        -------
-        str
-            The formatted value.
-        """
-        # Get digits as a decimal string.
-        digits = str(rounded.significand) if rounded.significand else ""
-
-        # Adjust for scientific notation
-        use_exponent = self.scientific
-        if use_exponent:
-            if not rounded.significand:
-                # Q: What should the displayed exponent be in this case?
-                raise NotImplementedError("later")
-
-            # Nonzero value: place the decimal point after the
-            # first digit.
-            e_exponent = rounded.exponent + len(digits) - 1
-            end_exponent = rounded.exponent - e_exponent
-        else:
-            end_exponent = rounded.exponent
-
-        # Figure out number-line positions.
-        start_exponent = end_exponent + len(digits)
-
-        # Pad with zeros to ensure required minimum number of digits before and
-        # after the point.
-        if start_exponent < self.min_digits_before_point:
-            digits = (
-                self.zero * (self.min_digits_before_point - start_exponent) + digits
-            )
-            start_exponent = self.min_digits_before_point
-        if end_exponent >= -self.min_digits_after_point:
-            digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
-            end_exponent = -self.min_digits_after_point
-
-        # Determine the sign.
-        iszero = is_zero(rounded)
-        if rounded.sign:
-            sign_str = self.negative_zero_sign if iszero else self.negative_sign
-        else:
-            sign_str = self.positive_zero_sign if iszero else self.positive_sign
-
-        # Assemble the result.
-        before_point = digits[:start_exponent]
-        after_point = digits[start_exponent:]
-        if after_point or self.always_include_point:
-            point = self.decimal_separator
-        else:
-            point = ""
-        if use_exponent:
-            exponent = self.e + str(e_exponent)
-        else:
-            exponent = ""
-
-        return sign_str + before_point + point + after_point + exponent
-
     @classmethod
-    def from_string(cls, pattern: str) -> FormatSpecification:
+    def from_str(cls, pattern: str) -> FormatSpecification:
         """
         Create a format specification from a format specification string.
 
@@ -200,32 +129,19 @@ class FormatSpecification:
         round_type = match["type"]
         if round_type == "f":
             places = int(match["precision"])
-            kwargs.update(
-                places=places,
-                exponent_for_zero=-places,
-            )
+            kwargs.update(places=places)
         elif round_type == "e":
             kwargs.update(figures=int(match["precision"]) + 1)
             kwargs.update(scientific=True)
         else:
             raise ValueError("Unhandled round type")
 
-        mode_code = match["mode"]
-        if mode_code is not None:
+        if mode_code := match["mode"]:
             kwargs.update(rounding_mode=_MODE_FORMAT_CODES[mode_code])
-
-        sign = match["sign"]
-        if sign == "+" or sign == " ":
-            kwargs.update(
-                positive_sign=sign,
-                positive_zero_sign=sign,
-            )
+        if (sign := match["sign"]) == "+" or sign == " ":
+            kwargs.update(positive_sign=sign)
         if match["no_neg_0"]:
-            if sign == "+" or sign == " ":
-                kwargs.update(negative_zero_sign=sign)
-            else:
-                kwargs.update(negative_zero_sign="")
-
+            kwargs.update(signed_zero=False)
         if match["alt"] is not None:
             kwargs.update(always_include_point=True)
 
@@ -233,6 +149,123 @@ class FormatSpecification:
             round_type=round_type,
             **kwargs,
         )
+
+    @property
+    def target_format(self) -> TargetFormat:
+        """Get the target format for this format specification."""
+        minimum_exponent = None if self.places is None else -self.places
+        return TargetFormat(
+            minimum_exponent=minimum_exponent,
+            maximum_figures=self.figures,
+            signed_zero=self.signed_zero,
+        )
+
+    @property
+    def zero_exponent(self) -> int | None:
+        """
+        Exponent to use when formatting zeros.
+
+        A return value of None indicates that the existing exponent should be passed
+        through.
+        """
+        exponents: list[int] = []
+        if self.places is not None:
+            exponents.append(-self.places)
+        if self.figures is not None:
+            exponents.append(1 - self.figures)
+        return max(exponents, default=None)
+
+    def format(self, rounded: IntermediateForm) -> str:
+        """
+        Format a decimal object in intermediate form using this format specification.
+
+        Parameters
+        ----------
+        rounded
+            The value to be formatted.
+
+        Returns
+        -------
+        str
+            The formatted value.
+        """
+        # Get digits as a decimal string.
+        digits = str(rounded.significand) if rounded.significand else ""
+
+        # Adjust for scientific notation
+        use_exponent = self.scientific
+        if use_exponent and rounded.significand:
+            # Nonzero value: place the decimal point after the first digit.
+            e_exponent = rounded.exponent + len(digits) - 1
+        else:
+            e_exponent = 0
+
+        # Figure out number-line positions.
+        end_exponent = rounded.exponent - e_exponent
+        start_exponent = end_exponent + len(digits)
+
+        # Pad with zeros to ensure required minimum number of digits before and
+        # after the point.
+        if start_exponent < self.min_digits_before_point:
+            digits = (
+                self.zero * (self.min_digits_before_point - start_exponent) + digits
+            )
+            start_exponent = self.min_digits_before_point
+        if end_exponent > -self.min_digits_after_point:
+            digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
+            end_exponent = -self.min_digits_after_point
+
+        # Determine the string to use to represent the sign.
+        sign_str = self.negative_sign if rounded.sign else self.positive_sign
+
+        # Assemble the result.
+        before_point = digits[:start_exponent]
+        after_point = digits[start_exponent:]
+        if after_point or self.always_include_point:
+            point = self.decimal_separator
+        else:
+            point = ""
+        if use_exponent:
+            exponent = self.e + str(e_exponent)
+        else:
+            exponent = ""
+
+        return sign_str + before_point + point + after_point + exponent
+
+
+def round_for_format(
+    x: Any,
+    *,
+    format: TargetFormat,
+    mode: RoundingMode,
+    zero_exponent: int | None,
+) -> IntermediateForm:
+    """
+    Round a finite value to a given target format, using a given rounding mode.
+
+    Returns a value in intermediate form.
+    """
+    exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
+    result: IntermediateForm = preround(x, exponent=exponent)
+
+    target_exponent: int | None
+    if result.is_zero():
+        target_exponent = zero_exponent
+    else:
+        target_exponent = format.minimum_exponent_for_decade(result.decade)
+
+    if target_exponent is not None:
+        result = result.round(target_exponent, mode)
+
+    # Drop negative sign on zeros (even those that arise from rounding nonzero values).
+    if not format.signed_zero:
+        result = result.force_unsigned_zero()
+
+    # Adjust in the case that rounding has changed the decade.
+    if format.maximum_figures is not None:
+        result = result.trim(format.maximum_figures)
+
+    return result
 
 
 def format(value: Any, pattern: str) -> str:
@@ -250,27 +283,15 @@ def format(value: Any, pattern: str) -> str:
     -------
     Formatted string
     """
-    format_specification = FormatSpecification.from_string(pattern)
+    format_specification = FormatSpecification.from_str(pattern)
 
     # Step 1: convert to rounded value.
-    bounds = []
-    if is_zero(value):
-        exponent = format_specification.exponent_for_zero
-
-    else:
-        if format_specification.places is not None:
-            bounds.append(-format_specification.places)
-
-        if format_specification.figures is not None:
-            bounds.append(decade(value) + 1 - format_specification.figures)
-
-        exponent = max(bounds)
-
-    prerounded = preround(value, exponent)
-    rounded = prerounded.round(exponent, format_specification.rounding_mode)
-    if format_specification.figures is not None:
-        # Adjust if necessary.
-        rounded = rounded.trim(format_specification.figures)
+    rounded = round_for_format(
+        value,
+        format=format_specification.target_format,
+        mode=format_specification.rounding_mode,
+        zero_exponent=format_specification.zero_exponent,
+    )
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)

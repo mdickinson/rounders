@@ -6,6 +6,7 @@ import unittest
 
 from rounders.format import FormatSpecification, format
 from rounders.intermediate_form import IntermediateForm
+from rounders.target_format import TargetFormat
 
 
 class TestFormat(unittest.TestCase):
@@ -93,6 +94,11 @@ class TestFormat(unittest.TestCase):
             ("0.996", ".1e", "1.0e0"),
             ("3.14159", ".0e", "3e0"),
             ("3.14159", "#.0e", "3.e0"),
+            # Formatting zeros
+            ("0", ".2e", "0.00e0"),
+            ("0", ".1e", "0.0e0"),
+            ("0", ".0e", "0e0"),
+            ("0", "#.0e", "0.e0"),
         ]
         self.check_cases(cases)
 
@@ -208,8 +214,8 @@ class TestFormat(unittest.TestCase):
                 self.assertEqual(actual_result, expected_result)
 
 
-class TestFormatFromSpecification(unittest.TestCase):
-    """Test FormatSpecification.format."""
+class TestFormatSpecification(unittest.TestCase):
+    """Tests for FormatSpecification."""
 
     def test_min_digits_before_point(self) -> None:
         format_specification = FormatSpecification(
@@ -229,4 +235,18 @@ class TestFormatFromSpecification(unittest.TestCase):
                 IntermediateForm(sign=0, significand=67, exponent=-3)
             ),
             ".067",
+        )
+
+    def test_target_format(self) -> None:
+        self.assertEqual(
+            FormatSpecification(places=3).target_format,
+            TargetFormat(minimum_exponent=-3),
+        )
+        self.assertEqual(
+            FormatSpecification(figures=6).target_format,
+            TargetFormat(maximum_figures=6),
+        )
+        self.assertEqual(
+            FormatSpecification(signed_zero=False).target_format,
+            TargetFormat(signed_zero=False),
         )
