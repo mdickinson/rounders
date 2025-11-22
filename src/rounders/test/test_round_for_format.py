@@ -60,9 +60,10 @@ import decimal
 import fractions
 import unittest
 
-from rounders.format import TargetFormat, round_for_format
+from rounders.format import round_for_format
 from rounders.intermediate_form import IntermediateForm
 from rounders.modes import TIES_TO_EVEN, TO_AWAY, TO_ZERO
+from rounders.target_format import TargetFormat
 
 
 class TestRoundForFormat(unittest.TestCase):
