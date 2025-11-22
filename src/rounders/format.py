@@ -73,6 +73,9 @@ class FormatSpecification:
     #: Number of significant figures. If given, must be positive.
     figures: int | None = None
 
+    #: Whether the target format allows negative zeros or not.
+    signed_zero: bool = True
+
     #: Whether to always output in scientific format.
     scientific: bool = False
 
@@ -95,17 +98,11 @@ class FormatSpecification:
     #: String used to introduce the exponent.
     e: str = "e"
 
-    #: Sign to use for negative nonzero values.
+    #: Sign to use for negative values.
     negative_sign: str = "-"
-
-    #: Sign to use for negative zero values.
-    negative_zero_sign: str = "-"
 
     #: Sign to use for positive values.
     positive_sign: str = ""
-
-    #: Sign to use for positive zero values.
-    positive_zero_sign: str = ""
 
     #: Exponent to use for zero.
     exponent_for_zero: int = 0
@@ -150,15 +147,9 @@ class FormatSpecification:
 
         sign = match["sign"]
         if sign == "+" or sign == " ":
-            kwargs.update(
-                positive_sign=sign,
-                positive_zero_sign=sign,
-            )
+            kwargs.update(positive_sign=sign)
         if match["no_neg_0"]:
-            if sign == "+" or sign == " ":
-                kwargs.update(negative_zero_sign=sign)
-            else:
-                kwargs.update(negative_zero_sign="")
+            kwargs.update(signed_zero=False)
 
         if match["alt"] is not None:
             kwargs.update(always_include_point=True)
@@ -213,12 +204,8 @@ class FormatSpecification:
             digits = digits + self.zero * (end_exponent + self.min_digits_after_point)
             end_exponent = -self.min_digits_after_point
 
-        # Determine the sign.
-        iszero = is_zero(rounded)
-        if rounded.sign:
-            sign_str = self.negative_zero_sign if iszero else self.negative_sign
-        else:
-            sign_str = self.positive_zero_sign if iszero else self.positive_sign
+        # Determine the string to use to represent the sign.
+        sign_str = self.negative_sign if rounded.sign else self.positive_sign
 
         # Assemble the result.
         before_point = digits[:start_exponent]
@@ -268,6 +255,11 @@ def format(value: Any, pattern: str) -> str:
 
     prerounded = preround(value, exponent)
     rounded = prerounded.round(exponent, format_specification.rounding_mode)
+
+    # Drop negative sign on zeros (even those that arise from rounding nonzero values).
+    if not format_specification.signed_zero:
+        rounded = rounded.force_unsigned_zero()
+
     if format_specification.figures is not None:
         # Adjust if necessary.
         rounded = rounded.trim(format_specification.figures)
