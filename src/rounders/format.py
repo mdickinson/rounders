@@ -303,8 +303,5 @@ def format(value: Any, pattern: str) -> str:
         zero_exponent=format_specification.zero_exponent,
     )
 
-    # XXX Remove this once everything's well tested and working
-    assert rounded in format_specification.target_format
-
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)

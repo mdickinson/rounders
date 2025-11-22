@@ -2,8 +2,6 @@
 
 import dataclasses
 
-from rounders.intermediate_form import IntermediateForm
-
 
 @dataclasses.dataclass(frozen=True)
 class TargetFormat:
@@ -23,14 +21,6 @@ class TargetFormat:
 
     # Whether to allow negative zeros.
     signed_zero: bool = True
-
-    def __contains__(self, value: IntermediateForm) -> bool:
-        """Determine whether a value belongs to this format."""
-        return (
-            (self.minimum_exponent is None or value.exponent >= self.minimum_exponent)
-            and (self.maximum_figures is None or value.figures <= self.maximum_figures)
-            and (self.signed_zero or value.sign == 0 or value.significand != 0)
-        )
 
     def minimum_exponent_for_decade(self, decade: int) -> int | None:
         """
