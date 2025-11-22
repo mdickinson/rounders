@@ -233,6 +233,41 @@ class FormatSpecification:
         return sign_str + before_point + point + after_point + exponent
 
 
+def round_for_format(
+    x: Any,
+    *,
+    format: TargetFormat,
+    mode: RoundingMode,
+    zero_exponent: int,
+) -> IntermediateForm:
+    """
+    Round a finite value to a given target format, using a given rounding mode.
+
+    Returns a value in intermediate form.
+    """
+    exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
+    result: IntermediateForm = preround(x, exponent=exponent)
+
+    target_exponent: int | None
+    if result.is_zero():
+        target_exponent = zero_exponent
+    else:
+        target_exponent = format.minimum_exponent_for_decade(result.decade)
+
+    if target_exponent is not None:
+        result = result.round(target_exponent, mode)
+
+    # Drop negative sign on zeros (even those that arise from rounding nonzero values).
+    if not format.signed_zero:
+        result = result.force_unsigned_zero()
+
+    # Adjust in the case that rounding has changed the decade.
+    if format.maximum_figures is not None:
+        result = result.trim(format.maximum_figures)
+
+    return result
+
+
 def format(value: Any, pattern: str) -> str:
     """
     Format a value using the given pattern.
@@ -251,29 +286,12 @@ def format(value: Any, pattern: str) -> str:
     format_specification = FormatSpecification.from_str(pattern)
 
     # Step 1: convert to rounded value.
-    bounds = []
-    if is_zero(value):
-        exponent = format_specification.exponent_for_zero
-
-    else:
-        if format_specification.places is not None:
-            bounds.append(-format_specification.places)
-
-        if format_specification.figures is not None:
-            bounds.append(decade(value) + 1 - format_specification.figures)
-
-        exponent = max(bounds)
-
-    prerounded = preround(value, exponent)
-    rounded = prerounded.round(exponent, format_specification.rounding_mode)
-
-    # Drop negative sign on zeros (even those that arise from rounding nonzero values).
-    if not format_specification.signed_zero:
-        rounded = rounded.force_unsigned_zero()
-
-    if format_specification.figures is not None:
-        # Adjust if necessary.
-        rounded = rounded.trim(format_specification.figures)
+    rounded = round_for_format(
+        value,
+        format=format_specification.target_format,
+        mode=format_specification.rounding_mode,
+        zero_exponent=format_specification.exponent_for_zero,
+    )
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
     return format_specification.format(rounded)
