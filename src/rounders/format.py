@@ -189,21 +189,35 @@ class FormatSpecification:
         str
             The formatted value.
         """
-        # Get digits as a decimal string.
+        # Get necessary attributes.
         digits = rounded.digits
+        low_exponent = rounded.exponent
+        high_exponent = rounded.exponent + len(digits)
+        sign = rounded.sign
 
         # Adjust for scientific notation. e_exponent is the value that will appear after
         # the 'e' in the formatted result.
         use_exponent = self.scientific
-        if use_exponent and rounded.significand:
-            # Nonzero value: place the decimal point after the first digit.
-            e_exponent = rounded.exponent + len(digits) - 1
+        if use_exponent:
+            if digits:
+                # Nonzero value: place the decimal point after the first digit.
+                e_exponent = low_exponent + len(digits) - 1
+            else:
+                # XXX Can we somehow eliminate this special case?
+                # Only by altering digits in the case of significand zero ...
+                if low_exponent <= 0:
+                    digits = "0" * (1 - low_exponent)
+                    high_exponent = 1
+                    e_exponent = low_exponent + len(digits) - 1
+                else:
+                    assert False, "never get here"
+                    e_exponent = 0
         else:
             e_exponent = 0
 
         # Figure out number-line positions.
-        end_exponent = rounded.exponent - e_exponent
-        start_exponent = end_exponent + len(digits)
+        start_exponent = high_exponent - e_exponent
+        end_exponent = low_exponent - e_exponent
 
         # Pad with zeros to ensure required minimum number of digits before and
         # after the point.
@@ -217,7 +231,7 @@ class FormatSpecification:
             end_exponent = -self.min_digits_after_point
 
         # Determine the string to use to represent the sign.
-        sign_str = self.negative_sign if rounded.sign else self.positive_sign
+        sign_str = self.negative_sign if sign else self.positive_sign
 
         # Assemble the result.
         before_point = digits[:start_exponent]
