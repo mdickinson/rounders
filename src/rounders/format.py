@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from typing import Any
+from typing import Any, Self
 
 from rounders.generics import decade, is_zero, preround
 from rounders.intermediate_form import IntermediateForm
@@ -106,7 +106,7 @@ class FormatSpecification:
     positive_sign: str = ""
 
     @classmethod
-    def from_str(cls, pattern: str) -> FormatSpecification:
+    def from_str(cls, pattern: str) -> Self:
         """
         Create a format specification from a format specification string.
 
