@@ -10,12 +10,11 @@ on:
     paths:
       - .github/workflows/copilot-setup-steps.yml
 
-permissions:
-  contents: read
-
 jobs:
   copilot-setup-steps:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
