@@ -37,15 +37,12 @@ def _natural_exponent(d: int) -> int | None:
     if d <= 0:
         raise ValueError("d must be positive")
 
-    # Count and remove powers of two.
+    # Count powers of two.
     two_exp = (~(d | -d)).bit_length()
-    d >>= two_exp
 
-    # Determine whether d is a power of 5, and if so find its exponent.
-    # Note: there are much faster ways of doing this, and if this ever proves to
-    # be a performance bottleneck then we should optimize.
+    # Determine whether what's left after removing powers of two is a power of 5.
     try:
-        five_exp = log5exact(d)
+        five_exp = log5exact(d >> two_exp)
     except ValueError:
         return None
 
