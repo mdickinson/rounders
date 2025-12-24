@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import dataclasses
 import re
-from typing import Any, Self
+from typing import Any
+
+from typing_extensions import Self
 
 from rounders.generics import decade, is_zero, preround
 from rounders.intermediate_form import IntermediateForm

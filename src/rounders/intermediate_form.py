@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, replace
-from typing import Self, cast
+from typing import cast
+
+from typing_extensions import Self
 
 from rounders.modes import RoundingMode
 
