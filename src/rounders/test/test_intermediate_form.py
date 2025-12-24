@@ -89,6 +89,68 @@ class TestIntermediateForm(unittest.TestCase):
                         exponent=None,
                     )
 
+    def test_from_signed_fraction_with_exponent(self) -> None:
+        # Test cases (numerator, denominator, exponent, expected_result (as string))
+        cases = [
+            # Simple cases
+            (1, 3, -3, "0.333"),
+            # Round-for-reround in action
+            (27, 79, -3, "0.341"),  # value 0.341771...; truncated
+            (14, 41, -3, "0.341"),  # value 0.341463...; truncated
+            (15, 44, -3, "0.341"),  # value 0.340909...; truncated then bumped
+            (16, 47, -3, "0.341"),  # value 0.340425...; truncated then bumped
+            (69, 200, -3, "0.345"),  # value exactly 0.345; no bump because exact
+            (39, 113, -3, "0.346"),  # value 0.345132...; truncated then bumped
+            # Representable case, natural exponent < 0
+            (5, 8, -3, "0.625"),
+            (5, 8, -2, "0.62"),
+            (5, 8, -1, "0.6"),
+            (5, 8, 0, "1"),
+            (5, 8, 1, "1e1"),
+            (5, 8, -4, "0.625"),
+            # Representable case, natural exponent > 0
+            (300, 1, -3, "300"),
+            (300, 1, -2, "300"),
+            (300, 1, -1, "300"),
+            (300, 1, 0, "300"),
+            (300, 1, 1, "30e1"),
+            (300, 1, 2, "3e2"),
+            (300, 1, 3, "1e3"),
+            # Representable case, natural exponent = 0
+            (5, 1, -3, "5"),
+            (5, 1, -2, "5"),
+            (5, 1, -1, "5"),
+            (5, 1, 0, "5"),
+            (5, 1, 1, "1e1"),
+            (5, 1, 2, "1e2"),
+            (5, 1, 3, "1e3"),
+        ]
+
+        for numerator, denominator, exponent, expected_result_str in cases:
+            with self.subTest(
+                numerator=numerator,
+                denominator=denominator,
+                exponent=exponent,
+            ):
+                self.assertEqual(
+                    IntermediateForm.from_signed_fraction(
+                        sign=0,
+                        numerator=numerator,
+                        denominator=denominator,
+                        exponent=exponent,
+                    ),
+                    IntermediateForm.from_str(expected_result_str),
+                )
+                self.assertEqual(
+                    IntermediateForm.from_signed_fraction(
+                        sign=1,
+                        numerator=numerator,
+                        denominator=denominator,
+                        exponent=exponent,
+                    ),
+                    IntermediateForm.from_str("-" + expected_result_str),
+                )
+
     def test_is_zero(self) -> None:
         self.assertTrue(IntermediateForm.from_str("0").is_zero())
         self.assertTrue(IntermediateForm.from_str("0e10").is_zero())
