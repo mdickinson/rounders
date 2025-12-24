@@ -3,7 +3,8 @@
 import math
 import unittest
 
-from rounders.intermediate_form import IntermediateForm, log5exact
+from rounders.intermediate_form import IntermediateForm
+from rounders.log5exact import log5exact
 
 
 class TestIntermediateForm(unittest.TestCase):
