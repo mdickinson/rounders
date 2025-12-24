@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass, replace
 from typing import cast
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from rounders.modes import RoundingMode
 
@@ -67,7 +73,7 @@ class IntermediateForm:
     exponent: int
 
     @classmethod
-    def from_str(cls, s: str) -> IntermediateForm:
+    def from_str(cls, s: str) -> Self:
         """
         Create an intermediate form from a string.
 
@@ -87,7 +93,7 @@ class IntermediateForm:
     @classmethod
     def from_signed_fraction(
         cls, *, sign: int, numerator: int, denominator: int, exponent: int | None
-    ) -> IntermediateForm:
+    ) -> Self:
         """
         Create from a signed fraction, given a target exponent.
 
@@ -120,7 +126,7 @@ class IntermediateForm:
 
         # Round-for-reround
         significand, inexact = divmod(n, d)
-        return IntermediateForm(
+        return cls(
             sign=sign,
             significand=significand + (inexact and significand % 5 == 0),
             exponent=exponent,
