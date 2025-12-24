@@ -7,6 +7,8 @@ import sys
 from dataclasses import dataclass, replace
 from typing import cast
 
+from rounders.log5exact import log5exact
+
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
@@ -25,14 +27,6 @@ _INTERMEDIATE_FORM_PATTERN = re.compile(
     re.VERBOSE,
 )
 
-_5_POW_256 = 5**256
-
-#: Lookup table from bits 9 through 2 of a power of 5 to the matching power.
-_5_POW_FROM_LOW_BITS = {(5**e >> 2) & 0xFF: 5**e for e in range(256)}
-
-#: Lookup table from bits 9 through 2 of a power of 5 to the matching exponent.
-_5_POW_EXPONENT_FROM_LOW_BITS = {(5**e >> 2) & 0xFF: e for e in range(256)}
-
 
 def _natural_exponent(d: int) -> int | None:
     """
@@ -50,45 +44,12 @@ def _natural_exponent(d: int) -> int | None:
     # Determine whether d is a power of 5, and if so find its exponent.
     # Note: there are much faster ways of doing this, and if this ever proves to
     # be a performance bottleneck then we should optimize.
-    five_exp = 0
-    while d % 5 == 0:
-        d //= 5
-        five_exp += 1
-    if d != 1:
+    try:
+        five_exp = log5exact(d)
+    except ValueError:
         return None
 
     return -max(two_exp, five_exp)
-
-
-def log5exact(d: int) -> int:
-    """
-    Find the exponent of an exact power of 5.
-
-    Returns e if d = 5**e for some nonnegative integer e. Otherwise,
-    raises ValueError.
-    """
-    if d <= 0 or d & 3 != 1:
-        raise ValueError(f"{d} is not a power of 5")
-
-    # If d is a power of 5, it's divisible by 5**e where e is determined
-    # by the lower order bits of d.
-    low_bits = d >> 2 & 0xFF
-    d, rem = divmod(d, _5_POW_FROM_LOW_BITS[low_bits])
-    if rem:
-        raise ValueError(f"{d} is not a power of 5")
-    five_exp = _5_POW_EXPONENT_FROM_LOW_BITS[low_bits]
-
-    while True:
-        q, r = divmod(d, _5_POW_256)
-        if r:
-            break
-        else:
-            d = q
-            five_exp += 256
-    if d != 1:
-        raise ValueError(f"{d} is not a power of 5")
-
-    return five_exp
 
 
 @dataclass(frozen=True)
