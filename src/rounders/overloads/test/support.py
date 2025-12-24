@@ -8,14 +8,14 @@ from rounders.intermediate_form import IntermediateForm
 def truncate_and_remainder(
     value: IntermediateForm, exponent: int | None
 ) -> tuple[IntermediateForm, int]:
-    """Truncate value to the given exponent and determine class of the remainder.
+    """Truncate value to the given exponent and determine the class of the remainder.
 
     The class of the remainder is an integer in [0, 3] with the following meaning:
 
     0: No remainder
-    1: Remainder less than half
-    2: Remainder exactly half
-    3: Remainder greater than half
+    1: Remainder less than half of 10**exponent
+    2: Remainder exactly half of 10**exponent
+    3: Remainder greater than half of 10**exponent
     """
     if exponent is None or value.exponent >= exponent:
         return value, 0
