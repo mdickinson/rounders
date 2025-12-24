@@ -2,10 +2,19 @@
 # This file configures the development environment for GitHub Copilot
 # See: https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/customize-the-agent-environment
 
-steps:
-  - uses: astral-sh/setup-uv@v7
-    with:
-      version: "0.9.9"
-      python-version: "3.10"
-  - name: Set up environment
-    run: uv sync --locked
+name: copilot-setup-steps
+
+permissions:
+  contents: read
+
+jobs:
+  copilot-setup-steps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.9.9"
+          python-version: "3.10"
+      - name: Set up environment
+        run: uv sync --locked
