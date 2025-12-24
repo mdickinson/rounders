@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import dataclasses
 import re
+import sys
 from typing import Any
 
-from typing_extensions import Self
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from rounders.generics import decade, is_zero, preround
 from rounders.intermediate_form import IntermediateForm

@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass, replace
 from typing import cast
 
-from typing_extensions import Self
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from rounders.modes import RoundingMode
 
