@@ -93,8 +93,8 @@ class IntermediateForm:
 
         Creates an IntermediateForm from a quotient of the form ±(n/d) with either the
         target exponent or the natural exponent of the input, using round-for-reround.
-        The natural exponent of the input is the largest integer e for which (n/d) /
-        10**e is an integer, if any such exists, else None.
+        The natural exponent of the input is the largest nonpositive integer e for which
+        (n/d) / 10**e is an integer, if any such exists, else None.
 
         If exponent is None, then the signed fraction must be exactly representable
         in decimal format, otherwise a ValueError will be raised.
