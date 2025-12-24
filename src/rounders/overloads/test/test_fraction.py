@@ -79,7 +79,6 @@ class TestFractionOverloads(unittest.TestCase):
             (1, 16, -3, "0.0625"),
             (1, 5**4, -3, "0.0016"),
             (1234, 10000, -3, "0.1231"),
-
             # Inexact cases
             (1, 7, -6, "0.1428571"),
             (1, 7, -7, "0.14285711"),
@@ -100,5 +99,5 @@ class TestFractionOverloads(unittest.TestCase):
                 actual = preround(value, exponent)
                 self.assertEqual(
                     truncate_and_remainder(actual, exponent),
-                    truncate_and_remainder(expected, exponent)
+                    truncate_and_remainder(expected, exponent),
                 )
