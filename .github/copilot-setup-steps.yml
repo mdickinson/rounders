@@ -4,6 +4,9 @@
 
 name: copilot-setup-steps
 
+on:
+  workflow_call:
+
 permissions:
   contents: read
 
