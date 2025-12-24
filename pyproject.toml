@@ -8,6 +8,9 @@ version = "0.3.0"
 description = 'round-function equivalents with different rounding-modes'
 readme = 'README.md'
 requires-python = '>=3.10'
+dependencies = [
+    "typing-extensions>=4.0.0; python_version < '3.11'",
+]
 authors = [{ name = 'Mark Dickinson', email = 'dickinsm@gmail.com' }]
 keywords = [
     'round',

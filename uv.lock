@@ -243,6 +243,9 @@ wheels = [
 name = "rounders"
 version = "0.3.0"
 source = { editable = "." }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -252,6 +255,7 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.0.0" }]
 
 [package.metadata.requires-dev]
 dev = [
