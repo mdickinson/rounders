@@ -20,16 +20,17 @@ _INTERMEDIATE_FORM_PATTERN = re.compile(
 )
 
 
-def _smallest_ten_power_multiple(d: int) -> int:
+def _natural_exponent(d: int) -> int | None:
     """
-    Find smallest power of 10 that's divisible by a positive integer d.
+    Find the largest integer e such that 1/d is a multiple of 10**e.
 
-    Raises ValueError if there's no such power.
+    Return None if there's no such integer.
     """
-    assert d > 0
+    if d <= 0:
+        raise ValueError("d must be positive")
 
     # Count and remove powers of two.
-    two_exp = (d & -d).bit_length() - 1
+    two_exp = (~(d | -d)).bit_length()
     d >>= two_exp
 
     # Determine whether d is a power of 5, and if so find its exponent.
@@ -40,9 +41,9 @@ def _smallest_ten_power_multiple(d: int) -> int:
         d //= 5
         five_exp += 1
     if d != 1:
-        raise ValueError("d is not a divisor of any power of 10")
+        return None
 
-    return max(two_exp, five_exp)
+    return -max(two_exp, five_exp)
 
 
 @dataclass(frozen=True)
@@ -90,8 +91,10 @@ class IntermediateForm:
         """
         Create from a signed fraction, given a target exponent.
 
-        Creates an IntermediateForm from a quotient of the form ±(n/d) with the target
-        exponent, using round-for-reround.
+        Creates an IntermediateForm from a quotient of the form ±(n/d) with either the
+        target exponent or the natural exponent of the input, using round-for-reround.
+        The natural exponent of the input is the largest integer e for which (n/d) /
+        10**e is an integer, if any such exists, else None.
 
         If exponent is None, then the signed fraction must be exactly representable
         in decimal format, otherwise a ValueError will be raised.
@@ -102,28 +105,24 @@ class IntermediateForm:
         if numerator < 0 or denominator <= 0:
             raise ValueError("Invalid signed fraction representation")
 
-        # Case where exponent is None: convert exactly if possible, else raise
-        # a ValueError. We use the largest nonpositive exponent possible.
-        if exponent is None:
-            e = _smallest_ten_power_multiple(denominator)
-            assert 10**e % denominator == 0
-            return IntermediateForm(
-                sign=sign,
-                significand=numerator * (10**e // denominator),
-                exponent=-e,
-            )
+        exponents: list[int] = []
+        if (natural_exponent := _natural_exponent(denominator)) is not None:
+            exponents.append(natural_exponent)
+        if exponent is not None:
+            exponents.append(exponent)
 
-        if exponent <= 0:
-            n, d = numerator * cast(int, 10**-exponent), denominator
+        e = max(exponents)
+        if e <= 0:
+            n, d = numerator * cast(int, 10**-e), denominator
         else:
-            n, d = numerator, denominator * cast(int, 10**exponent)
+            n, d = numerator, denominator * cast(int, 10**e)
 
         # Round-for-reround
         significand, inexact = divmod(n, d)
         return IntermediateForm(
             sign=sign,
             significand=significand + (inexact and significand % 5 == 0),
-            exponent=exponent,
+            exponent=e,
         )
 
     @property
