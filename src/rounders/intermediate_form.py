@@ -105,24 +105,25 @@ class IntermediateForm:
         if numerator < 0 or denominator <= 0:
             raise ValueError("Invalid signed fraction representation")
 
-        exponents: list[int] = []
-        if (natural_exponent := _natural_exponent(denominator)) is not None:
-            exponents.append(natural_exponent)
-        if exponent is not None:
-            exponents.append(exponent)
+        exponents: list[int | None] = [_natural_exponent(denominator), exponent]
+        exponent = max([e for e in exponents if e is not None], default=None)
+        if exponent is None:
+            raise ValueError(
+                f"cannot represent fraction {numerator}/{denominator} "
+                f"exactly as a decimal"
+            )
 
-        e = max(exponents)
-        if e <= 0:
-            n, d = numerator * cast(int, 10**-e), denominator
+        if exponent <= 0:
+            n, d = numerator * cast(int, 10**-exponent), denominator
         else:
-            n, d = numerator, denominator * cast(int, 10**e)
+            n, d = numerator, denominator * cast(int, 10**exponent)
 
         # Round-for-reround
         significand, inexact = divmod(n, d)
         return IntermediateForm(
             sign=sign,
             significand=significand + (inexact and significand % 5 == 0),
-            exponent=e,
+            exponent=exponent,
         )
 
     @property
