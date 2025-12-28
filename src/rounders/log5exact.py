@@ -6,20 +6,21 @@ We want to:
   work in the case that it isn't), and
 - if it is, compute the exponent.
 
-For the remainder of this description, assume n is a positive integer. We can
-reasonably assume that n < 2**(2**64); i.e., that the bit length of n is at most
-2**64.
+For the remainder of this description, assume n is a positive integer. Since n must be
+representable in Python, we can reasonably assume that n < 2**2**64; i.e., that the
+bit length of n is at most 2**64.
 
 ## Bit-length methods
 
-Suppose b is the bit length of n, so 2**(b-1) <= n < 2**b. Let L and U be rational lower
-and upper (respectively) bounds on log5(2). Then if n = 5**e, we have:
+Suppose b is the bit length of n, so 2**(b - 1) <= n < 2**b. Let L and U be lower
+and upper (respectively) bounds on log5(2). Then if n = 5**e for some nonnegative
+integer e, we have:
 
     (b - 1)L <= e < bU
 
 So
 
-    ceil((b-1)L) <= e < ceil(bU).
+    ceil((b - 1)L) <= e < ceil(bU).
 
 If the bounds L and U are sufficiently tight and b is not too large, these bounds
 determine e uniquely. In particular, if bU - (b - 1)L <= 1, then ceil(bU) <=
@@ -34,18 +35,27 @@ Suitable bounds are:
 with a difference U - L = 1/37631338061465733339, which is just a touch smaller than
 2**-65 = 1/36893488147419103232.
 
-## Low order bits
+## Methods based on low order bits
 
 If n = 5**e, then the last two bits of n are 01. Any pattern of low-order bits ending
 in 01 can arise from a power of 5. Moreover, the last b + 2 bits of 5**e determine e
 modulo 2**b (so for example, the last 10 bits determine e mod 256).
 
-## Small cases
+So we can use a lookup table of size 256 (say) to determine the value of the exponent
+e modulo 256 from the last 10 bits of n. If n is small enough (less than 5**256), we can
+just check directly that n matches the corresponding power of 5.
 
-For n < 5**256, we can precompute a mapping from the last 8 bits of n >> 2 to the
-corresponding power of 5.
+## Overall strategy
 
+The code below uses both of the above tricks:
 
+- First check that n is positive and congruent to 1 modulo 4.
+- Use the last 10 bits of n to determine e mod 256. If n < 5**256, then
+  e < 256, so we can check directly that n matches 5**e (using a table of
+  powers of 5, keyed on the last 8 bits of n >> 2).
+- Use the bit-length method to compute e. Check that e mod 256 matches what we
+  already know.
+- Before checking that n = 5**e, do a fast limited precision check modulo 2**60.
 """
 
 # Numerator and denominator of tight lower and upper bounds for log2(5).
@@ -103,11 +113,8 @@ def log5exact(d: int) -> int:
         raise ValueError(f"{d} is not a power of 5")
 
     # At this point we know that d has the same bit length as 5**e, and matches 5**e
-    # modulo 1024. Before checking the full value, check modulo 2**66.
-    if (
-        pow(5, e, 0x40_0000_0000_0000_0000) == d & 0x3_FFFF_FFFF_FFFF_FFFF
-        and pow(5, e) == d
-    ):
+    # modulo 2**10. Before checking the full value, do a fast check modulo 2**60.
+    if pow(5, e, 2**60) == d & 2**60 - 1 and pow(5, e) == d:
         return e
 
     raise ValueError(f"{d} is not a power of 5")
