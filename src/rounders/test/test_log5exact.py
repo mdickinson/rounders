@@ -21,15 +21,11 @@ class TestLog5exact(unittest.TestCase):
     def test_exponent_from_bit_length_small_inputs(self) -> None:
         for b in range(1000):
             with self.subTest(b=b):
-                try:
-                    e = exponent_from_bit_length(b)
-                except ValueError:
-                    pass
-                else:
+                if (e := exponent_from_bit_length(b)) is not None:
                     self.assertEqual((5**e).bit_length(), b)
 
     def test_log5exact_small_powers_of_5(self) -> None:
-        for e in range(256):
+        for e in range(1000):
             with self.subTest(e=e):
                 self.assertEqual(log5exact(5**e), e)
 
@@ -46,7 +42,7 @@ class TestLog5exact(unittest.TestCase):
         self.assertEqual(powers_of_five, [(1, 0), (5, 1), (25, 2), (125, 3)])
 
     def test_log5exact_nearby_values(self) -> None:
-        for e in range(1, 257):
+        for e in range(1, 500):
             p = 5**e
             for delta in [-3, -2, -1, 1, 2, 3]:
                 d = p + delta

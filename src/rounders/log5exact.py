@@ -2,8 +2,8 @@
 
 We want to:
 
-- efficiently determine whether a given integer is an exact power of 5 (with minimal
-  work in the case that it isn't), and
+- efficiently determine whether a given positive integer is an exact power of 5, with
+  minimal work in the case that it isn't, and
 - if it is, compute the exponent.
 
 For the remainder of this description, assume n is a positive integer. Since n must be
@@ -47,72 +47,59 @@ just check directly that n matches the corresponding power of 5.
 
 ## Overall strategy
 
-The code below uses both of the above tricks:
+The code below combines the above methods:
 
-- First check that n is positive and congruent to 1 modulo 4.
-- Use the last 10 bits of n to determine e mod 256. If n < 5**256, then
-  e < 256, so we can check directly that n matches 5**e (using a table of
-  powers of 5, keyed on the last 8 bits of n >> 2).
-- Use the bit-length method to compute e. Check that e mod 256 matches what we
-  already know.
-- Before checking that n = 5**e, do a fast limited precision check modulo 2**60.
+- For d smaller than 5**256, use the ten least significant bits of d to determine the
+  exponent e and matching power 5**e, and compare d with 5**e.
+- For the general case, use the bit-length method to compute e, and check that:
+  - e mod 256 matches the exponent determined by the least significant bits of n, then
+  - 5**e matches d modulo 2**60 (a fast limited-precision check), then
+  - 5**e = d.
 """
 
 # Numerator and denominator of tight lower and upper bounds for log2(5).
 _Ln, _Ld = 12055151410, 27991194747
 _Un, _Ud = 579001193, 1344399137
 
-# Bound below which we do a direct lookup based on low-order bits.
-_5_POW_256 = 5**256
 
-# _5_POW_EXPONENT_FROM_LOW_BITS maps bits 9 through 2 of a power of 5 to the matching
-# exponent. _5_POW_FROM_LOW_BITS maps the same bits to the corresponding power.
-_5_POW_EXPONENT_FROM_LOW_BITS = [
-    e for _, e in sorted((pow(5, e, 1024) >> 2, e) for e in range(256))
-]
-_5_POW_FROM_LOW_BITS = [5**e for e in _5_POW_EXPONENT_FROM_LOW_BITS]
-
-
-def exponent_from_bit_length(b: int) -> int:
+def exponent_from_bit_length(b: int) -> int | None:
     """
     Given the bit length b of an integer n = 5**e, return e.
 
-    Raise ValueError if b cannot possibly be the bit length of a power of 5.
+    Assumes that the input b satisfies 0 <= b <= 2**64; results for b outside this range
+    are not defined. Returns None if b is not the bit length of a power of 5.
     """
     if (e := -((b - 1) * _Ln // -_Ld)) == -(b * _Un // -_Ud) - 1:
         return e
-    raise ValueError(f"bit length {b} does not correspond to a power of 5")
+    return None
+
+
+# Bound below which we do a direct lookup based on low-order bits.
+_5_POW_256 = 5**256
+
+# _5_POW_EXPONENT_FROM_LOW_BITS maps the low order bits of a power of 5 to the matching
+# exponent. _5_POW_FROM_LOW_BITS maps the same bits to the corresponding power.
+_5_POW_EXPONENT_FROM_LOW_BITS = {pow(5, e, 1024): e for e in range(256)}
+_5_POW_FROM_LOW_BITS = {bits: 5**e for bits, e in _5_POW_EXPONENT_FROM_LOW_BITS.items()}
 
 
 def log5exact(d: int) -> int:
     """
     Find the exponent of an exact power of 5.
 
-    Returns e if d = 5**e for some nonnegative integer e. Otherwise,
-    raises ValueError.
+    Returns e if d = 5**e for some nonnegative integer e. Raises ValueError otherwise.
     """
-    # Any power of 5 must be positive and congruent to 1 modulo 4.
-    if d <= 0 or d & 0x3 != 1:
-        raise ValueError(f"{d} is not a power of 5")
-
-    # Find the smallest power of 5 matching the last 10 bits of d.
-    # For small d, it's enough to compare directly that power.
-    low_bits = (d & 0x3FF) >> 2
     if d < _5_POW_256:
-        if d == _5_POW_FROM_LOW_BITS[low_bits]:
+        if d == _5_POW_FROM_LOW_BITS.get(low_bits := d & 0x3FF):
             return _5_POW_EXPONENT_FROM_LOW_BITS[low_bits]
-        else:
-            raise ValueError(f"{d} is not a power of 5")
-
-    # For larger d, compute the exponent based on the bit length, and check that
-    # its last 8 bits match what we already know.
-    e = exponent_from_bit_length(d.bit_length())
-    if e & 0xFF != _5_POW_EXPONENT_FROM_LOW_BITS[low_bits]:
-        raise ValueError(f"{d} is not a power of 5")
-
-    # At this point we know that d has the same bit length as 5**e, and matches 5**e
-    # modulo 2**10. Before checking the full value, do a fast check modulo 2**60.
-    if pow(5, e, 2**60) == d & 2**60 - 1 and pow(5, e) == d:
-        return e
+    else:
+        e = exponent_from_bit_length(d.bit_length())
+        if (
+            e is not None
+            and e & 0xFF == _5_POW_EXPONENT_FROM_LOW_BITS.get(d & 0x3FF)
+            and pow(5, e, 2**60) == d & 2**60 - 1
+            and pow(5, e) == d
+        ):
+            return e
 
     raise ValueError(f"{d} is not a power of 5")
