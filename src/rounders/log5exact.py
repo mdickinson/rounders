@@ -24,7 +24,7 @@ So
 
 If the bounds L and U are sufficiently tight and b is not too large, these bounds
 determine e uniquely. In particular, if bU - (b - 1)L <= 1, then ceil(bU) <=
-ceil((b-1)L) + 1, so there's at most one integer e satisfying the inequalities. Given
+ceil((b - 1)L) + 1, so there's at most one integer e satisfying the inequalities. Given
 our assumption that b <= 2**64, it's enough that U - L < (1 - log5(2)) / 2**64, and
 since log5(2) < 0.5, it's enough that U - L < 2**-65.
 
