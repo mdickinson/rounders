@@ -57,7 +57,7 @@ The code below combines the above methods:
   - 5**e = d.
 """
 
-# Numerator and denominator of tight lower and upper bounds for log2(5).
+# Numerator and denominator of tight lower and upper bounds for log5(2).
 _Ln, _Ld = 12055151410, 27991194747
 _Un, _Ud = 579001193, 1344399137
 
