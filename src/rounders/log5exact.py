@@ -59,20 +59,18 @@ The code below uses both of the above tricks:
 """
 
 # Numerator and denominator of tight lower and upper bounds for log2(5).
-# The denominators are negated for convenience in calculations.
-_Ln, _nLd = 12055151410, -27991194747
-_Un, _nUd = 579001193, -1344399137
+_Ln, _Ld = 12055151410, 27991194747
+_Un, _Ud = 579001193, 1344399137
 
-# _5_POW_FROM_LOW_BITS maps bits 9 through 2 of a power of 5 to the matching power.
-# _5_POW_EXPONENT_FROM_LOW_BITS maps bits 9 through 2 of a power of 5 to the matching
-# exponent.
-_5_POW_FROM_LOW_BITS = [0] * 256
-_5_POW_EXPONENT_FROM_LOW_BITS = [0] * 256
-for _e in range(256):
-    key = ((_five_e := 5**_e) >> 2) & 0xFF
-    _5_POW_FROM_LOW_BITS[key] = _five_e
-    _5_POW_EXPONENT_FROM_LOW_BITS[key] = _e
+# Bound below which we do a direct lookup based on low-order bits.
 _5_POW_256 = 5**256
+
+# _5_POW_EXPONENT_FROM_LOW_BITS maps bits 9 through 2 of a power of 5 to the matching
+# exponent. _5_POW_FROM_LOW_BITS maps the same bits to the corresponding power.
+_5_POW_EXPONENT_FROM_LOW_BITS = [
+    e for _, e in sorted((pow(5, e, 1024) >> 2, e) for e in range(256))
+]
+_5_POW_FROM_LOW_BITS = [5**e for e in _5_POW_EXPONENT_FROM_LOW_BITS]
 
 
 def exponent_from_bit_length(b: int) -> int:
@@ -81,8 +79,8 @@ def exponent_from_bit_length(b: int) -> int:
 
     Raise ValueError if b cannot possibly be the bit length of a power of 5.
     """
-    if (neg_e := (b - 1) * _Ln // _nLd) == b * _Un // _nUd + 1:
-        return -neg_e
+    if (e := -((b - 1) * _Ln // -_Ld)) == -(b * _Un // -_Ud) - 1:
+        return e
     raise ValueError(f"bit length {b} does not correspond to a power of 5")
 
 
