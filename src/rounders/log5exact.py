@@ -83,23 +83,22 @@ _5_POW_EXPONENT_FROM_LOW_BITS = {pow(5, e, 1024): e for e in range(256)}
 _5_POW_FROM_LOW_BITS = {bits: 5**e for bits, e in _5_POW_EXPONENT_FROM_LOW_BITS.items()}
 
 
-def log5exact(d: int) -> int:
+def log5exact(n: int) -> int:
     """
     Find the exponent of an exact power of 5.
 
-    Returns e if d = 5**e for some nonnegative integer e. Raises ValueError otherwise.
+    Returns e if n = 5**e for some nonnegative integer e. Raises ValueError otherwise.
     """
-    if d < _5_POW_256:
-        if d == _5_POW_FROM_LOW_BITS.get(low_bits := d & 0x3FF):
+    if n < _5_POW_256:
+        if n == _5_POW_FROM_LOW_BITS.get(low_bits := n & 0x3FF):
             return _5_POW_EXPONENT_FROM_LOW_BITS[low_bits]
     else:
-        e = exponent_from_bit_length(d.bit_length())
         if (
-            e is not None
-            and e & 0xFF == _5_POW_EXPONENT_FROM_LOW_BITS.get(d & 0x3FF)
-            and pow(5, e, 2**60) == d & 2**60 - 1
-            and pow(5, e) == d
+            (e := exponent_from_bit_length(n.bit_length())) is not None
+            and e & 0xFF == _5_POW_EXPONENT_FROM_LOW_BITS.get(n & 0x3FF)
+            and pow(5, e, 2**60) == n % 2**60
+            and pow(5, e) == n
         ):
             return e
 
-    raise ValueError(f"{d} is not a power of 5")
+    raise ValueError(f"{n} is not a power of 5")
