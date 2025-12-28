@@ -7,6 +7,8 @@ import sys
 from dataclasses import dataclass, replace
 from typing import cast
 
+from rounders.log5exact import log5exact
+
 if sys.version_info >= (3, 11):
     from typing import Self
 else:
@@ -35,18 +37,13 @@ def _natural_exponent(d: int) -> int | None:
     if d <= 0:
         raise ValueError("d must be positive")
 
-    # Count and remove powers of two.
+    # Count powers of two.
     two_exp = (~(d | -d)).bit_length()
-    d >>= two_exp
 
-    # Determine whether d is a power of 5, and if so find its exponent.
-    # Note: there are much faster ways of doing this, and if this ever proves to
-    # be a performance bottleneck then we should optimize.
-    five_exp = 0
-    while d % 5 == 0:
-        d //= 5
-        five_exp += 1
-    if d != 1:
+    # Determine whether what's left after removing powers of two is a power of 5.
+    try:
+        five_exp = log5exact(d >> two_exp)
+    except ValueError:
         return None
 
     return -max(two_exp, five_exp)
