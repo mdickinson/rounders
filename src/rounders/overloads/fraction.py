@@ -65,9 +65,9 @@ def _(x: fractions.Fraction, exponent: int | None) -> IntermediateForm:
     # In all other cases, we need to round.
     actual_exponent = exponent - 1
     if actual_exponent < 0:
-        n, d = abs(x.numerator) * cast(int, 10 ** -actual_exponent), x.denominator
+        n, d = abs(x.numerator) * cast(int, 10**-actual_exponent), x.denominator
     else:
-        n, d = abs(x.numerator), x.denominator * cast(int, 10 ** actual_exponent)
+        n, d = abs(x.numerator), x.denominator * cast(int, 10**actual_exponent)
 
     significand, inexact = divmod(n, d)
     return IntermediateForm(

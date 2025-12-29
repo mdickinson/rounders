@@ -154,4 +154,4 @@ def reciprocal_as_decimal(d: int) -> tuple[int, int]:
     if (five_exp := log5exact(d >> two_exp)) >= two_exp:
         return 1 << (five_exp - two_exp), -five_exp
     else:
-        return 5**(two_exp - five_exp), -two_exp
+        return 5 ** (two_exp - five_exp), -two_exp
