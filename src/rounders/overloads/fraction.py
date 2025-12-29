@@ -62,16 +62,18 @@ def _(x: fractions.Fraction, exponent: int | None) -> IntermediateForm:
     if exponent is None:
         raise ValueError("cannot represent non-terminating fraction exactly")
 
-    # In all other cases, we need to round.
-    actual_exponent = exponent - 1
-    if actual_exponent < 0:
-        n, d = abs(x.numerator) * cast(int, 10**-actual_exponent), x.denominator
+    # In all other cases, we need to round. We use a target exponent of exponent - 1
+    # for that rounding, with round-for-reround rounding mode (adjust an inexact 0 or 5
+    # final digit upwards).
+    rounding_exponent = exponent - 1
+    if rounding_exponent < 0:
+        n, d = abs(x.numerator) * cast(int, 10**-rounding_exponent), x.denominator
     else:
-        n, d = abs(x.numerator), x.denominator * cast(int, 10**actual_exponent)
+        n, d = abs(x.numerator), x.denominator * cast(int, 10**rounding_exponent)
 
     significand, inexact = divmod(n, d)
     return IntermediateForm(
         sign=int(x < 0),
         significand=significand + (inexact and significand % 5 == 0),
-        exponent=actual_exponent,
+        exponent=rounding_exponent,
     )
