@@ -33,15 +33,13 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     return int(rounded)
 
 
-def round_to_places(
-    value: Any, places: int, *, mode: RoundingMode = TIES_TO_EVEN
-) -> Any:
+def round_to_places(x: Any, places: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
     """
     Round a value to a given number of places after the point.
 
     Parameters
     ----------
-    value : number
+    x : number
         value to be rounded
     places : integer
         Number of places to round to, relative to the decimal point.
@@ -50,12 +48,12 @@ def round_to_places(
         ties-to-even rounding mode.
     """
     # Infinities and nans are returned unchanged.
-    if not is_finite(value):
-        return value
+    if not is_finite(x):
+        return x
 
-    prerounded = preround(value, -places)
+    prerounded = preround(x, -places)
     rounded = prerounded.round(-places, mode)
-    return to_type_of(value, rounded)
+    return to_type_of(x, rounded)
 
 
 def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
