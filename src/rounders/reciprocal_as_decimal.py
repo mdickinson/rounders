@@ -108,12 +108,22 @@ _5_POW_TO_EXPONENT = {5**e: e for e in range(64)}
 
 def log5exact(n: int) -> int:
     """
-    Find the exponent of an exact power of 5 (direct mapping variant).
+    Find the exponent of an exact power of 5.
 
-    Returns e if n = 5**e for some nonnegative integer e. Raises ValueError otherwise.
+    Parameters
+    ----------
+    n
+        A positive integer.
 
-    This variant uses a direct mapping {5**e: e} for the fast path, avoiding the
-    two-step lookup through low bits.
+    Returns
+    -------
+    int
+        The exponent e such that n = 5**e.
+
+    Raises
+    ------
+    ValueError
+        If n is not an exact power of 5.
     """
     if n < _5_POW_LIMIT:
         if (e := _5_POW_TO_EXPONENT.get(n)) is not None:
