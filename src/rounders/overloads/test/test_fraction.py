@@ -3,13 +3,28 @@
 import fractions
 import unittest
 
-from rounders.generics import preround
+from rounders.generics import decade, preround
 from rounders.intermediate_form import IntermediateForm
 from rounders.overloads.test.support import truncate_and_remainder
+
+F = fractions.Fraction
 
 
 class TestFractionOverloads(unittest.TestCase):
     """Test that preround works for Fraction objects."""
+
+    def test_decade_zero(self) -> None:
+        with self.assertRaises(ValueError):
+            decade(F(0))
+
+    def test_decade_powers_of_ten(self) -> None:
+        for e in range(-10, 11):
+            for multiplier in [F(1), F("1.1"), F(3), F(7), F("9.9999")]:
+                with self.subTest(exponent=e, multiplier=multiplier):
+                    x = multiplier * F(10) ** e
+                    self.assertEqual(decade(x), e)
+            with self.subTest(exponent=e):
+                self.assertEqual(decade(F(10) ** e), e)
 
     def test_preround_no_exponent_convertible(self) -> None:
         # Triples (numerator, denominator, expected IntermediateForm as a string)
@@ -37,18 +52,18 @@ class TestFractionOverloads(unittest.TestCase):
 
         for numerator, denominator, expected_str in test_values:
             with self.subTest(numerator=numerator, denominator=denominator):
-                value = fractions.Fraction(numerator, denominator)
+                value = F(numerator, denominator)
                 expected = IntermediateForm.from_str(expected_str)
                 self.assertEqual(preround(value, None), expected)
 
     def test_preround_with_no_exponent_not_convertible(self) -> None:
-        test_values: list[fractions.Fraction] = [
-            fractions.Fraction(1, 3),
-            fractions.Fraction(2, 3),
-            fractions.Fraction(1, 6),
-            fractions.Fraction(1, 7),
-            fractions.Fraction(10, 3),
-            fractions.Fraction(123, 700),
+        test_values = [
+            F(1, 3),
+            F(2, 3),
+            F(1, 6),
+            F(1, 7),
+            F(10, 3),
+            F(123, 700),
         ]
 
         for value in test_values:
@@ -94,7 +109,7 @@ class TestFractionOverloads(unittest.TestCase):
                 denominator=denominator,
                 exponent=exponent,
             ):
-                value = fractions.Fraction(numerator, denominator)
+                value = F(numerator, denominator)
                 expected = IntermediateForm.from_str(expected_str)
                 actual = preround(value, exponent)
                 self.assertEqual(
