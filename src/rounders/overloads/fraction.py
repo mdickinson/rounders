@@ -5,6 +5,7 @@ from typing import cast
 
 from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounders.intermediate_form import IntermediateForm
+from rounders.reciprocal_as_decimal import reciprocal_as_decimal
 
 
 @decade.register
@@ -44,9 +45,33 @@ def _(x: fractions.Fraction) -> bool:
 
 @preround.register
 def _(x: fractions.Fraction, exponent: int | None) -> IntermediateForm:
-    return IntermediateForm.from_signed_fraction(
+    # If the input fraction terminates, return a decimal representation of its exact
+    # value, with the exponent reflecting termination point.
+    try:
+        m, e = reciprocal_as_decimal(x.denominator)
+    except ValueError:
+        pass
+    else:
+        return IntermediateForm(
+            sign=int(x < 0),
+            significand=abs(x.numerator) * m,
+            exponent=e,
+        )
+
+    # Otherwise, if we're requiring an exact representation, raise.
+    if exponent is None:
+        raise ValueError("cannot represent non-terminating fraction exactly")
+
+    # In all other cases, we need to round.
+    actual_exponent = exponent - 1
+    if actual_exponent < 0:
+        n, d = abs(x.numerator) * cast(int, 10 ** -actual_exponent), x.denominator
+    else:
+        n, d = abs(x.numerator), x.denominator * cast(int, 10 ** actual_exponent)
+
+    significand, inexact = divmod(n, d)
+    return IntermediateForm(
         sign=int(x < 0),
-        numerator=abs(x.numerator),
-        denominator=x.denominator,
-        exponent=exponent - 1 if exponent is not None else None,
+        significand=significand + (inexact and significand % 5 == 0),
+        exponent=actual_exponent,
     )

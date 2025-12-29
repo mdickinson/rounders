@@ -2,11 +2,15 @@
 
 import unittest
 
-from rounders.log5exact import exponent_from_bit_length, log5exact
+from rounders.reciprocal_as_decimal import (
+    exponent_from_bit_length,
+    log5exact,
+    reciprocal_as_decimal,
+)
 
 
-class TestLog5exact(unittest.TestCase):
-    """Tests for the log5exact function."""
+class TestReciprocalAsDecimal(unittest.TestCase):
+    """Tests for reciprocal_as_decimal and supporting functions."""
 
     def test_exponent_from_bit_length(self) -> None:
         for e in range(1000):
@@ -21,7 +25,11 @@ class TestLog5exact(unittest.TestCase):
     def test_exponent_from_bit_length_small_inputs(self) -> None:
         for b in range(1000):
             with self.subTest(b=b):
-                if (e := exponent_from_bit_length(b)) is not None:
+                try:
+                    e = exponent_from_bit_length(b)
+                except ValueError:
+                    pass
+                else:
                     self.assertEqual((5**e).bit_length(), b)
 
     def test_log5exact_small_powers_of_5(self) -> None:
@@ -49,3 +57,19 @@ class TestLog5exact(unittest.TestCase):
                 with self.subTest(e=e, delta=delta, d=d):
                     with self.assertRaises(ValueError):
                         log5exact(d)
+
+    def test_reciprocal_as_decimal_small_inputs(self) -> None:
+        ds = [d for d in range(1, 1001) if 10**9 % d == 0]
+        for d in ds:
+            with self.subTest(d=d):
+                m, e = reciprocal_as_decimal(d)
+                self.assertLessEqual(e, 0)
+                self.assertNotEqual(m % 10, 0)
+                self.assertEqual(m * d, 10**-e)
+
+    def test_reciprocal_as_decimal_non_terminating(self) -> None:
+        ds = [d for d in range(1, 1001) if 10**9 % d != 0]
+        for d in ds:
+            with self.subTest(d=d):
+                with self.assertRaises(ValueError):
+                    reciprocal_as_decimal(d)
