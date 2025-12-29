@@ -15,7 +15,7 @@ def _(x: fractions.Fraction) -> int:
 
     # We can compute based entirely on the digit strings.
     sn, sd = str(abs(x.numerator)), str(x.denominator)
-    return len(sn) - len(sd) - (sn.rstrip("0") < sd.rstrip("0"))
+    return len(sn) - len(sd) - (sn < sd.rstrip("0"))
 
 
 @to_type_of.register
