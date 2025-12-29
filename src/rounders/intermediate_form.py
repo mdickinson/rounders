@@ -5,9 +5,6 @@ from __future__ import annotations
 import re
 import sys
 from dataclasses import dataclass, replace
-from typing import cast
-
-from rounders.log5exact import log5exact
 
 if sys.version_info >= (3, 11):
     from typing import Self
@@ -26,27 +23,6 @@ _INTERMEDIATE_FORM_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
-
-
-def _natural_exponent(d: int) -> int | None:
-    """
-    Find the largest integer e such that 1/d is a multiple of 10**e.
-
-    Return None if there's no such integer.
-    """
-    if d <= 0:
-        raise ValueError("d must be positive")
-
-    # Count powers of two.
-    two_exp = (~(d | -d)).bit_length()
-
-    # Determine whether what's left after removing powers of two is a power of 5.
-    try:
-        five_exp = log5exact(d >> two_exp)
-    except ValueError:
-        return None
-
-    return -max(two_exp, five_exp)
 
 
 @dataclass(frozen=True)
@@ -85,48 +61,6 @@ class IntermediateForm:
             sign=1 if match["sign"] == "-" else 0,
             significand=int(match["intpart"] + fracpart),
             exponent=int(match["exponent"] or 0) - len(fracpart),
-        )
-
-    @classmethod
-    def from_signed_fraction(
-        cls, *, sign: int, numerator: int, denominator: int, exponent: int | None
-    ) -> Self:
-        """
-        Create from a signed fraction, given a target exponent.
-
-        Creates an IntermediateForm from a quotient of the form ±(n/d) with either the
-        target exponent or the natural exponent of the input, using round-for-reround.
-        The natural exponent of the input is the largest nonpositive integer e for which
-        (n/d) / 10**e is an integer, if any such exists, else None.
-
-        If exponent is None, then the signed fraction must be exactly representable
-        in decimal format, otherwise a ValueError will be raised.
-
-        `numerator` and `denominator` must be relatively prime, `denominator` must be
-        positive, and `numerator` must be nonnegative.
-        """
-        if numerator < 0 or denominator <= 0:
-            raise ValueError("Invalid signed fraction representation")
-
-        exponents: list[int | None] = [_natural_exponent(denominator), exponent]
-        exponent = max([e for e in exponents if e is not None], default=None)
-        if exponent is None:
-            raise ValueError(
-                f"cannot represent fraction {numerator}/{denominator} "
-                f"exactly as a decimal"
-            )
-
-        if exponent <= 0:
-            n, d = numerator * cast(int, 10**-exponent), denominator
-        else:
-            n, d = numerator, denominator * cast(int, 10**exponent)
-
-        # Round-for-reround
-        significand, inexact = divmod(n, d)
-        return cls(
-            sign=sign,
-            significand=significand + (inexact and significand % 5 == 0),
-            exponent=exponent,
         )
 
     @property
