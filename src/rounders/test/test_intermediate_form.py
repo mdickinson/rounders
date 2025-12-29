@@ -1,6 +1,5 @@
 """Tests for the IntermediateForm class."""
 
-import math
 import unittest
 
 from rounders.intermediate_form import IntermediateForm
