@@ -6,13 +6,13 @@ from rounders.generics import decade, is_finite, is_zero, preround, to_type_of
 from rounders.modes import TIES_TO_EVEN, RoundingMode
 
 
-def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
+def round_to_int(number: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     """
     Round a value to the nearest integer, using the given rounding mode.
 
     Parameters
     ----------
-    x : numeric
+    number : numeric
     mode : optional, keyword-only
         Any of the available rounding modes. Defaults to the
         ties-to-even rounding mode.
@@ -26,20 +26,22 @@ def round_to_int(x: Any, *, mode: RoundingMode = TIES_TO_EVEN) -> int:
     ValueError
         If the value to be rounded is not finite.
     """
-    if not is_finite(x):
-        raise ValueError("x must be finite")
+    if not is_finite(number):
+        raise ValueError("number must be finite")
 
-    rounded = preround(x, 0).round(0, mode)
+    rounded = preround(number, 0).round(0, mode)
     return int(rounded)
 
 
-def round_to_places(x: Any, places: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
+def round_to_places(
+    number: Any, places: int, *, mode: RoundingMode = TIES_TO_EVEN
+) -> Any:
     """
     Round a value to a given number of places after the point.
 
     Parameters
     ----------
-    x : number
+    number : number
         value to be rounded
     places : integer
         Number of places to round to, relative to the decimal point.
@@ -48,21 +50,23 @@ def round_to_places(x: Any, places: int, *, mode: RoundingMode = TIES_TO_EVEN) -
         ties-to-even rounding mode.
     """
     # Infinities and nans are returned unchanged.
-    if not is_finite(x):
-        return x
+    if not is_finite(number):
+        return number
 
-    prerounded = preround(x, -places)
+    prerounded = preround(number, -places)
     rounded = prerounded.round(-places, mode)
-    return to_type_of(x, rounded)
+    return to_type_of(number, rounded)
 
 
-def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN) -> Any:
+def round_to_figures(
+    number: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN
+) -> Any:
     """
     Round a value to a given number of significant figures.
 
     Parameters
     ----------
-    x : numeric
+    number : numeric
     figures : positive integer
     mode, optional
         Any of the available rounding modes. Defaults to the
@@ -72,8 +76,8 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
         raise ValueError(f"figures must be positive; got {figures}")
 
     # Infinities and nans are returned unchanged.
-    if not is_finite(x):
-        return x
+    if not is_finite(number):
+        return number
 
     # The choice of exponent for zero is rather arbitrary. The choice
     # here ensures alignment in a table of values expressed in
@@ -84,8 +88,10 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     #  1.23e+02
     #  0.00e+00
 
-    prerounded = preround(x, exponent=None if is_zero(x) else decade(x) + 1 - figures)
-    exponent = (0 if is_zero(x) else prerounded.decade) + 1 - figures
+    prerounded = preround(
+        number, exponent=None if is_zero(number) else decade(number) + 1 - figures
+    )
+    exponent = (0 if is_zero(number) else prerounded.decade) + 1 - figures
     rounded = prerounded.round(exponent, mode)
 
     # Adjust if the result has one more significant figure than expected.
@@ -93,11 +99,11 @@ def round_to_figures(x: Any, figures: int, *, mode: RoundingMode = TIES_TO_EVEN)
     # rounded up to the next power of 10: for example, in rounding
     # 99.973 to 100.0.
     rounded = rounded.trim(figures)
-    return to_type_of(x, rounded)
+    return to_type_of(number, rounded)
 
 
 def round(
-    x: Any, ndigits: int | None = None, *, mode: RoundingMode = TIES_TO_EVEN
+    number: Any, ndigits: int | None = None, *, mode: RoundingMode = TIES_TO_EVEN
 ) -> Any:
     """
     Round a value using a given rounding mode.
@@ -106,7 +112,7 @@ def round(
 
     Parameters
     ----------
-    x : number
+    number : number
         Value to be rounded
     ndigits : int
         Number of digits past the point to round to. Can be negative.
@@ -114,6 +120,6 @@ def round(
         Rounding mode. Defaults to TIES_TO_EVEN.
     """
     if ndigits is None:
-        return round_to_int(x, mode=mode)
+        return round_to_int(number, mode=mode)
     else:
-        return round_to_places(x, ndigits, mode=mode)
+        return round_to_places(number, ndigits, mode=mode)
