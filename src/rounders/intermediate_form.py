@@ -45,6 +45,14 @@ class IntermediateForm:
     # Exponent
     exponent: int
 
+    @property
+    def digits(self) -> str:
+        """Return the digits of the significand.
+
+        Returns an empty string for the case significand = 0.
+        """
+        return str(self.significand) if self.significand else ""
+
     @classmethod
     def from_str(cls, s: str) -> Self:
         """

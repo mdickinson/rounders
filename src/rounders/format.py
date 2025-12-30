@@ -183,20 +183,21 @@ class FormatSpecification:
         str
             The formatted value.
         """
-        # Get digits as a decimal string.
-        digits = str(rounded.significand) if rounded.significand else ""
+        # Get necessary attributes.
+        digits, low_exponent, sign = rounded.digits, rounded.exponent, rounded.sign
+        high_exponent = rounded.exponent + len(digits)
 
-        # Adjust for scientific notation
+        # Adjust for scientific notation. e_exponent is the value that will appear after
+        # the 'e' in the formatted result.
         use_exponent = self.scientific
-        if use_exponent and rounded.significand:
-            # Nonzero value: place the decimal point after the first digit.
-            e_exponent = rounded.exponent + len(digits) - 1
+        if use_exponent and digits:
+            e_exponent = low_exponent + len(digits) - 1
         else:
             e_exponent = 0
 
         # Figure out number-line positions.
-        end_exponent = rounded.exponent - e_exponent
-        start_exponent = end_exponent + len(digits)
+        start_exponent = high_exponent - e_exponent
+        end_exponent = low_exponent - e_exponent
 
         # Pad with zeros to ensure required minimum number of digits before and
         # after the point.
@@ -210,7 +211,7 @@ class FormatSpecification:
             end_exponent = -self.min_digits_after_point
 
         # Determine the string to use to represent the sign.
-        sign_str = self.negative_sign if rounded.sign else self.positive_sign
+        sign_str = self.negative_sign if sign else self.positive_sign
 
         # Assemble the result.
         before_point = digits[:start_exponent]
