@@ -238,11 +238,13 @@ def round_to_format(
 
     Returns a value in intermediate form.
     """
-    # Preround and round ...
+    # Preround to an appropriate exponent.
     exponent = (
         None if is_zero(number) else format.minimum_exponent_for_decade(decade(number))
     )
     result: IntermediateForm = preround(number, exponent=exponent)
+
+    # Round if necessary (but avoid reducing the exponent unnecessarily).
     if exponent is not None and exponent > result.exponent:
         result = result.round(exponent, mode)
 
