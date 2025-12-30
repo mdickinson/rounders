@@ -25,7 +25,7 @@ _INTERMEDIATE_FORM_PATTERN = re.compile(
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class IntermediateForm:
     """
     Intermediate value for rounding and formatting operations.
