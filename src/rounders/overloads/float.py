@@ -729,9 +729,13 @@ def _(x: float, exponent: int | None) -> IntermediateForm:
 
     sign = int(math.copysign(1.0, x) < 0.0)
     numerator, denominator = abs(x).as_integer_ratio()
-    return IntermediateForm.from_signed_fraction(
+    d_2exp = denominator.bit_length() - 1
+
+    # Exact conversion, ignoring the incoming exponent.
+    # A more efficient implementation would take the exponent into account
+    # and generate a smaller significand for tiny inputs.
+    return IntermediateForm(
         sign=sign,
-        numerator=numerator,
-        denominator=denominator,
-        exponent=exponent - 1 if exponent is not None else None,
+        significand=numerator * 5**d_2exp,
+        exponent=-d_2exp,
     )
