@@ -1,6 +1,5 @@
 """Tests for the float overloads."""
 
-import decimal
 import unittest
 
 from rounders.generics import preround
@@ -46,11 +45,19 @@ class TestFloatOverloads(unittest.TestCase):
             # Huge
             (float.fromhex("0x1p+1023"), -10, f"{2**1023}"),
             # No exponent
-            (1.23456789, None, str(decimal.Decimal(1.23456789)).lower()),
+            (
+                1.23456789,
+                None,
+                "1.2345678899999998900938180668163113296031951904296875",
+            ),
             (123, None, "123"),
             (100, None, "100"),
-            (1.2e10, None, str(decimal.Decimal(1.2e10)).lower()),
-            (1.2e-10, None, str(decimal.Decimal(1.2e-10)).lower()),
+            (1.2e10, None, "12000000000"),
+            (
+                1.2e-10,
+                None,
+                "1.19999999999999999201984849403306021553561322434688918292522430419921875e-10",
+            ),
         ]
 
         for value, exponent, expected_str in test_values:
