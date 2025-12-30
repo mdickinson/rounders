@@ -3,7 +3,7 @@
 import dataclasses
 
 
-@dataclasses.dataclass(frozen=True)
+@dataclasses.dataclass(frozen=True, kw_only=True)
 class TargetFormat:
     """
     Class representing a target format for a rounding operation.
