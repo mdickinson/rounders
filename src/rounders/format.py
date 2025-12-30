@@ -239,11 +239,11 @@ class FormatSpecification:
         return sign_str + before_point + point + after_point + exponent
 
 
-def round_for_format(
-    x: Any,
-    *,
+def round_to_format(
+    number: Any,
     format: TargetFormat,
-    mode: RoundingMode,
+    *,
+    mode: RoundingMode = TIES_TO_EVEN,
     zero_exponent: int | None,
 ) -> IntermediateForm:
     """
@@ -251,8 +251,8 @@ def round_for_format(
 
     Returns a value in intermediate form.
     """
-    exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
-    result: IntermediateForm = preround(x, exponent=exponent)
+    exponent = None if is_zero(number) else format.minimum_exponent_for_decade(decade(number))
+    result: IntermediateForm = preround(number, exponent=exponent)
 
     target_exponent: int | None
     if result.is_zero():
@@ -292,7 +292,7 @@ def format(value: Any, pattern: str) -> str:
     format_specification = FormatSpecification.from_str(pattern)
 
     # Step 1: convert to rounded value.
-    rounded = round_for_format(
+    rounded = round_to_format(
         value,
         format=format_specification.target_format,
         mode=format_specification.rounding_mode,
