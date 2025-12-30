@@ -184,28 +184,14 @@ class FormatSpecification:
             The formatted value.
         """
         # Get necessary attributes.
-        digits = rounded.digits
-        low_exponent = rounded.exponent
+        digits, low_exponent, sign = rounded.digits, rounded.exponent, rounded.sign
         high_exponent = rounded.exponent + len(digits)
-        sign = rounded.sign
 
         # Adjust for scientific notation. e_exponent is the value that will appear after
         # the 'e' in the formatted result.
         use_exponent = self.scientific
-        if use_exponent:
-            if digits:
-                # Nonzero value: place the decimal point after the first digit.
-                e_exponent = low_exponent + len(digits) - 1
-            else:
-                # XXX Can we somehow eliminate this special case?
-                # Only by altering digits in the case of significand zero ...
-                if low_exponent <= 0:
-                    digits = "0" * (1 - low_exponent)
-                    high_exponent = 1
-                    e_exponent = low_exponent + len(digits) - 1
-                else:
-                    assert False, "never get here"
-                    e_exponent = 0
+        if use_exponent and digits:
+            e_exponent = low_exponent + len(digits) - 1
         else:
             e_exponent = 0
 
