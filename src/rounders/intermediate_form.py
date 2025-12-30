@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import re
+import sys
 from dataclasses import dataclass, replace
-from typing import cast
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from rounders.modes import RoundingMode
 
@@ -18,31 +23,6 @@ _INTERMEDIATE_FORM_PATTERN = re.compile(
     """,
     re.VERBOSE,
 )
-
-
-def _smallest_ten_power_multiple(d: int) -> int:
-    """
-    Find smallest power of 10 that's divisible by a positive integer d.
-
-    Raises ValueError if there's no such power.
-    """
-    assert d > 0
-
-    # Count and remove powers of two.
-    two_exp = (d & -d).bit_length() - 1
-    d >>= two_exp
-
-    # Determine whether d is a power of 5, and if so find its exponent.
-    # Note: there are much faster ways of doing this, and if this ever proves to
-    # be a performance bottleneck then we should optimize.
-    five_exp = 0
-    while d % 5 == 0:
-        d //= 5
-        five_exp += 1
-    if d != 1:
-        raise ValueError("d is not a divisor of any power of 10")
-
-    return max(two_exp, five_exp)
 
 
 @dataclass(frozen=True)
@@ -65,8 +45,16 @@ class IntermediateForm:
     # Exponent
     exponent: int
 
+    @property
+    def digits(self) -> str:
+        """Return the digits of the significand.
+
+        Returns an empty string for the case significand = 0.
+        """
+        return str(self.significand) if self.significand else ""
+
     @classmethod
-    def from_str(cls, s: str) -> IntermediateForm:
+    def from_str(cls, s: str) -> Self:
         """
         Create an intermediate form from a string.
 
@@ -81,49 +69,6 @@ class IntermediateForm:
             sign=1 if match["sign"] == "-" else 0,
             significand=int(match["intpart"] + fracpart),
             exponent=int(match["exponent"] or 0) - len(fracpart),
-        )
-
-    @classmethod
-    def from_signed_fraction(
-        cls, *, sign: int, numerator: int, denominator: int, exponent: int | None
-    ) -> IntermediateForm:
-        """
-        Create from a signed fraction, given a target exponent.
-
-        Creates an IntermediateForm from a quotient of the form ±(n/d) with the target
-        exponent, using round-for-reround.
-
-        If exponent is None, then the signed fraction must be exactly representable
-        in decimal format, otherwise a ValueError will be raised.
-
-        `numerator` and `denominator` must be relatively prime, `denominator` must be
-        positive, and `numerator` must be nonnegative.
-        """
-        if numerator < 0 or denominator <= 0:
-            raise ValueError("Invalid signed fraction representation")
-
-        # Case where exponent is None: convert exactly if possible, else raise
-        # a ValueError. We use the largest nonpositive exponent possible.
-        if exponent is None:
-            e = _smallest_ten_power_multiple(denominator)
-            assert 10**e % denominator == 0
-            return IntermediateForm(
-                sign=sign,
-                significand=numerator * (10**e // denominator),
-                exponent=-e,
-            )
-
-        if exponent <= 0:
-            n, d = numerator * cast(int, 10**-exponent), denominator
-        else:
-            n, d = numerator, denominator * cast(int, 10**exponent)
-
-        # Round-for-reround
-        significand, inexact = divmod(n, d)
-        return IntermediateForm(
-            sign=sign,
-            significand=significand + (inexact and significand % 5 == 0),
-            exponent=exponent,
         )
 
     @property
