@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import dataclasses
 import re
+import sys
 from typing import Any
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from rounders.generics import decade, is_zero, preround
 from rounders.intermediate_form import IntermediateForm
@@ -106,7 +112,7 @@ class FormatSpecification:
     positive_sign: str = ""
 
     @classmethod
-    def from_str(cls, pattern: str) -> FormatSpecification:
+    def from_str(cls, pattern: str) -> Self:
         """
         Create a format specification from a format specification string.
 
@@ -130,9 +136,12 @@ class FormatSpecification:
         if round_type == "f":
             places = int(match["precision"])
             kwargs.update(places=places)
+            kwargs.update(min_digits_after_point=max(0, places))
         elif round_type == "e":
-            kwargs.update(figures=int(match["precision"]) + 1)
+            figures = int(match["precision"]) + 1
+            kwargs.update(figures=figures)
             kwargs.update(scientific=True)
+            kwargs.update(min_digits_after_point=figures - 1)
         else:
             raise ValueError("Unhandled round type")
 
@@ -159,21 +168,6 @@ class FormatSpecification:
             maximum_figures=self.figures,
             signed_zero=self.signed_zero,
         )
-
-    @property
-    def zero_exponent(self) -> int | None:
-        """
-        Exponent to use when formatting zeros.
-
-        A return value of None indicates that the existing exponent should be passed
-        through.
-        """
-        exponents: list[int] = []
-        if self.places is not None:
-            exponents.append(-self.places)
-        if self.figures is not None:
-            exponents.append(1 - self.figures)
-        return max(exponents, default=None)
 
     def format(self, rounded: IntermediateForm) -> str:
         """
@@ -234,29 +228,26 @@ class FormatSpecification:
         return sign_str + before_point + point + after_point + exponent
 
 
-def round_for_format(
-    x: Any,
-    *,
+def round_to_format(
+    number: Any,
     format: TargetFormat,
-    mode: RoundingMode,
-    zero_exponent: int | None,
+    *,
+    mode: RoundingMode = TIES_TO_EVEN,
 ) -> IntermediateForm:
     """
     Round a finite value to a given target format, using a given rounding mode.
 
     Returns a value in intermediate form.
     """
-    exponent = None if is_zero(x) else format.minimum_exponent_for_decade(decade(x))
-    result: IntermediateForm = preround(x, exponent=exponent)
+    # Preround to an appropriate exponent.
+    exponent = (
+        None if is_zero(number) else format.minimum_exponent_for_decade(decade(number))
+    )
+    result: IntermediateForm = preround(number, exponent=exponent)
 
-    target_exponent: int | None
-    if result.is_zero():
-        target_exponent = zero_exponent
-    else:
-        target_exponent = format.minimum_exponent_for_decade(result.decade)
-
-    if target_exponent is not None:
-        result = result.round(target_exponent, mode)
+    # Round if necessary (but avoid reducing the exponent unnecessarily).
+    if exponent is not None and exponent > result.exponent:
+        result = result.round(exponent, mode)
 
     # Drop negative sign on zeros (even those that arise from rounding nonzero values).
     if not format.signed_zero:
@@ -287,11 +278,10 @@ def format(value: Any, pattern: str) -> str:
     format_specification = FormatSpecification.from_str(pattern)
 
     # Step 1: convert to rounded value.
-    rounded = round_for_format(
+    rounded = round_to_format(
         value,
         format=format_specification.target_format,
         mode=format_specification.rounding_mode,
-        zero_exponent=format_specification.zero_exponent,
     )
 
     # Step 2: convert to string. Only supporting e and f-presentation formats right now.
