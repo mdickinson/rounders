@@ -16,12 +16,7 @@
 # XXX When the target format has unsigned zero, allow specifying the sign character
 #     to use for zero.
 # XXX Formatting of infinities and nans?
-# XXX Rework so that we're not using the decimal type anywhere outside the overloads
-#     (except perhaps in dedicated end-to-end tests)
-# XXX Add overloads for IntermediateForm, so that we can easily use it in tests
-#     in place of decimal.Decimal. (preround would simply return the value unchanged)
 
-import decimal
 import fractions
 import unittest
 
@@ -119,14 +114,14 @@ class TestRoundForFormat(unittest.TestCase):
         format = TargetFormat()
 
         test_values: list[
-            tuple[float | fractions.Fraction | int | decimal.Decimal, RoundingMode, str]
+            tuple[IntermediateForm | fractions.Fraction, RoundingMode, str]
         ] = [
-            (1.0, TIES_TO_EVEN, "1"),
+            (IntermediateForm.from_str("1"), TIES_TO_EVEN, "1"),
+            (IntermediateForm.from_str("1230"), TIES_TO_EVEN, "1230"),
+            (IntermediateForm.from_str("123e4"), TIES_TO_EVEN, "123e4"),
             (fractions.Fraction(3, 8), TIES_TO_EVEN, "0.375"),
             (fractions.Fraction(3, 40), TIES_TO_EVEN, "0.075"),
             (fractions.Fraction(3, 125), TIES_TO_EVEN, "0.024"),
-            (1230, TIES_TO_EVEN, "1230"),
-            (decimal.Decimal("123e4"), TIES_TO_EVEN, "123e4"),
         ]
 
         for unrounded, mode, expected in test_values:
